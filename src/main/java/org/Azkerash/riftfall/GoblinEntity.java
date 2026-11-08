@@ -14,25 +14,60 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** Living humanoids: the shaman is a separate entity type, never an undead caster. */
-public final class GoblinEntity extends Monster {
+public final class GoblinEntity extends Monster implements net.minecraft.world.entity.monster.RangedAttackMob {
     private boolean castingGoalAdded;
     public GoblinEntity(EntityType<? extends GoblinEntity> type, Level level) {
         super(type,level);
         xpReward=isShaman()?12:5;
-        setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?Items.BLAZE_ROD:Items.STONE_SWORD));
+        setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:Items.STONE_SWORD));
         setDropChance(EquipmentSlot.MAINHAND,0);
     }
     public boolean isShaman() { return getType()==RiftEntities.GOBLIN_SHAMAN.get(); }
+    public boolean isArcher() { return getType()==RiftEntities.GOBLIN_ARCHER.get(); }
+    public boolean isRanged() { return isShaman() || isArcher(); }
+    @Override public boolean isAlliedTo(net.minecraft.world.entity.Entity other) {
+        if (other instanceof GoblinEntity && getTeam()==null && other.getTeam()==null) return true;
+        return super.isAlliedTo(other);
+    }
+    @Override public boolean canFireProjectileWeapon(net.minecraft.world.item.ProjectileWeaponItem weapon) { return isArcher() && weapon instanceof net.minecraft.world.item.BowItem; }
+    @Override public void performRangedAttack(net.minecraft.world.entity.LivingEntity target,float power) {
+        if (!isArcher()) return;
+        var arrow=net.minecraft.world.entity.projectile.ProjectileUtil.getMobArrow(this,new ItemStack(Items.ARROW),power,getMainHandItem());
+        double x=target.getX()-getX(),z=target.getZ()-getZ(),y=target.getY(.33)-arrow.getY();
+        arrow.shoot(x,y+Math.sqrt(x*x+z*z)*.2,z,1.6F,6);
+        playSound(net.minecraft.sounds.SoundEvents.ARROW_SHOOT,1,1);
+        level().addFreshEntity(arrow);
+        getPersistentData().putInt("RiftfallArrowsShot",getPersistentData().getInt("RiftfallArrowsShot")+1);
+    }
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH,20).add(Attributes.ATTACK_DAMAGE,3)
-            .add(Attributes.MOVEMENT_SPEED,.28).add(Attributes.FOLLOW_RANGE,28).add(Attributes.SCALE,.72);
+            .add(Attributes.MOVEMENT_SPEED,.28).add(Attributes.FOLLOW_RANGE,28).add(Attributes.SCALE,.56);
+    }
+    @Override public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        // Correct the previous default in existing saves while preserving deliberate
+        // custom scale values and attribute modifiers.
+        if (isShaman() && getMainHandItem().is(Items.BLAZE_ROD))
+            setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(GoblinItems.BONE_STAFF.get()));
+        if (getPersistentData().contains("RiftfallOwner")) {
+            if (getItemBySlot(EquipmentSlot.HEAD).is(Items.IRON_HELMET)) setItemSlot(EquipmentSlot.HEAD,ItemStack.EMPTY);
+            if (getItemBySlot(EquipmentSlot.CHEST).is(Items.IRON_CHESTPLATE) || getItemBySlot(EquipmentSlot.CHEST).is(Items.DIAMOND_CHESTPLATE))
+                setItemSlot(EquipmentSlot.CHEST,ItemStack.EMPTY);
+            if (!isRanged() && (getMainHandItem().is(Items.IRON_SWORD) || getMainHandItem().is(Items.DIAMOND_SWORD) || getMainHandItem().is(Items.NETHERITE_SWORD)))
+                setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(Items.STONE_SWORD));
+        }
+        var scale=getAttribute(Attributes.SCALE);
+        if (scale!=null && Math.abs(scale.getBaseValue()-.72)<.00001) scale.setBaseValue(.56);
     }
     @Override protected void registerGoals() {
         goalSelector.addGoal(0,new FloatGoal(this));
         if (isShaman()) {
-            goalSelector.addGoal(2,new AvoidEntityGoal<>(this,Player.class,5,1.1,1.2));
-            goalSelector.addGoal(3,new MoveTowardsTargetGoal(this,1.0,24));
-        } else goalSelector.addGoal(3,new MeleeAttackGoal(this,1.1,false));
+            goalSelector.addGoal(1,new GoblinTactics.StaffClub(this));
+            goalSelector.addGoal(2,new GoblinTactics.Heal(this));
+        }
+        if (isRanged()) goalSelector.addGoal(3,new GoblinTactics.Retreat(this));
+        if (isArcher()) goalSelector.addGoal(4,new GoblinTactics.Bow(this));
+        if (!isRanged()) goalSelector.addGoal(3,new MeleeAttackGoal(this,1.1,false));
         goalSelector.addGoal(6,new WaterAvoidingRandomStrollGoal(this,.8));
         goalSelector.addGoal(7,new LookAtPlayerGoal(this,Player.class,8));
         targetSelector.addGoal(1,new HurtByTargetGoal(this));

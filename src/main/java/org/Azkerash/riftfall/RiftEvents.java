@@ -51,7 +51,16 @@ public final class RiftEvents {
                     r.energy += intake; r.essence += intake;
                 }
             }
-            if (r.sourceBiome.isEmpty() && world.hasChunkAt(r.pos)) RiftEcology.capture(world,r);
+            if ((r.sourceBiome.isEmpty() && world.hasChunkAt(r.pos)) || (!r.sourceBiome.isEmpty() && r.rosterVersion<2)) RiftEcology.capture(world,r);
+            RiftDungeons.migrate(arena,r);
+            for (UUID id : java.util.Set.copyOf(r.enemies)) {
+                var mob=RiftMobs.find(arena,r,id);
+                if (mob!=null && (!RiftMobs.eligible(mob.getType()) || !RiftEcology.matches(mob.getType(),r))
+                    && !(RiftBosses.isBoss(mob.getType()) && id.equals(r.boss) && r.theme.equals("frozen"))) {
+                    mob.discard(); r.enemies.remove(id); r.spawned.remove(id); arena.getScoreboard().removePlayerFromTeam(id.toString());
+                    if (id.equals(r.boss)) { r.boss=null; RiftBosses.clearBar(r); }
+                }
+            }
             RiftBosses.tick(arena,r);
             if (r.dormant) {
                 if (r.dormantTicks > 0) r.dormantTicks--;
@@ -246,8 +255,14 @@ public final class RiftEvents {
 
     @SubscribeEvent public static void joined(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
         if (!(event.getLevel() instanceof ServerLevel arena) || arena.dimension()!=ARENA
-            || !(event.getEntity() instanceof net.minecraft.world.entity.Mob mob) || !(RiftMobs.eligible(mob.getType()) || RiftBosses.isBoss(mob.getType()))) return;
+            || !(event.getEntity() instanceof net.minecraft.world.entity.Mob mob)) return;
         RiftData data=RiftData.get(arena.getServer());
+        String species=net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString();
+        if (RiftEcology.overworldOnly(species) && mob instanceof io.redspace.ironsspellbooks.api.entity.IMagicEntity) {
+            for (Rift r : data.rifts) { r.enemies.remove(mob.getUUID()); r.spawned.remove(mob.getUUID()); if (mob.getUUID().equals(r.boss)) r.boss=null; }
+            event.setCanceled(true); data.setDirty(); return;
+        }
+        if (!(RiftMobs.eligible(mob.getType()) || RiftBosses.isBoss(mob.getType()))) return;
         for (Rift r : data.rifts) if (r.retired.remove(mob.getUUID())) {
             arena.getScoreboard().removePlayerFromTeam(mob.getStringUUID());
             event.setCanceled(true); data.setDirty(); return;
@@ -337,6 +352,13 @@ public final class RiftEvents {
                 for (Rift r : data.rifts) c.getSource().sendSuccess(() -> Component.literal("#" + r.id + " at " + coordinates(r.pos) + " | " + (r.dormant ? "DORMANT " + (r.dormantTicks + 19) / 20 + "s" : r.cleared ? "CLEARED — awaiting exit" : r.remaining == 0 ? "BROKEN" : (r.remaining + 19) / 20 + "s") + " | level " + r.level() + " | power " + (Math.round(r.essence * 100) / 100.0) + " | bank " + Math.round(r.energy) + " | arena: " + (r.built ? r.enemies.size() + " enemies" : "unvisited")), false);
                 return 1;
             }))
+            .then(Commands.literal("roster").then(Commands.argument("id",com.mojang.brigadier.arguments.IntegerArgumentType.integer(0)).executes(c -> {
+                int id=com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c,"id");
+                var r=RiftData.get(c.getSource().getServer()).rifts.stream().filter(v->v.id==id).findFirst().orElse(null);
+                if (r==null) { c.getSource().sendFailure(Component.literal("Unknown rift.")); return 0; }
+                c.getSource().sendSuccess(()->Component.literal("Rift #"+id+" | "+r.sourceBiome+" | "+r.theme+" | normal weights: "+r.roster),false);
+                return 1;
+            })))
             .then(Commands.literal("leave").executes(c -> {
                 ServerPlayer p = c.getSource().getPlayerOrException();
                 if (p.level().dimension() != ARENA) { c.getSource().sendFailure(Component.literal("You are not inside a rift.")); return 0; }

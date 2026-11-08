@@ -15,11 +15,8 @@ import org.Azkerash.riftfall.RiftData.Rift;
 
 final class RiftBosses {
     static final int COST = 200;
-    static boolean isBoss(EntityType<?> type) { return RiftEcology.BOSS_ONLY.contains(BuiltInRegistries.ENTITY_TYPE.getKey(type).toString()); }
-    static String species(String theme) {
-        return theme.equals("frozen") ? "irons_spellbooks:ice_spider"
-            : java.util.Set.of("woodland","temperate","swamp").contains(theme) ? "irons_spellbooks:archevoker" : "";
-    }
+    static boolean isBoss(EntityType<?> type) { return BuiltInRegistries.ENTITY_TYPE.getKey(type).toString().equals("irons_spellbooks:ice_spider"); }
+    static String species(String theme) { return theme.equals("frozen") ? "irons_spellbooks:ice_spider" : ""; }
     static boolean canBuild(Rift r,int level,double surplus) { return level >= 5 && surplus >= COST && !species(r.theme).isEmpty(); }
     static BlockPos position(Rift r) { return r.arena().offset(0,1,-r.radius+5); }
     static boolean inRoom(Rift r,double x,double z) { return r.contains(x,z) && z < -r.radius/3; }

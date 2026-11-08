@@ -1,0 +1,16 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "riftfall:soul_crystal",
+  "render_type": "minecraft:translucent",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "riftfall:block/crystal_cluster",
+    "crystal": "riftfall:block/crystal_cluster",
+    "core": "riftfall:block/crystal_core",
+    "bed": "riftfall:block/crystal_bed"
+  },
+  "crystals": 5,
+  "variant": 0,
+  "connections": 1,
+  "part": "bed"
+}

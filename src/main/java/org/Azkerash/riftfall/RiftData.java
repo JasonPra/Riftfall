@@ -36,11 +36,14 @@ public final class RiftData extends SavedData {
             Rift r = new Rift(t.getInt("id"), BlockPos.of(t.getLong("pos")), t.getInt("remaining"));
             r.exteriorYaw = t.getFloat("exteriorYaw");
             r.sourceBiome = t.getString("sourceBiome");
-            r.theme = t.contains("theme") ? t.getString("theme") : "temperate";
+            r.theme = t.contains("theme") ? t.getString("theme") : "plains";
             if (t.contains("nativeMobs")) {
                 r.nativeMobs.clear();
                 for (Tag value : t.getList("nativeMobs", Tag.TAG_STRING)) r.nativeMobs.add(value.getAsString());
             }
+            r.rosterVersion=t.getInt("rosterVersion"); r.layoutVersion=t.getInt("layoutVersion");
+            CompoundTag roster=t.getCompound("roster");
+            for (String id : roster.getAllKeys()) r.roster.put(id,roster.getInt(id));
             if (t.hasUUID("boss")) r.boss = t.getUUID("boss");
             r.built = t.getBoolean("built");
             r.waveTicks = t.getInt("waveTicks");
@@ -89,6 +92,9 @@ public final class RiftData extends SavedData {
             ListTag natives = new ListTag();
             for (String id : r.nativeMobs) natives.add(net.minecraft.nbt.StringTag.valueOf(id));
             t.put("nativeMobs", natives);
+            t.putInt("rosterVersion",r.rosterVersion); t.putInt("layoutVersion",r.layoutVersion);
+            CompoundTag roster=new CompoundTag();
+            r.roster.forEach(roster::putInt); t.put("roster",roster);
             if (r.boss != null) t.putUUID("boss", r.boss);
             t.put("enemies", writeIds(r.enemies)); t.put("outside", writeIds(r.outside)); t.put("occupants", writeIds(r.occupants)); t.put("retired", writeIds(r.retired));
             list.add(t);
@@ -118,7 +124,9 @@ public final class RiftData extends SavedData {
         int entityGraceTicks = 200;
         int radius = 10;
         String sourceBiome = "";
-        String theme = "temperate";
+        String theme = "plains";
+        int rosterVersion,layoutVersion;
+        final java.util.Map<String,Integer> roster = new java.util.LinkedHashMap<>();
         final Set<String> nativeMobs = RiftEcology.defaults();
         UUID boss;
         net.minecraft.server.level.ServerBossEvent bossBar;

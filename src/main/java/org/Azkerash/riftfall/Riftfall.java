@@ -23,6 +23,7 @@ public class Riftfall {
         container.registerConfig(ModConfig.Type.SERVER, Config.SPEC);
         NeoForge.EVENT_BUS.register(RiftEvents.class);
         NeoForge.EVENT_BUS.register(RiftSpellcasting.class);
+        NeoForge.EVENT_BUS.register(GoblinTactics.class);
         NeoForge.EVENT_BUS.register(SoulEssenceEvents.class);
     }
 }

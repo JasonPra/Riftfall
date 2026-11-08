@@ -39,7 +39,7 @@ final class RiftSpellcasting {
         if (!intelligentLiving(mob)) return;
         if (!(mob instanceof GoblinEntity) && !mob.getPersistentData().getBoolean("RiftfallSpellcaster")) return;
         if (mob.goalSelector.getAvailableGoals().stream().anyMatch(g->g.getGoal() instanceof CastingGoal)) return;
-        mob.goalSelector.addGoal(1,new CastingGoal(mob));
+        mob.goalSelector.addGoal(mob instanceof GoblinEntity ? 2 : 1,new CastingGoal(mob));
     }
     private static final class CastingGoal extends Goal {
         final Mob mob;
@@ -52,10 +52,12 @@ final class RiftSpellcasting {
             if (cooldown>0) { cooldown--; return false; }
             var target=mob.getTarget();
             return intelligentLiving(mob) && target!=null && target.isAlive() && !mob.isAlliedTo(target)
+                && (!(mob instanceof GoblinEntity) || !GoblinTactics.threatened(mob.distanceToSqr(target)))
                 && mob.distanceToSqr(target)<24*24 && mob.getSensing().hasLineOfSight(target) && mob.hurtTime==0;
         }
         @Override public boolean canContinueToUse() {
             return time<34 && mob.getTarget()!=null && mob.getTarget().isAlive() && !mob.isAlliedTo(mob.getTarget())
+                && (!(mob instanceof GoblinEntity) || mob.distanceToSqr(mob.getTarget())>=3*3)
                 && mob.distanceToSqr(mob.getTarget())<28*28 && mob.getSensing().hasLineOfSight(mob.getTarget()) && mob.hurtTime==0;
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }

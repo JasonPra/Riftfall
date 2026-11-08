@@ -47,22 +47,10 @@ class RiftPoolsTest {
         assertTrue(RiftMobs.allowedId("minecraft:skeleton"));
     }
 
-    @Test void roomTrapAndRewardBudgetsGrowWithDanger() {
-        assertEquals(100,RiftProgression.minimumCost(6,1));
-        assertTrue(RiftProgression.minimumCost(6,2)>RiftProgression.minimumCost(6,1));
-        assertEquals(0,RiftProgression.traps(1));assertEquals(1,RiftProgression.traps(2));
-        assertEquals(6,RiftProgression.traps(10));
-    }
-    @Test void everyPurchasedTrapHasItsOwnLocationInsideTheDungeon() {
-        for (int radius : new int[]{10,12,20,26}) {
-            var positions = new java.util.HashSet<BlockPos>();
-            for (int i=0;i<6;i++) {
-                BlockPos pos = RiftDungeons.trapPosition(BlockPos.ZERO,radius,i);
-                assertTrue(Math.abs(pos.getX())<radius && Math.abs(pos.getZ())<radius);
-                positions.add(pos);
-            }
-            assertEquals(6,positions.size());
+    @Test void arenaBudgetsOnlyChargeForSimpleShellMonstersAndRewards() {
+        for (int level=1;level<=10;level++) {
+            assertEquals(20+20*level,RiftProgression.fixedCost(6,level));
+            assertEquals(20+20*level+RiftProgression.enemies(6,level)*10,RiftProgression.minimumCost(6,level));
         }
     }
-
 }

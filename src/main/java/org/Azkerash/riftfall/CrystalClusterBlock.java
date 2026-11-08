@@ -113,32 +113,41 @@ public final class CrystalClusterBlock extends BaseEntityBlock {
         return level.isClientSide ? null : createTickerHelper(type, RiftBlocks.CRYSTAL_CLUSTER_ENTITY.get(), CrystalClusterBlockEntity::tick);
     }
 
+    @Override public void animateTick(BlockState state, Level level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        int count=state.getValue(CRYSTALS);
+        // Client-only atmosphere; dense colonies should never become particle storms.
+        if (random.nextInt(100)>=count*2) return;
+        var local=new net.minecraft.world.phys.Vec3(6+random.nextDouble()*4,2+count*1.1,6+random.nextDouble()*4);
+        var point=CrystalFormation.orient(local,state.getValue(FACING)).scale(1.0/16);
+        level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL,
+            pos.getX()+point.x,pos.getY()+point.y,pos.getZ()+point.z,
+            (random.nextDouble()-.5)*.008,.012,(random.nextDouble()-.5)*.008);
+    }
+
     private static Map<Direction, VoxelShape[]> shapes() {
-        double[][] boxes = {{5,0,5,11,15,11},{2,2,5,8,11,11},{8,3,5,14,12,11},{5,1,8,11,10,14},{5,3,2,11,12,8}};
-        var result = new EnumMap<Direction, VoxelShape[]>(Direction.class);
+        var result=new EnumMap<Direction,VoxelShape[]>(Direction.class);
         for (Direction facing : Direction.values()) {
-            VoxelShape[] stages = new VoxelShape[MAX_CRYSTALS];
-            for (int stage = 0; stage < MAX_CRYSTALS; stage++) {
-                VoxelShape shape = Shapes.empty();
-                for (int i = 0; i <= stage; i++) {
-                    double[] b = boxes[i].clone(), min = {16,16,16}, max = {0,0,0};
-                    if (i == 0) b[4] = 3 + (stage + 1) * 1.8;
-                    for (double x : new double[]{b[0],b[3]}) for (double y : new double[]{b[1],b[4]}) for (double z : new double[]{b[2],b[5]}) {
-                        double[] p = switch (facing) {
-                            case UP -> new double[]{x,y,z};
-                            case DOWN -> new double[]{x,16-y,16-z};
-                            case NORTH -> new double[]{x,z,16-y};
-                            case SOUTH -> new double[]{x,16-z,y};
-                            case WEST -> new double[]{16-y,z,16-x};
-                            case EAST -> new double[]{y,z,x};
-                        };
-                        for (int j = 0; j < 3; j++) { min[j] = Math.min(min[j],p[j]); max[j] = Math.max(max[j],p[j]); }
+            VoxelShape[] stages=new VoxelShape[MAX_CRYSTALS];
+            for (int count=1;count<=MAX_CRYSTALS;count++) {
+                VoxelShape shape=Shapes.empty();
+                for (int crystal=0;crystal<count;crystal++) {
+                    double[] min={16,16,16},max={0,0,0};
+                    for (int variant=0;variant<3;variant++) {
+                        var prism=CrystalFormation.crystals(count,variant).get(crystal);
+                        var points=new java.util.ArrayList<net.minecraft.world.phys.Vec3>();
+                        points.add(prism.tip());
+                        for (int i=0;i<6;i++) { points.add(prism.vertex(i,false)); points.add(prism.vertex(i,true)); }
+                        for (var raw : points) {
+                            var p=CrystalFormation.orient(raw,facing);
+                            double[] coords={p.x,p.y,p.z};
+                            for (int j=0;j<3;j++) { min[j]=Math.min(min[j],coords[j]); max[j]=Math.max(max[j],coords[j]); }
+                        }
                     }
-                    shape = Shapes.or(shape, box(min[0],min[1],min[2],max[0],max[1],max[2]));
+                    shape=Shapes.or(shape,box(min[0],min[1],min[2],max[0],max[1],max[2]));
                 }
-                stages[stage] = shape;
+                stages[count-1]=shape;
             }
-            result.put(facing, stages);
+            result.put(facing,stages);
         }
         return result;
     }

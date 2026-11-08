@@ -23,7 +23,7 @@ final class RiftMobs {
     record Spawn(Mob mob, int cost) {}
 
     static boolean allowedId(String id) {
-        return !RiftEcology.BOSS_ONLY.contains(id) && !id.equals("minecraft:silverfish") && !id.equals("minecraft:endermite")
+        return !id.startsWith("irons_spellbooks:") && !RiftEcology.BOSS_ONLY.contains(id) && !id.equals("minecraft:silverfish") && !id.equals("minecraft:endermite")
             && (!id.contains("wither") || id.equals("minecraft:wither_skeleton"))
             && !id.contains("guardian") && !id.contains("dragon") && !id.contains("boss") && !id.contains("warden");
     }
@@ -38,6 +38,7 @@ final class RiftMobs {
 
     static int threat(EntityType<?> type) {
         String id = BuiltInRegistries.ENTITY_TYPE.getKey(type).toString();
+        if (id.equals("riftfall:goblin_archer")) return 1;
         if (id.equals("riftfall:goblin_shaman")) return 3;
         if (id.startsWith("irons_spellbooks:")) return 4;
         if (type == EntityType.RAVAGER || type == EntityType.GHAST || type == EntityType.EVOKER) return 4;
@@ -48,13 +49,21 @@ final class RiftMobs {
         return 1;
     }
 
-    static Spawn spawn(ServerLevel world, BlockPos pos, int level, double budget, Rift r) {
+    static Spawn spawn(ServerLevel world, BlockPos pos, int level, double budget, Rift r) { return spawn(world,pos,level,budget,r,false); }
+
+    static Spawn spawn(ServerLevel world, BlockPos pos, int level, double budget, Rift r, boolean goblinsOnly) {
         List<EntityType<?>> pool = new ArrayList<>();
         for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE)
-            if (eligible(type) && RiftEcology.matches(type, r) && threat(type) <= level && threat(type) * 10 <= budget) pool.add(type);
+            if (eligible(type) && (!goblinsOnly || BuiltInRegistries.ENTITY_TYPE.getKey(type).getNamespace().equals("riftfall")) && RiftEcology.matches(type, r) && threat(type) <= level && threat(type) * 10 <= budget) pool.add(type);
         if (pool.isEmpty()) return null;
         for (int attempt = 0; attempt < 8; attempt++) {
-            EntityType<?> type = pool.get(world.random.nextInt(pool.size()));
+            int total=pool.stream().mapToInt(t->RiftEcology.weight(BuiltInRegistries.ENTITY_TYPE.getKey(t).toString(),r)).sum();
+            int roll=world.random.nextInt(total);
+            EntityType<?> type=pool.getFirst();
+            for (var candidate : pool) {
+                roll-=RiftEcology.weight(BuiltInRegistries.ENTITY_TYPE.getKey(candidate).toString(),r);
+                if (roll<0) { type=candidate; break; }
+            }
             var entity = type.create(world);
             if (!(entity instanceof Mob mob)) continue;
             mob.moveTo(pos.getX()+.5,pos.getY(),pos.getZ()+.5,world.random.nextFloat()*360,0);

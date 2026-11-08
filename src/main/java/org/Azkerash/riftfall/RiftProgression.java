@@ -23,8 +23,7 @@ final class RiftProgression {
     static int enemies(int base, int level) { return base + 2 * (level - 1); }
     static int radius(int enemies) { return enemies <= 6 ? 10 : Math.min(26, 12 + (enemies - 7) / 2); }
 
-    static int traps(int level) { return Math.min(6,level-1); }
-    static int fixedCost(int base,int level) { return (enemies(base,level)>6 ? 120 : 20)+traps(level)*15+level*20; }
+    static int fixedCost(int base,int level) { return 20+level*20; }
     static int minimumCost(int base,int level) { return fixedCost(base,level)+enemies(base,level)*10; }
 
     static void equip(Mob mob, int level) {
@@ -36,7 +35,7 @@ final class RiftProgression {
         attribute(mob, EpicFightAttributes.IMPACT, .5 + .15 * (level - 1));
         attribute(mob, EpicFightAttributes.STUN_ARMOR, 2 + level - 1);
         mob.setHealth(mob.getMaxHealth());
-        boolean humanoid = mob instanceof Zombie || mob instanceof AbstractSkeleton || mob instanceof AbstractIllager || mob instanceof AbstractPiglin || mob instanceof GoblinEntity goblin && !goblin.isShaman();
+        boolean humanoid = mob instanceof Zombie || mob instanceof AbstractSkeleton || mob instanceof AbstractIllager || mob instanceof AbstractPiglin;
         if (humanoid) { mob.setItemSlot(EquipmentSlot.HEAD,new ItemStack(Items.IRON_HELMET)); mob.setDropChance(EquipmentSlot.HEAD,0); }
         if (mob instanceof Zombie zombie && zombie.getAttribute(Attributes.SPAWN_REINFORCEMENTS_CHANCE) != null)
             zombie.getAttribute(Attributes.SPAWN_REINFORCEMENTS_CHANCE).setBaseValue(0);
