@@ -17,6 +17,10 @@ Install these alongside Riftfall on both client and server. Gradle resolves the 
 
 The `*_version`, `*_version_id`, and `*_file_id` properties in `gradle.properties` identify these releases. Modrinth version IDs pin the exact NeoForge artifacts, avoiding ambiguity between loader builds that share a version number.
 
+## Dungeon building blocks
+
+Dungeon Bricks (`riftfall:dungeon_bricks`), Dungeon Brick Slab (`riftfall:dungeon_brick_slab`), and Dungeon Brick Stairs (`riftfall:dungeon_brick_stairs`) are available in the Building Blocks creative tab. They use vanilla deepslate brick textures and sounds, cannot be mined outside Creative mode, resist explosions and boss destruction, and cannot be moved by pistons. Slabs and stairs retain normal placement, shape connections, and waterlogging. These are building materials for future dungeon construction; existing arenas are unchanged. There are no survival recipes or block drops.
+
 ## Soul essence and crystals
 
 Loaded overworld chunks cultivate soul essence. The base rate is **0.05 essence/second**, plus **0.05/second for each fully mature crystal cluster** in that chunk. Twenty mature clusters restore a total rate of 1.05/second. Unloaded chunks and offline servers do not accumulate missed time. Chunk essence and crystal growth stages persist across saves and restarts.
