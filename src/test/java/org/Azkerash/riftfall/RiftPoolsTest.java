@@ -42,7 +42,7 @@ class RiftPoolsTest {
     }
 
     @Test void bossesAndGuardiansAreExcludedButOrdinaryHostilesAreAllowed() {
-        for (String name : new String[]{"wither","ender_dragon","guardian","elder_guardian","warden"}) assertFalse(RiftMobs.allowedId("minecraft:"+name));
+        for (String name : new String[]{"wither","ender_dragon","guardian","elder_guardian","warden","silverfish","endermite"}) assertFalse(RiftMobs.allowedId("minecraft:"+name));
         assertTrue(RiftMobs.allowedId("minecraft:wither_skeleton"));
         assertTrue(RiftMobs.allowedId("minecraft:skeleton"));
     }

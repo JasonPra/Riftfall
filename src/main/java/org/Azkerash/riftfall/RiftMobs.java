@@ -23,7 +23,8 @@ final class RiftMobs {
     record Spawn(Mob mob, int cost) {}
 
     static boolean allowedId(String id) {
-        return (!id.contains("wither") || id.equals("minecraft:wither_skeleton"))
+        return !id.equals("minecraft:silverfish") && !id.equals("minecraft:endermite")
+            && (!id.contains("wither") || id.equals("minecraft:wither_skeleton"))
             && !id.contains("guardian") && !id.contains("dragon") && !id.contains("boss") && !id.contains("warden");
     }
 
@@ -32,15 +33,14 @@ final class RiftMobs {
         String path = id.getPath();
         if (type.is(EXCLUDED) || type.is(BOSSES) || !allowedId(id.toString()) || path.contains("guardian")
             || path.contains("dragon") || path.contains("boss") || path.contains("warden")) return false;
-        return type.getCategory() == MobCategory.MONSTER || type == EntityType.WOLF || type == EntityType.BEE
-            || type == EntityType.POLAR_BEAR || type == EntityType.IRON_GOLEM || type == EntityType.LLAMA || type == EntityType.PANDA;
+        return type.getCategory() == MobCategory.MONSTER;
     }
 
     static int threat(EntityType<?> type) {
-        if (type == EntityType.RAVAGER || type == EntityType.GHAST || type == EntityType.EVOKER || type == EntityType.IRON_GOLEM) return 4;
+        if (type == EntityType.RAVAGER || type == EntityType.GHAST || type == EntityType.EVOKER) return 4;
         if (type == EntityType.PIGLIN_BRUTE || type == EntityType.SHULKER || type == EntityType.VEX || type == EntityType.VINDICATOR) return 3;
         if (type == EntityType.CREEPER || type == EntityType.ENDERMAN || type == EntityType.WITCH || type == EntityType.BLAZE
-            || type == EntityType.HOGLIN || type == EntityType.ZOGLIN || type == EntityType.POLAR_BEAR || type == EntityType.PHANTOM
+            || type == EntityType.HOGLIN || type == EntityType.ZOGLIN || type == EntityType.PHANTOM
             || type == EntityType.SLIME || type == EntityType.MAGMA_CUBE || type == EntityType.WITHER_SKELETON) return 2;
         return 1;
     }

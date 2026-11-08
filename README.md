@@ -1,6 +1,21 @@
 # Riftfall
 
-A Solo Leveling-inspired Minecraft **1.21.1 / NeoForge 21.1** mod. Requires Java 21 and [Epic Fight 21.17.3.1 (CurseForge file 8175609)](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod/files/8175609) on both client and server. Gradle resolves that exact file for development; players install Epic Fight separately.
+A Solo Leveling-inspired Minecraft **1.21.1 / NeoForge 21.1** mod. Requires Java 21 and the mods listed below on both client and server.
+
+## Required mods
+
+Install these alongside Riftfall on both client and server. Gradle resolves the pinned versions for development; they are not bundled inside the Riftfall jar.
+
+| Mod | Pinned release |
+| --- | --- |
+| Epic Fight | [21.17.3.1 / file 8175609](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod/files/8175609) |
+| Iron's Spells 'n Spellbooks | [1.21.1-3.16.3 / file 8680204](https://www.curseforge.com/minecraft/mc-mods/irons-spells-n-spellbooks/files/8680204) |
+| GeckoLib | [4.9.3, NeoForge / file 8893490](https://www.curseforge.com/minecraft/mc-mods/geckolib/files/8893490) |
+| Player Animator | [2.0.4+1.21.1, NeoForge](https://modrinth.com/mod/playeranimator/version/HJZB6bmA) |
+| Curios | [9.5.1+1.21.1](https://modrinth.com/mod/curios/version/yohfFbgD) |
+| Iron's Lib | [1.21.1-2.3.0](https://modrinth.com/mod/irons-lib/version/dgH7P81J) |
+
+The `*_version`, `*_version_id`, and `*_file_id` properties in `gradle.properties` identify these releases. Modrinth version IDs pin the exact NeoForge artifacts, avoiding ambiguity between loader builds that share a version number.
 
 ## Soul essence and crystals
 
@@ -47,7 +62,7 @@ Every 50 accumulated power unlocks another level, up to level 10. An encounter u
 
 - Enemy counts start at six and increase by two per level. Any encounter exceeding six enemies gets a larger arena with partitioned chambers, connecting doorways, and corridors.
 - Increasing levels unlock more dangerous species, improve health and combat attributes, add appropriate weapons and armor, and raise Epic Fight Impact and Stun Armor.
-- The pool includes hostile mobs and common neutral combat mobs. Wither, Ender Dragon, Guardians, Elder Guardians, and the Warden are excluded. Datapacks can extend `riftfall:excluded_rift_mobs`; common boss tags and boss-like identifiers are also excluded.
+- The pool includes only monster-category mobs. Animals (including wolves, llamas, bees, pandas and polar bears), golems, silverfish, and endermites cannot be selected. Wither, Ender Dragon, Guardians, Elder Guardians, and the Warden are excluded. Datapacks can extend `riftfall:excluded_rift_mobs`; common boss tags and boss-like identifiers are also excluded.
 - Monsters are directed against delvers and share a team to discourage infighting. Hostile summoned offspring join the encounter and cost energy too. Encounters and reinforcements have a 128-mob ownership limit.
 - Stronger encounters buy doorway pressure-plate/dispenser arrow traps. These are functional traps with finite ammunition.
 - Reward chests scale with the constructed encounter's danger: more materials, then diamonds and higher-tier weapons. Rewards are created once per cleared encounter and persist when the server restarts.
