@@ -19,3 +19,6 @@ hs_err_pid*
 
 # Common working directory
 run
+
+# Logs from development runs and persistence tests
+logs/
