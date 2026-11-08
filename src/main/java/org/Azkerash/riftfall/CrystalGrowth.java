@@ -44,7 +44,7 @@ final class CrystalGrowth {
             Direction facing = i == -1 ? preferred : Direction.values()[i];
             if (!available(level, pos.relative(facing.getOpposite()))) continue;
             BlockState seed = RiftBlocks.CRYSTAL_CLUSTER.get().defaultBlockState().setValue(CrystalClusterBlock.FACING, facing);
-            if (seed.canSurvive(level, pos)) return seed;
+            if (seed.canSurvive(level, pos)) return CrystalClusterBlock.connections(seed, level, pos);
         }
         return null;
     }

@@ -1,0 +1,80 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "riftfall:block/crystal_cluster",
+    "crystal": "riftfall:block/crystal_cluster",
+    "roots": "riftfall:block/crystal_roots"
+  },
+  "elements": [
+    {
+      "from": [
+        8,
+        0.08,
+        7
+      ],
+      "to": [
+        16,
+        0.5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#roots",
+          "uv": [
+            8,
+            6,
+            16,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#roots",
+          "uv": [
+            8,
+            6,
+            16,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#roots",
+          "uv": [
+            8,
+            6,
+            16,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#roots",
+          "uv": [
+            8,
+            6,
+            16,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#roots",
+          "uv": [
+            8,
+            6,
+            16,
+            10
+          ]
+        },
+        "down": {
+          "texture": "#roots",
+          "uv": [
+            8,
+            6,
+            16,
+            10
+          ]
+        }
+      }
+    }
+  ]
+}

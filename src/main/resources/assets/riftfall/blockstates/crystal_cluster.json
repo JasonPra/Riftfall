@@ -1,129 +1,553 @@
 {
-  "variants": {
-    "crystals=1,facing=up": {
-      "model": "riftfall:block/crystal_cluster_1"
+  "multipart": [
+    {
+      "when": {
+        "facing": "up",
+        "crystals": 1
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_1"
+      }
     },
-    "crystals=2,facing=up": {
-      "model": "riftfall:block/crystal_cluster_2"
+    {
+      "when": {
+        "facing": "up",
+        "crystals": 2
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_2"
+      }
     },
-    "crystals=3,facing=up": {
-      "model": "riftfall:block/crystal_cluster_3"
+    {
+      "when": {
+        "facing": "up",
+        "crystals": 3
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_3"
+      }
     },
-    "crystals=4,facing=up": {
-      "model": "riftfall:block/crystal_cluster_4"
+    {
+      "when": {
+        "facing": "up",
+        "crystals": 4
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_4"
+      }
     },
-    "crystals=5,facing=up": {
-      "model": "riftfall:block/crystal_cluster_5"
+    {
+      "when": {
+        "facing": "up",
+        "crystals": 5
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_5"
+      }
     },
-    "crystals=1,facing=down": {
-      "model": "riftfall:block/crystal_cluster_1",
-      "x": 180
+    {
+      "when": {
+        "facing": "up",
+        "north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_north"
+      }
     },
-    "crystals=2,facing=down": {
-      "model": "riftfall:block/crystal_cluster_2",
-      "x": 180
+    {
+      "when": {
+        "facing": "up",
+        "east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_east"
+      }
     },
-    "crystals=3,facing=down": {
-      "model": "riftfall:block/crystal_cluster_3",
-      "x": 180
+    {
+      "when": {
+        "facing": "up",
+        "south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_south"
+      }
     },
-    "crystals=4,facing=down": {
-      "model": "riftfall:block/crystal_cluster_4",
-      "x": 180
+    {
+      "when": {
+        "facing": "up",
+        "west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_west"
+      }
     },
-    "crystals=5,facing=down": {
-      "model": "riftfall:block/crystal_cluster_5",
-      "x": 180
+    {
+      "when": {
+        "facing": "down",
+        "crystals": 1
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_1",
+        "x": 180
+      }
     },
-    "crystals=1,facing=north": {
-      "model": "riftfall:block/crystal_cluster_1",
-      "x": 90
+    {
+      "when": {
+        "facing": "down",
+        "crystals": 2
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_2",
+        "x": 180
+      }
     },
-    "crystals=2,facing=north": {
-      "model": "riftfall:block/crystal_cluster_2",
-      "x": 90
+    {
+      "when": {
+        "facing": "down",
+        "crystals": 3
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_3",
+        "x": 180
+      }
     },
-    "crystals=3,facing=north": {
-      "model": "riftfall:block/crystal_cluster_3",
-      "x": 90
+    {
+      "when": {
+        "facing": "down",
+        "crystals": 4
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_4",
+        "x": 180
+      }
     },
-    "crystals=4,facing=north": {
-      "model": "riftfall:block/crystal_cluster_4",
-      "x": 90
+    {
+      "when": {
+        "facing": "down",
+        "crystals": 5
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_5",
+        "x": 180
+      }
     },
-    "crystals=5,facing=north": {
-      "model": "riftfall:block/crystal_cluster_5",
-      "x": 90
+    {
+      "when": {
+        "facing": "down",
+        "north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_north",
+        "x": 180
+      }
     },
-    "crystals=1,facing=south": {
-      "model": "riftfall:block/crystal_cluster_1",
-      "x": 270
+    {
+      "when": {
+        "facing": "down",
+        "east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_east",
+        "x": 180
+      }
     },
-    "crystals=2,facing=south": {
-      "model": "riftfall:block/crystal_cluster_2",
-      "x": 270
+    {
+      "when": {
+        "facing": "down",
+        "south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_south",
+        "x": 180
+      }
     },
-    "crystals=3,facing=south": {
-      "model": "riftfall:block/crystal_cluster_3",
-      "x": 270
+    {
+      "when": {
+        "facing": "down",
+        "west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_west",
+        "x": 180
+      }
     },
-    "crystals=4,facing=south": {
-      "model": "riftfall:block/crystal_cluster_4",
-      "x": 270
+    {
+      "when": {
+        "facing": "north",
+        "crystals": 1
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_1",
+        "x": 90
+      }
     },
-    "crystals=5,facing=south": {
-      "model": "riftfall:block/crystal_cluster_5",
-      "x": 270
+    {
+      "when": {
+        "facing": "north",
+        "crystals": 2
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_2",
+        "x": 90
+      }
     },
-    "crystals=1,facing=west": {
-      "model": "riftfall:block/crystal_cluster_1",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "crystals": 3
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_3",
+        "x": 90
+      }
     },
-    "crystals=2,facing=west": {
-      "model": "riftfall:block/crystal_cluster_2",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "crystals": 4
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_4",
+        "x": 90
+      }
     },
-    "crystals=3,facing=west": {
-      "model": "riftfall:block/crystal_cluster_3",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "crystals": 5
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_5",
+        "x": 90
+      }
     },
-    "crystals=4,facing=west": {
-      "model": "riftfall:block/crystal_cluster_4",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_north",
+        "x": 90
+      }
     },
-    "crystals=5,facing=west": {
-      "model": "riftfall:block/crystal_cluster_5",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_east",
+        "x": 90
+      }
     },
-    "crystals=1,facing=east": {
-      "model": "riftfall:block/crystal_cluster_1",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "north",
+        "south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_south",
+        "x": 90
+      }
     },
-    "crystals=2,facing=east": {
-      "model": "riftfall:block/crystal_cluster_2",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "north",
+        "west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_west",
+        "x": 90
+      }
     },
-    "crystals=3,facing=east": {
-      "model": "riftfall:block/crystal_cluster_3",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "south",
+        "crystals": 1
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_1",
+        "x": 270
+      }
     },
-    "crystals=4,facing=east": {
-      "model": "riftfall:block/crystal_cluster_4",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "south",
+        "crystals": 2
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_2",
+        "x": 270
+      }
     },
-    "crystals=5,facing=east": {
-      "model": "riftfall:block/crystal_cluster_5",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "south",
+        "crystals": 3
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_3",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "crystals": 4
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_4",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "crystals": 5
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_5",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_north",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_east",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_south",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_west",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "crystals": 1
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "crystals": 2
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "crystals": 3
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_3",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "crystals": 4
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_4",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "crystals": 5
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_5",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_north",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_east",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_south",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_west",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "crystals": 1
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "crystals": 2
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "crystals": 3
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "crystals": 4
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_4",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "crystals": 5
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_cluster_5",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_north",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_east",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_south",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/crystal_connection_west",
+        "x": 90,
+        "y": 90
+      }
     }
-  }
+  ]
 }
