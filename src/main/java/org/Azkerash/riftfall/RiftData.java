@@ -35,6 +35,13 @@ public final class RiftData extends SavedData {
             CompoundTag t = list.getCompound(i);
             Rift r = new Rift(t.getInt("id"), BlockPos.of(t.getLong("pos")), t.getInt("remaining"));
             r.exteriorYaw = t.getFloat("exteriorYaw");
+            r.sourceBiome = t.getString("sourceBiome");
+            r.theme = t.contains("theme") ? t.getString("theme") : "temperate";
+            if (t.contains("nativeMobs")) {
+                r.nativeMobs.clear();
+                for (Tag value : t.getList("nativeMobs", Tag.TAG_STRING)) r.nativeMobs.add(value.getAsString());
+            }
+            if (t.hasUUID("boss")) r.boss = t.getUUID("boss");
             r.built = t.getBoolean("built");
             r.waveTicks = t.getInt("waveTicks");
             r.cleared = t.getBoolean("cleared");
@@ -78,6 +85,11 @@ public final class RiftData extends SavedData {
             t.putInt("dormantTicks", r.dormantTicks); t.putDouble("essence", r.essence); t.putDouble("energy", r.energy); t.putBoolean("refilling", r.refilling);
             t.putInt("cycle", r.cycle); t.putInt("encounterLevel", r.encounterLevel); t.putInt("radius", r.radius);
             t.putFloat("exteriorYaw", r.exteriorYaw);
+            t.putString("sourceBiome", r.sourceBiome); t.putString("theme", r.theme);
+            ListTag natives = new ListTag();
+            for (String id : r.nativeMobs) natives.add(net.minecraft.nbt.StringTag.valueOf(id));
+            t.put("nativeMobs", natives);
+            if (r.boss != null) t.putUUID("boss", r.boss);
             t.put("enemies", writeIds(r.enemies)); t.put("outside", writeIds(r.outside)); t.put("occupants", writeIds(r.occupants)); t.put("retired", writeIds(r.retired));
             list.add(t);
         }
@@ -105,6 +117,11 @@ public final class RiftData extends SavedData {
         int encounterLevel = 1;
         int entityGraceTicks = 200;
         int radius = 10;
+        String sourceBiome = "";
+        String theme = "temperate";
+        final Set<String> nativeMobs = RiftEcology.defaults();
+        UUID boss;
+        net.minecraft.server.level.ServerBossEvent bossBar;
         final Set<UUID> enemies = new HashSet<>();
         final Set<UUID> outside = new HashSet<>();
         final Set<UUID> occupants = new HashSet<>();

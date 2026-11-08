@@ -67,6 +67,14 @@ Every 50 accumulated power unlocks another level, up to level 10. An encounter u
 - Stronger encounters buy doorway pressure-plate/dispenser arrow traps. These are functional traps with finite ammunition.
 - Reward chests scale with the constructed encounter's danger: more materials, then diamonds and higher-tier weapons. Rewards are created once per cleared encounter and persist when the server restarts.
 
+Each rift saves the **entrance biome and its native monster roster** when it forms. New encounters and dungeon-break waves use that ecology, including after reopening or restarting. Snowy biomes add Strays and Cryomancers; deserts add Husks and Pyromancers; swamps allow Witches, Slimes, and Apothecarists; woodland rifts can include illagers and Cultists. Species still need the appropriate rift level and budget. Drowned are excluded from the current dry arenas. Summoned/debug entities and undead Iron's Spells casters cannot be selected as ordinary inhabitants.
+
+**Archevokers (Grand Evokers) and Ice Spiders are boss-only.** A level-five-or-higher encounter with 200 surplus essence can add one boss and a separated northern boss room: Ice Spiders in frozen rifts, Archevokers in temperate, woodland, or swamp rifts. Their existing boss statistics are preserved. Ordinary inhabitants stay outside that chamber; boss summons may join it. A purple health bar is shown to players in the room, follows the boss's health, and disappears on death or leaving. The boss must die before the rift clears; its reward chest includes additional diamonds and soul crystals. Vanilla bosses and guardians remain unavailable.
+
+**Goblins** are short, living humanoid melee enemies. **Goblin Shamans** unlock at level three and use Iron's Spells Magic Arrow. At level three and above, a quarter of newly created Pillagers learn Firebolt, with spell levels capped at three. Animals, ordinary goblins, and undead cannot learn these spells. Casts require a living hostile target, range, line of sight, a one-second wind-up, and a cooldown; damage or an Epic Fight stun can interrupt them. Shamans keep their distance from players. Their separate skins, spawn eggs, and loot tables are included; they currently join appropriate land-biome rift rosters rather than overworld natural spawning.
+
+Riftfall supplies three original **Epic Fight biped casting animations**: drawing energy into the hands, releasing the spell, and recovering. The server synchronizes each phase to tracking clients for Goblin Shamans and spell-trained Pillagers. Goblins have their own Epic Fight humanoid patch and renderer while retaining their melee/spell AI. Iron's Spells mobs retain their existing native animations.
+
 Basic costs are 20 essence for a simple room shell, 120 for a multiroom shell, 10–40 per monster according to its species, 15 per trap, and 20 per level reserved for rewards. Cleared encounters rebuild on the next visit after reopening; unclaimed container contents are reset for that new encounter. Vanilla dropped items retain their normal lifetime.
 
 ## Commands
@@ -78,6 +86,7 @@ Basic costs are 20 essence for a simple room shell, 120 for a multiroom shell, 1
 - `/rift leave` — return from the dungeon without clearing it.
 - `/give @s riftfall:soul_essence_crystal` — obtain a plantable crystal item.
 - `/give @s riftfall:crystal_cluster` — obtain the cluster block item.
+- `/summon riftfall:goblin` or `/summon riftfall:goblin_shaman` — test the new mobs. Their spawn eggs are also in the Spawn Eggs creative tab.
 
 ## Configuration
 

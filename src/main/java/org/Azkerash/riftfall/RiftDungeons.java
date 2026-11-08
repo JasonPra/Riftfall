@@ -17,6 +17,8 @@ final class RiftDungeons {
         while (level > 1 && RiftProgression.minimumCost(Config.ENEMIES.get(),level) > r.energy) level--;
         if (RiftProgression.minimumCost(Config.ENEMIES.get(),level) > r.energy) return false;
         r.encounterLevel = level;
+        r.boss = null; RiftBosses.clearBar(r);
+        boolean bossRoom = RiftBosses.canBuild(r,level,r.energy-RiftProgression.minimumCost(Config.ENEMIES.get(),level));
         int count = RiftProgression.enemies(Config.ENEMIES.get(),level);
         r.radius = RiftProgression.radius(count);
         BlockPos c = r.arena();
@@ -32,6 +34,8 @@ final class RiftDungeons {
                     || (z==0 && Math.abs(x)>r.radius/3+2 && Math.abs(x)<r.radius-2));
             world.setBlock(pos,(shell ? (y==7 ? Blocks.SEA_LANTERN : Blocks.BEDROCK) : partition ? Blocks.STONE_BRICKS : Blocks.AIR).defaultBlockState(),3);
         }
+        if (bossRoom) RiftBosses.buildRoom(world,r);
+        int bossReserve = bossRoom ? RiftBosses.COST : 0;
         for (int i=0;i<traps;i++) {
             int side = i%2==0 ? -1 : 1;
             Direction facing = side<0 ? Direction.EAST : Direction.WEST;
@@ -43,11 +47,11 @@ final class RiftDungeons {
         for (int i=0;i<count;i++) {
             for (int attempt=0;attempt<96;attempt++) {
                 BlockPos pos=c.offset(world.random.nextInt(r.radius*2-5)-r.radius+3,1,world.random.nextInt(r.radius*2-5)-r.radius+3);
-                if (!RiftEvents.safe(world,pos)) continue;
+                if (!RiftEvents.safe(world,pos) || (bossRoom && pos.getZ() <= -r.radius/3)) continue;
                 // Reserve the minimum cost of all remaining monsters, then spend the
                 // surplus on more expensive species if the rift can afford them.
-                double budget=r.energy-(count-i-1)*10;
-                var spawned=RiftMobs.spawn(world,pos,level,budget);
+                double budget=r.energy-(count-i-1)*10-bossReserve;
+                var spawned=RiftMobs.spawn(world,pos,level,budget,r);
                 if (spawned == null) continue;
                 r.energy-=spawned.cost();
                 RiftMobs.team(world,spawned.mob(),r.id);
@@ -57,6 +61,7 @@ final class RiftDungeons {
                 break;
             }
         }
+        if (bossRoom) RiftBosses.spawn(world,r);
         if (r.enemies.isEmpty()) {
             r.energy += RiftProgression.fixedCost(Config.ENEMIES.get(),level);
             RiftEvents.forceArena(world,r,false);

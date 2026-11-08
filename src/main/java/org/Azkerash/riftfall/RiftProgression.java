@@ -36,7 +36,7 @@ final class RiftProgression {
         attribute(mob, EpicFightAttributes.IMPACT, .5 + .15 * (level - 1));
         attribute(mob, EpicFightAttributes.STUN_ARMOR, 2 + level - 1);
         mob.setHealth(mob.getMaxHealth());
-        boolean humanoid = mob instanceof Zombie || mob instanceof AbstractSkeleton || mob instanceof AbstractIllager || mob instanceof AbstractPiglin;
+        boolean humanoid = mob instanceof Zombie || mob instanceof AbstractSkeleton || mob instanceof AbstractIllager || mob instanceof AbstractPiglin || mob instanceof GoblinEntity goblin && !goblin.isShaman();
         if (humanoid) { mob.setItemSlot(EquipmentSlot.HEAD,new ItemStack(Items.IRON_HELMET)); mob.setDropChance(EquipmentSlot.HEAD,0); }
         if (mob instanceof Zombie zombie && zombie.getAttribute(Attributes.SPAWN_REINFORCEMENTS_CHANCE) != null)
             zombie.getAttribute(Attributes.SPAWN_REINFORCEMENTS_CHANCE).setBaseValue(0);
@@ -67,6 +67,10 @@ final class RiftProgression {
         chest.setItem(6, new ItemStack(Items.COOKED_BEEF, 6 + level));
         if (level >= 2) chest.setItem(8, new ItemStack(Items.DIAMOND, level - 1));
         if (level >= 2) chest.setItem(13, new ItemStack(level >= 5 ? Items.DIAMOND_SWORD : Items.IRON_SWORD));
+        if (r.boss != null) {
+            chest.setItem(15,new ItemStack(RiftBlocks.SOUL_ESSENCE_CRYSTAL.get(),8));
+            chest.setItem(16,new ItemStack(Items.DIAMOND,2));
+        }
         chest.setChanged();
     }
     private RiftProgression() {}

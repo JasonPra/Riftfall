@@ -51,6 +51,8 @@ public final class RiftEvents {
                     r.energy += intake; r.essence += intake;
                 }
             }
+            if (r.sourceBiome.isEmpty() && world.hasChunkAt(r.pos)) RiftEcology.capture(world,r);
+            RiftBosses.tick(arena,r);
             if (r.dormant) {
                 if (r.dormantTicks > 0) r.dormantTicks--;
                 if (r.dormantTicks == 0 && data.activeCount() < Config.MAX_RIFTS.get()
@@ -88,6 +90,7 @@ public final class RiftEvents {
                     else r.retired.add(id);
                 }
                 for (var mob : bodies) { arena.getScoreboard().removePlayerFromTeam(mob.getStringUUID()); mob.discard(); }
+                RiftBosses.clearBar(r); r.boss=null;
                 r.enemies.clear(); r.spawned.clear(); r.built=false; r.refitting=false;
                 forceArena(arena,r,false);
                 removePortal(arena,r,true);
@@ -109,7 +112,7 @@ public final class RiftEvents {
                         int z = r.pos.getZ() + world.random.nextInt(9) - 4;
                         BlockPos pos = world.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
                         if (safe(world, pos)) {
-                            var spawned = RiftMobs.spawn(world,pos,r.level(),r.energy);
+                            var spawned = RiftMobs.spawn(world,pos,r.level(),r.energy,r);
                             if (spawned != null) { r.energy-=spawned.cost(); r.outside.add(spawned.mob().getUUID()); RiftMobs.team(world,spawned.mob(),r.id); }
                         }
                     }
@@ -211,6 +214,7 @@ public final class RiftEvents {
         SoulEssenceEvents.consume(server.overworld(), r.pos);
         r.dormant = false; r.cleared = false; r.built = false; r.cycle++;
         r.remaining = Config.BREAK_SECONDS.get() * 20; r.waveTicks = 0;
+        RiftBosses.clearBar(r); r.boss = null;
         r.enemies.clear(); r.spawned.clear(); r.occupants.clear();
         portal(server.overworld(), r, false);
         announce(server, "Rift at " + coordinates(r.pos) + " reawakened (level " + r.level() + ")!");
@@ -219,6 +223,7 @@ public final class RiftEvents {
     static void create(MinecraftServer server, BlockPos pos) {
         RiftData data = RiftData.get(server);
         Rift r = new Rift(data.nextId++, pos, Config.BREAK_SECONDS.get() * 20);
+        RiftEcology.capture(server.overworld(), r);
         r.exteriorYaw = server.overworld().random.nextFloat() * 360F;
         r.energy = Math.max(Config.CRITICAL_MASS.get(), SoulEssenceEvents.availableEssence(server.overworld(), pos));
         data.rifts.add(r); data.setDirty();
@@ -241,7 +246,7 @@ public final class RiftEvents {
 
     @SubscribeEvent public static void joined(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
         if (!(event.getLevel() instanceof ServerLevel arena) || arena.dimension()!=ARENA
-            || !(event.getEntity() instanceof net.minecraft.world.entity.Mob mob) || !RiftMobs.eligible(mob.getType())) return;
+            || !(event.getEntity() instanceof net.minecraft.world.entity.Mob mob) || !(RiftMobs.eligible(mob.getType()) || RiftBosses.isBoss(mob.getType()))) return;
         RiftData data=RiftData.get(arena.getServer());
         for (Rift r : data.rifts) if (r.retired.remove(mob.getUUID())) {
             arena.getScoreboard().removePlayerFromTeam(mob.getStringUUID());
@@ -253,8 +258,11 @@ public final class RiftEvents {
         }
         Rift owner=data.rifts.stream().filter(r -> r.built && !r.dormant && !r.cleared && r.contains(mob.getX(),mob.getZ())).findFirst().orElse(null);
         if (owner==null) return;
-        if (owner.enemies.contains(mob.getUUID())) { owner.spawned.put(mob.getUUID(),mob); RiftMobs.hostile(mob); RiftMobs.team(arena,mob,owner.id); return; }
+        if (owner.enemies.contains(mob.getUUID())) { owner.spawned.put(mob.getUUID(),mob); RiftMobs.hostile(mob); RiftSpellcasting.restore(mob); RiftMobs.team(arena,mob,owner.id); return; }
+        if (RiftBosses.isBoss(mob.getType()) && !mob.getPersistentData().getBoolean("RiftfallBoss")) { event.setCanceled(true); return; }
         if (owner.enemies.size()>=128 || (!mob.getPersistentData().getBoolean("RiftfallPaid") && owner.energy<10)) { event.setCanceled(true); return; }
+        if (!mob.getPersistentData().getBoolean("RiftfallPaid") && owner.boss != null && RiftBosses.inRoom(owner,mob.getX(),mob.getZ()))
+            mob.getPersistentData().putBoolean("RiftfallBossMinion",true);
         if (!mob.getPersistentData().getBoolean("RiftfallPaid")) {
             owner.energy-=10;
             RiftProgression.equip(mob,owner.encounterLevel);
@@ -298,6 +306,7 @@ public final class RiftEvents {
         removePortal(server.overworld(), r, false);
         removePortal(arena, r, true);
         forceArena(arena, r, false);
+        RiftBosses.clearBar(r);
         r.dormant = true;
         r.spawned.clear();
         r.dormantTicks = Config.RIFT_DORMANT_SECONDS.get() * 20;

@@ -23,7 +23,7 @@ final class RiftMobs {
     record Spawn(Mob mob, int cost) {}
 
     static boolean allowedId(String id) {
-        return !id.equals("minecraft:silverfish") && !id.equals("minecraft:endermite")
+        return !RiftEcology.BOSS_ONLY.contains(id) && !id.equals("minecraft:silverfish") && !id.equals("minecraft:endermite")
             && (!id.contains("wither") || id.equals("minecraft:wither_skeleton"))
             && !id.contains("guardian") && !id.contains("dragon") && !id.contains("boss") && !id.contains("warden");
     }
@@ -37,6 +37,9 @@ final class RiftMobs {
     }
 
     static int threat(EntityType<?> type) {
+        String id = BuiltInRegistries.ENTITY_TYPE.getKey(type).toString();
+        if (id.equals("riftfall:goblin_shaman")) return 3;
+        if (id.startsWith("irons_spellbooks:")) return 4;
         if (type == EntityType.RAVAGER || type == EntityType.GHAST || type == EntityType.EVOKER) return 4;
         if (type == EntityType.PIGLIN_BRUTE || type == EntityType.SHULKER || type == EntityType.VEX || type == EntityType.VINDICATOR) return 3;
         if (type == EntityType.CREEPER || type == EntityType.ENDERMAN || type == EntityType.WITCH || type == EntityType.BLAZE
@@ -45,10 +48,10 @@ final class RiftMobs {
         return 1;
     }
 
-    static Spawn spawn(ServerLevel world, BlockPos pos, int level, double budget) {
+    static Spawn spawn(ServerLevel world, BlockPos pos, int level, double budget, Rift r) {
         List<EntityType<?>> pool = new ArrayList<>();
         for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE)
-            if (eligible(type) && threat(type) <= level && threat(type) * 10 <= budget) pool.add(type);
+            if (eligible(type) && RiftEcology.matches(type, r) && threat(type) <= level && threat(type) * 10 <= budget) pool.add(type);
         if (pool.isEmpty()) return null;
         for (int attempt = 0; attempt < 8; attempt++) {
             EntityType<?> type = pool.get(world.random.nextInt(pool.size()));
@@ -63,6 +66,7 @@ final class RiftMobs {
             mob.getPersistentData().putBoolean("RiftfallPaid",true);
             hostile(mob);
             RiftProgression.equip(mob,level);
+            RiftSpellcasting.prepare(mob, level);
             if (world.addFreshEntity(mob)) return new Spawn(mob, threat(type)*10);
         }
         return null;
@@ -102,6 +106,9 @@ final class RiftMobs {
         for (var id : java.util.Set.copyOf(r.enemies)) {
             Mob mob = find(world,r,id);
             if (mob == null) continue;
+            if (id.equals(r.boss) && !RiftBosses.inRoom(r, mob.getX(), mob.getZ())) mob.moveTo(RiftBosses.position(r).getX()+.5,81,RiftBosses.position(r).getZ()+.5,mob.getYRot(),0);
+            if (r.boss != null && !id.equals(r.boss) && RiftBosses.inRoom(r,mob.getX(),mob.getZ())
+                && !mob.getPersistentData().getBoolean("RiftfallBossMinion")) mob.moveTo(r.arena().getX()+.5,81,2.5,mob.getYRot(),0);
             double margin = Math.max(1,mob.getBbWidth()/2+.2);
             if (Math.abs(mob.getX()-(r.arena().getX()+.5))>r.radius-margin || Math.abs(mob.getZ()-.5)>r.radius-margin
                 || mob.getY()<81 || mob.getY()+mob.getBbHeight()>87) {
