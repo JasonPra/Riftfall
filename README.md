@@ -16,7 +16,7 @@ Use Easy, Normal, or Hard difficulty. Peaceful removes the placeholder hostile m
 
 ## Rift portals
 
-Each entrance and arena exit is a stationary `riftfall:rift` entity with a two-sided animated portal surface and a rippling energy rim. Its orientation stays fixed in the world; it never turns toward the camera or moves with physics. The interior uses Minecraft's animated Nether portal texture, and nearby players hear the vanilla Nether portal ambient sound through the Blocks sound category. A broken entrance has a red-tinted rim.
+Each entrance and arena exit is a stationary `riftfall:rift` entity with a two-sided animated portal surface and a rippling energy rim. Exterior portals receive a random orientation when created, saved across restarts. The arena exit sits at the south end of the dungeon and always faces north; entering players also face north into the room. Each portal's orientation stays fixed in the world; it never turns toward the camera or moves with physics. The interior uses Minecraft's animated Nether portal texture, and nearby players hear the vanilla Nether portal ambient sound through the Blocks sound category. A broken entrance has a red-tinted rim.
 
 Portal visuals are reconstructed from saved rift data when chunks load or a server restarts, so existing worlds automatically gain the new portals. Clearing a rift removes both endpoint entities. Clients and servers both need the updated mod for the custom entity renderer.
 
@@ -47,6 +47,6 @@ Server settings are generated in `<world>/serverconfig/riftfall-server.toml`: `s
 
 ## Prototype validation
 
-`gradlew build` passes, including two persistence tests for countdowns, broken state, tracked enemy IDs, and non-reuse of cleared arena IDs. A local dedicated-server check with an automated Minecraft client verified dimension loading, portal entry, six arena enemies, clearing and automatic return, dungeon breaks, the four-mob test cap, and reopening a saved broken rift after restart. Arena kills were issued through server commands. Clearing the broken rift left escaped mobs alive and stopped further waves. Natural spawn timing and human combat feel still need manual playtesting.
+`gradlew build` passes, including persistence tests for countdowns, broken state, tracked enemy IDs, and non-reuse of cleared arena IDs. A local dedicated-server check with an automated Minecraft client verified dimension loading, portal entry, six arena enemies, clearing and automatic return, dungeon breaks, the four-mob test cap, and reopening a saved broken rift after restart. Arena kills were issued through server commands. Clearing the broken rift left escaped mobs alive and stopped further waves. Natural spawn timing and human combat feel still need manual playtesting.
 
 The portal entity update was also checked with a real NeoForge client and dedicated server: animated frames, visibility from both faces, fixed orientation when the player changes sides, resistance to movement, entrance/exit entity creation, immediate removal of both entities on clearing, repeated portal ambient sound packets, and reconstruction of exactly one portal after a server restart.

@@ -81,7 +81,7 @@ public final class RiftEvents {
                 for (ServerPlayer player : java.util.List.copyOf(world.players())) {
                     if (canEnter(player, r.pos)) {
                         if (!r.built) build(arena, r);
-                        travel(player, arena, r.exit());
+                        travel(player, arena, r.exit(), r.portalYaw(true));
                         player.sendSystemMessage(Component.literal("Defeat all " + r.enemies.size() + " arena enemies. The rift portal returns you outside."));
                     }
                 }
@@ -113,6 +113,10 @@ public final class RiftEvents {
     }
 
     static void travel(ServerPlayer p, ServerLevel level, BlockPos pos) {
+        travel(p, level, pos, p.getYRot());
+    }
+
+    static void travel(ServerPlayer p, ServerLevel level, BlockPos pos, float yaw) {
         if (level.dimension() == Level.OVERWORLD && !safe(level, pos)) {
             BlockPos landing = null;
             for (int x = -8; x <= 8 && landing == null; x++) for (int z = -8; z <= 8 && landing == null; z++) {
@@ -122,7 +126,7 @@ public final class RiftEvents {
             if (landing != null) pos = landing;
             else pos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, level.getSharedSpawnPos());
         }
-        p.teleportTo(level, pos.getX() + .5, pos.getY(), pos.getZ() + .5, p.getYRot(), p.getXRot());
+        p.teleportTo(level, pos.getX() + .5, pos.getY(), pos.getZ() + .5, yaw, p.getXRot());
         p.fallDistance = 0;
         COOLDOWNS.put(p.getUUID(), 100);
     }
@@ -139,7 +143,7 @@ public final class RiftEvents {
         }
         RiftEntity entity = RiftEntities.RIFT.get().create(level);
         if (entity != null) {
-            entity.configure(r.id, exit, pos, !exit && r.remaining == 0);
+            entity.configure(r.id, exit, pos, !exit && r.remaining == 0, r.portalYaw(exit));
             level.addFreshEntity(entity);
         }
     }
@@ -180,6 +184,7 @@ public final class RiftEvents {
     static void create(MinecraftServer server, BlockPos pos) {
         RiftData data = RiftData.get(server);
         Rift r = new Rift(data.nextId++, pos, Config.BREAK_SECONDS.get() * 20);
+        r.exteriorYaw = server.overworld().random.nextFloat() * 360F;
         data.rifts.add(r); data.setDirty();
         portal(server.overworld(), r, false);
         announce(server, "A rift opened at " + coordinates(pos) + ". Enter the rift portal; dungeon break in " + Config.BREAK_SECONDS.get() + " seconds.");

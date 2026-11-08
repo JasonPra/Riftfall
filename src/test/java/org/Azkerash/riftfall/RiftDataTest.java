@@ -13,6 +13,7 @@ class RiftDataTest {
         original.spawnTicks = 123;
         RiftData.Rift waiting = new RiftData.Rift(6, new BlockPos(-123, 72, 456), 73);
         RiftData.Rift broken = new RiftData.Rift(7, new BlockPos(10, 64, -30), 0);
+        broken.exteriorYaw = 123.45F;
         broken.built = true;
         broken.waveTicks = 81;
         UUID enemy = UUID.randomUUID();
@@ -37,6 +38,20 @@ class RiftDataTest {
         assertEquals(java.util.Set.of(enemy), encounter.enemies);
         assertEquals(java.util.Set.of(escaped), encounter.outside);
         assertEquals(broken.arena(), encounter.arena());
+        assertEquals(123.45F, encounter.portalYaw(false));
+        assertEquals(180F, encounter.portalYaw(true));
+        assertEquals(encounter.arena().offset(0, 1, 8), encounter.exit());
+    }
+
+    @Test void olderSavesKeepTheirExteriorOrientationAndUseTheSouthExit() {
+        RiftData original = new RiftData();
+        original.rifts.add(new RiftData.Rift(2, new BlockPos(0, 64, 0), 100));
+        CompoundTag tag = original.save(new CompoundTag(), null);
+        tag.getList("rifts", net.minecraft.nbt.Tag.TAG_COMPOUND).getCompound(0).remove("exteriorYaw");
+        RiftData.Rift restored = RiftData.load(tag, null).rifts.getFirst();
+        assertEquals(0F, restored.portalYaw(false));
+        assertEquals(180F, restored.portalYaw(true));
+        assertEquals(new BlockPos(128, 81, 8), restored.exit());
     }
 
     @Test void clearedRiftStaysClosedAfterRestart() {

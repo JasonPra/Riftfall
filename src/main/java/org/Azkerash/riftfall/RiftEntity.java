@@ -27,10 +27,10 @@ public final class RiftEntity extends Entity {
         setNoGravity(true);
     }
 
-    void configure(int id, boolean arenaExit, BlockPos pos, boolean broken) {
+    void configure(int id, boolean arenaExit, BlockPos pos, boolean broken, float yaw) {
         riftId = id;
         exit = arenaExit;
-        moveTo(pos.getX() + .5, pos.getY(), pos.getZ() + .5, 0, 0);
+        moveTo(pos.getX() + .5, pos.getY(), pos.getZ() + .5, yaw, 0);
         setBroken(broken);
     }
 

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -31,6 +32,7 @@ public final class RiftData extends SavedData {
         for (int i = 0; i < list.size(); i++) {
             CompoundTag t = list.getCompound(i);
             Rift r = new Rift(t.getInt("id"), BlockPos.of(t.getLong("pos")), t.getInt("remaining"));
+            r.exteriorYaw = t.getFloat("exteriorYaw");
             r.built = t.getBoolean("built");
             r.waveTicks = t.getInt("waveTicks");
             readIds(t.getList("enemies", Tag.TAG_COMPOUND), r.enemies);
@@ -59,6 +61,7 @@ public final class RiftData extends SavedData {
             t.putInt("id", r.id); t.putLong("pos", r.pos.asLong());
             t.putInt("remaining", r.remaining); t.putBoolean("built", r.built);
             t.putInt("waveTicks", r.waveTicks);
+            t.putFloat("exteriorYaw", r.exteriorYaw);
             t.put("enemies", writeIds(r.enemies)); t.put("outside", writeIds(r.outside));
             list.add(t);
         }
@@ -72,10 +75,13 @@ public final class RiftData extends SavedData {
         int remaining;
         int waveTicks;
         boolean built;
+        float exteriorYaw;
         final Set<UUID> enemies = new HashSet<>();
         final Set<UUID> outside = new HashSet<>();
         Rift(int id, BlockPos pos, int remaining) { this.id = id; this.pos = pos; this.remaining = remaining; }
         BlockPos arena() { return new BlockPos(id * 64, 80, 0); }
-        BlockPos exit() { return arena().offset(-8, 1, 0); }
+        // Positive Z is south: place the exit near the south wall, looking into the room.
+        BlockPos exit() { return arena().offset(0, 1, 8); }
+        float portalYaw(boolean exit) { return exit ? Direction.NORTH.toYRot() : exteriorYaw; }
     }
 }
