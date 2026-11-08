@@ -32,6 +32,12 @@ Each entrance and arena exit is a stationary `riftfall:rift` entity with a two-s
 
 Portal visuals are reconstructed from saved rift data when chunks load or a server restarts, so existing worlds automatically gain the new portals. Clearing a rift removes both endpoint entities. Clients and servers both need the updated mod for the custom entity renderer.
 
+## Crystal cluster
+
+`riftfall:crystal_cluster` is a decorative, ground-mounted cluster of five translucent, pale blue, voxel-shaped crystal shards with stepped tips and a native 16×16 pixel texture. It emits light level 12 and uses a block entity with no ticking or special interaction yet. Place it on a sturdy upper surface; it drops itself when broken or when its support is removed.
+
+Find **Crystal Cluster** in the Natural Blocks creative tab, or use `/give @s riftfall:crystal_cluster`. It has no crafting recipe or natural generation at this stage.
+
 ## Required dependency
 
 Install [Epic Fight 21.17.3.1 for Minecraft 1.21.1 / NeoForge (CurseForge file 8175609)](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod/files/8175609) alongside Riftfall on both the client and server. Riftfall declares this exact version as required; the Epic Fight jar is installed separately, not bundled inside Riftfall.
@@ -78,3 +84,5 @@ The former `spawnSeconds` timer is no longer used.
 The portal entity update was also checked with a real NeoForge client and dedicated server: animated frames, visibility from both faces, fixed orientation when the player changes sides, resistance to movement, entrance/exit entity creation, immediate removal of both entities on clearing, repeated portal ambient sound packets, and reconstruction of exactly one portal after a server restart.
 
 The soul essence update passes six unit tests and dedicated-server checks for spawn-chunk initialization, passive gain in force-loaded chunks without players, unload/reload pause behavior, probability-zero retries, natural spawning and charge consumption, and fractional attachment persistence across restarts. A measured before/after health check confirmed blast damage; a 1,024-block comparison confirmed terrain was unchanged. Packet checks with nearby and distant clients confirmed smoke/flame and explosion delivery plus a local Wither opening cue. A spent spawn chunk remained spent after restarting.
+
+The crystal cluster was checked in a real client with Epic Fight loaded, including its voxel model, transparent texture, inventory item, and nighttime glow. Server checks confirmed its block entity survives a restart, removing its support drops the cluster item, and saved world lighting records level 12 at the crystal and level 11 in the neighboring air block.
