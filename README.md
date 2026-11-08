@@ -1,6 +1,6 @@
 # Riftfall
 
-A bare-bones Solo Leveling-inspired Minecraft **1.21.1 / NeoForge 21.1** mod. Requires Java 21. No Create dependencies.
+A bare-bones Solo Leveling-inspired Minecraft **1.21.1 / NeoForge 21.1** mod. Requires Java 21 and Epic Fight 21.17.3.1 on both client and server.
 
 ## Play loop
 
@@ -31,6 +31,12 @@ Failed probability rolls, unavailable terrain, existing rifts in the same chunk,
 Each entrance and arena exit is a stationary `riftfall:rift` entity with a two-sided animated portal surface and a rippling energy rim. Exterior portals receive a random orientation when created, saved across restarts. The arena exit sits at the south end of the dungeon and always faces north; entering players also face north into the room. Each portal's orientation stays fixed in the world; it never turns toward the camera or moves with physics. The interior uses Minecraft's animated Nether portal texture, and nearby players hear the vanilla Nether portal ambient sound through the Blocks sound category. A broken entrance has a red-tinted rim.
 
 Portal visuals are reconstructed from saved rift data when chunks load or a server restarts, so existing worlds automatically gain the new portals. Clearing a rift removes both endpoint entities. Clients and servers both need the updated mod for the custom entity renderer.
+
+## Required dependency
+
+Install [Epic Fight 21.17.3.1 for Minecraft 1.21.1 / NeoForge (CurseForge file 8175609)](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod/files/8175609) alongside Riftfall on both the client and server. Riftfall declares this exact version as required; the Epic Fight jar is installed separately, not bundled inside Riftfall.
+
+Gradle resolves the pinned file from CurseMaven for compilation and development runs. `epic_fight_file_id` and `epic_fight_version` in `gradle.properties` identify the required release.
 
 ## Build and run
 
