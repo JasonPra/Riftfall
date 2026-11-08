@@ -11,6 +11,7 @@ public class Riftfall {
     public static final String MODID = "riftfall";
 
     public Riftfall(IEventBus bus, ModContainer container) {
+        RiftEntities.TYPES.register(bus);
         container.registerConfig(ModConfig.Type.SERVER, Config.SPEC);
         NeoForge.EVENT_BUS.register(RiftEvents.class);
     }

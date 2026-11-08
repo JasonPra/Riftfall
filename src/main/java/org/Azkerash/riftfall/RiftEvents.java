@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.UUID;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -66,7 +65,7 @@ public final class RiftEvents {
             }
             if (r.built && r.enemies.isEmpty()) { close(server, data, r); continue; }
             if (world.hasChunkAt(r.pos)) {
-                if (server.getTickCount() % 10 == 0) portal(world, r.pos, r.remaining == 0);
+                if (server.getTickCount() % 10 == 0) portal(world, r, false);
                 if (r.remaining == 0 && ++r.waveTicks >= Config.WAVE_SECONDS.get() * 20) {
                     r.waveTicks = 0;
                     for (int i = 0; i < 2 && r.outside.size() < Config.MAX_OUTSIDE.get(); i++) {
@@ -83,12 +82,12 @@ public final class RiftEvents {
                     if (canEnter(player, r.pos)) {
                         if (!r.built) build(arena, r);
                         travel(player, arena, r.exit());
-                        player.sendSystemMessage(Component.literal("Defeat all " + r.enemies.size() + " arena enemies. The purple marker returns you outside."));
+                        player.sendSystemMessage(Component.literal("Defeat all " + r.enemies.size() + " arena enemies. The rift portal returns you outside."));
                     }
                 }
             }
             if (r.built) {
-                if (server.getTickCount() % 10 == 0) portal(arena, r.exit(), false);
+                if (server.getTickCount() % 10 == 0) portal(arena, r, true);
                 for (ServerPlayer player : java.util.List.copyOf(arena.players())) {
                     if (canEnter(player, r.exit())) travel(player, world, r.pos);
                 }
@@ -128,9 +127,27 @@ public final class RiftEvents {
         COOLDOWNS.put(p.getUUID(), 100);
     }
 
-    static void portal(ServerLevel level, BlockPos pos, boolean broken) {
-        level.sendParticles(broken ? ParticleTypes.FLAME : ParticleTypes.PORTAL,
-            pos.getX() + .5, pos.getY() + 1, pos.getZ() + .5, 35, .45, 1, .45, .02);
+    static void portal(ServerLevel level, Rift r, boolean exit) {
+        BlockPos pos = exit ? r.exit() : r.pos;
+        var existing = level.getEntitiesOfClass(RiftEntity.class, new net.minecraft.world.phys.AABB(pos).inflate(2),
+            entity -> entity.belongsTo(r.id, exit));
+        if (!existing.isEmpty()) {
+            existing.getFirst().setBroken(!exit && r.remaining == 0);
+            // Keep one visual per endpoint, even if an earlier load created a duplicate.
+            for (int i = 1; i < existing.size(); i++) existing.get(i).discard();
+            return;
+        }
+        RiftEntity entity = RiftEntities.RIFT.get().create(level);
+        if (entity != null) {
+            entity.configure(r.id, exit, pos, !exit && r.remaining == 0);
+            level.addFreshEntity(entity);
+        }
+    }
+
+    static void removePortal(ServerLevel level, Rift r, boolean exit) {
+        BlockPos pos = exit ? r.exit() : r.pos;
+        level.getEntitiesOfClass(RiftEntity.class, new net.minecraft.world.phys.AABB(pos).inflate(2),
+            entity -> entity.belongsTo(r.id, exit)).forEach(RiftEntity::discard);
     }
 
     static Zombie zombie(ServerLevel level, BlockPos pos) {
@@ -164,7 +181,8 @@ public final class RiftEvents {
         RiftData data = RiftData.get(server);
         Rift r = new Rift(data.nextId++, pos, Config.BREAK_SECONDS.get() * 20);
         data.rifts.add(r); data.setDirty();
-        announce(server, "A rift opened at " + coordinates(pos) + ". Enter the purple particles; dungeon break in " + Config.BREAK_SECONDS.get() + " seconds.");
+        portal(server.overworld(), r, false);
+        announce(server, "A rift opened at " + coordinates(pos) + ". Enter the rift portal; dungeon break in " + Config.BREAK_SECONDS.get() + " seconds.");
     }
 
     @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST) public static void death(LivingDeathEvent event) {
@@ -182,6 +200,8 @@ public final class RiftEvents {
             if (Math.abs(player.getX() - r.arena().getX()) <= 11 && Math.abs(player.getZ()) <= 11)
                 travel(player, server.overworld(), r.pos);
         }
+        removePortal(server.overworld(), r, false);
+        removePortal(arena, r, true);
         for (int x = (r.arena().getX() - 10) >> 4; x <= (r.arena().getX() + 10) >> 4; x++)
             for (int z = -1; z <= 0; z++) arena.setChunkForced(x, z, false);
         data.rifts.remove(r); data.setDirty();
