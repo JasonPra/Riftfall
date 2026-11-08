@@ -52,7 +52,7 @@ final class RiftSpellcasting {
             if (cooldown>0) { cooldown--; return false; }
             var target=mob.getTarget();
             return intelligentLiving(mob) && target!=null && target.isAlive() && !mob.isAlliedTo(target)
-                && (!(mob instanceof GoblinEntity) || !GoblinTactics.threatened(mob.distanceToSqr(target)))
+                && (!(mob instanceof GoblinEntity goblin) || !GoblinTactics.threatened(mob.distanceToSqr(target)) || GoblinTactics.coverSafe(goblin))
                 && mob.distanceToSqr(target)<24*24 && mob.getSensing().hasLineOfSight(target) && mob.hurtTime==0;
         }
         @Override public boolean canContinueToUse() {

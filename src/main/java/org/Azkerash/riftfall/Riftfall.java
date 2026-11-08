@@ -15,6 +15,7 @@ public class Riftfall {
         RiftBlocks.register(bus);
         GoblinItems.register(bus);
         bus.addListener(RiftEntities::attributes);
+        bus.addListener(GrappleEscapePayload::register);
         bus.addListener(RiftCastingAnimations::register);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.ENTITY_PATCH.registerEvent(RiftEntities::patches);
         bus.addListener(RiftMobs::attributes);
@@ -24,6 +25,7 @@ public class Riftfall {
         NeoForge.EVENT_BUS.register(RiftEvents.class);
         NeoForge.EVENT_BUS.register(RiftSpellcasting.class);
         NeoForge.EVENT_BUS.register(GoblinTactics.class);
+        NeoForge.EVENT_BUS.register(GoblinGrapple.class);
         NeoForge.EVENT_BUS.register(SoulEssenceEvents.class);
     }
 }

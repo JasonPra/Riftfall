@@ -17,12 +17,12 @@ public final class RiftEntities {
             .build("riftfall:rift"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<GoblinEntity>> GOBLIN = TYPES.register("goblin",
-        () -> EntityType.Builder.of(GoblinEntity::new,MobCategory.MONSTER).sized(.6F,1.8F).clientTrackingRange(8).build("riftfall:goblin"));
+        () -> EntityType.Builder.of(GoblinEntity::new,MobCategory.MONSTER).sized(.6F,2.0F).clientTrackingRange(8).build("riftfall:goblin"));
     public static final DeferredHolder<EntityType<?>, EntityType<GoblinEntity>> GOBLIN_SHAMAN = TYPES.register("goblin_shaman",
-        () -> EntityType.Builder.of(GoblinEntity::new,MobCategory.MONSTER).sized(.6F,1.8F).clientTrackingRange(8).build("riftfall:goblin_shaman"));
+        () -> EntityType.Builder.of(GoblinEntity::new,MobCategory.MONSTER).sized(.6F,2.0F).clientTrackingRange(8).build("riftfall:goblin_shaman"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<GoblinEntity>> GOBLIN_ARCHER = TYPES.register("goblin_archer",
-        () -> EntityType.Builder.of(GoblinEntity::new,MobCategory.MONSTER).sized(.6F,1.8F).clientTrackingRange(8).build("riftfall:goblin_archer"));
+        () -> EntityType.Builder.of(GoblinEntity::new,MobCategory.MONSTER).sized(.6F,2.0F).clientTrackingRange(8).build("riftfall:goblin_archer"));
 
     static void attributes(net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent event) {
         event.put(GOBLIN_ARCHER.get(),GoblinEntity.attributes().add(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH,18).build());
