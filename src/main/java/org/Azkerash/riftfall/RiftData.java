@@ -17,7 +17,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 public final class RiftData extends SavedData {
     final List<Rift> rifts = new ArrayList<>();
     int nextId;
-    int spawnTicks;
+    boolean spawnChunkSeeded;
 
     static RiftData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(
@@ -27,7 +27,7 @@ public final class RiftData extends SavedData {
     static RiftData load(CompoundTag tag, HolderLookup.Provider registries) {
         RiftData data = new RiftData();
         data.nextId = tag.getInt("nextId");
-        data.spawnTicks = tag.getInt("spawnTicks");
+        data.spawnChunkSeeded = tag.getBoolean("spawnChunkSeeded");
         ListTag list = tag.getList("rifts", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
             CompoundTag t = list.getCompound(i);
@@ -54,7 +54,7 @@ public final class RiftData extends SavedData {
 
     @Override public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt("nextId", nextId);
-        tag.putInt("spawnTicks", spawnTicks);
+        tag.putBoolean("spawnChunkSeeded", spawnChunkSeeded);
         ListTag list = new ListTag();
         for (Rift r : rifts) {
             CompoundTag t = new CompoundTag();

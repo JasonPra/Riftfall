@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -38,22 +41,6 @@ public final class RiftEvents {
         RiftData data = RiftData.get(server);
         COOLDOWNS.replaceAll((id, ticks) -> ticks - 1);
         COOLDOWNS.values().removeIf(t -> t <= 0);
-        if (++data.spawnTicks >= Config.SPAWN_SECONDS.get() * 20) {
-            data.spawnTicks = 0;
-            var players = world.players().stream().filter(p -> !p.isSpectator()).toList();
-            if (!players.isEmpty() && data.rifts.size() < Config.MAX_RIFTS.get()) {
-                ServerPlayer player = players.get(world.random.nextInt(players.size()));
-                for (int attempt = 0; attempt < 12; attempt++) {
-                    int x = player.getBlockX() + world.random.nextInt(129) - 64;
-                    int z = player.getBlockZ() + world.random.nextInt(129) - 64;
-                    if (!world.hasChunk(x >> 4, z >> 4)) continue;
-                    BlockPos pos = world.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
-                    if (safe(world, pos) && data.rifts.stream().noneMatch(r -> r.pos.distSqr(pos) < 256)) {
-                        create(server, pos); break;
-                    }
-                }
-            }
-        }
         for (Rift r : java.util.List.copyOf(data.rifts)) {
             if (r.remaining > 0 && --r.remaining == 0) {
                 announce(server, "Dungeon break at " + coordinates(r.pos) + "! Clear the arena to close the rift.");
@@ -185,9 +172,21 @@ public final class RiftEvents {
         RiftData data = RiftData.get(server);
         Rift r = new Rift(data.nextId++, pos, Config.BREAK_SECONDS.get() * 20);
         r.exteriorYaw = server.overworld().random.nextFloat() * 360F;
+        openingBurst(server.overworld(), pos);
         data.rifts.add(r); data.setDirty();
+        SoulEssenceEvents.consume(server.overworld(), pos);
         portal(server.overworld(), r, false);
         announce(server, "A rift opened at " + coordinates(pos) + ". Enter the rift portal; dungeon break in " + Config.BREAK_SECONDS.get() + " seconds.");
+    }
+
+    static void openingBurst(ServerLevel world, BlockPos pos) {
+        double x = pos.getX() + .5, y = pos.getY() + 1, z = pos.getZ() + .5;
+        // NONE preserves blocks while retaining the blast's entity damage and knockback.
+        world.explode(null, x, y, z, 2.0F, Level.ExplosionInteraction.NONE);
+        world.sendParticles(ParticleTypes.LARGE_SMOKE, x, y, z, 80, .8, 1.0, .8, .06);
+        world.sendParticles(ParticleTypes.FLAME, x, y, z, 60, .6, .9, .6, .12);
+        // A normal positional sound packet, never the Wither's global level event.
+        world.playSound(null, x, y, z, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 2.0F, 1.0F);
     }
 
     @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST) public static void death(LivingDeathEvent event) {
