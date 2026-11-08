@@ -22,6 +22,7 @@ public final class RiftBlocks {
         () -> new CrystalClusterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.ICE)
             .strength(1.5F).sound(SoundType.AMETHYST_CLUSTER).noOcclusion().lightLevel(state -> 12)));
     public static final DeferredItem<BlockItem> CRYSTAL_CLUSTER_ITEM = ITEMS.registerSimpleBlockItem(CRYSTAL_CLUSTER);
+    public static final DeferredItem<SoulEssenceCrystalItem> SOUL_ESSENCE_CRYSTAL = ITEMS.register("soul_essence_crystal", SoulEssenceCrystalItem::new);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CrystalClusterBlockEntity>> CRYSTAL_CLUSTER_ENTITY = ENTITIES.register("crystal_cluster",
         () -> BlockEntityType.Builder.of(CrystalClusterBlockEntity::new, CRYSTAL_CLUSTER.get()).build(null));
 
@@ -34,6 +35,7 @@ public final class RiftBlocks {
 
     private static void creativeTab(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) event.accept(CRYSTAL_CLUSTER_ITEM);
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(SOUL_ESSENCE_CRYSTAL);
     }
 
     private RiftBlocks() {}

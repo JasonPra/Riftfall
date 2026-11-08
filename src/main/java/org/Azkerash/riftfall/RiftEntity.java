@@ -48,7 +48,7 @@ public final class RiftEntity extends Entity {
         if (level() instanceof ServerLevel level) {
             if (tickCount % 20 == 0) {
                 boolean active = RiftData.get(level.getServer()).rifts.stream().anyMatch(r ->
-                    r.id == riftId && (exit ? r.built && level.dimension() == RiftEvents.ARENA
+                    r.id == riftId && !r.dormant && (exit ? r.built && level.dimension() == RiftEvents.ARENA
                         : level.dimension() == Level.OVERWORLD));
                 if (!active) { discard(); return; }
             }

@@ -1,0 +1,8 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": [
+    "riftfall:soul_crystals"
+  ],
+  "step": "underground_decoration"
+}

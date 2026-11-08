@@ -1,88 +1,105 @@
 # Riftfall
 
-A bare-bones Solo Leveling-inspired Minecraft **1.21.1 / NeoForge 21.1** mod. Requires Java 21 and Epic Fight 21.17.3.1 on both client and server.
+A Solo Leveling-inspired Minecraft **1.21.1 / NeoForge 21.1** mod. Requires Java 21 and [Epic Fight 21.17.3.1 (CurseForge file 8175609)](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod/files/8175609) on both client and server. Gradle resolves that exact file for development; players install Epic Fight separately.
 
-## Play loop
+## Soul essence and crystals
 
-- Every loaded overworld chunk gains soul essence passively. By default, it gains 1 point per second and reaches critical mass at 600 points. The world spawn chunk starts critical once per world.
-- Critical chunks have a 10% chance every 10 seconds to open a rift on a safe surface inside that chunk. A successful spawn consumes the charge. At most five rifts are active, with one natural rift per chunk and at least 16 blocks between rifts. Coordinates are announced in chat.
-- A rift erupts with a small explosion, smoke, and flame before its portal appears. The blast damages and knocks back nearby entities while preserving terrain. The Wither spawn cue is positional and local, audible within approximately 32 blocks rather than globally.
-- Walk into the animated rift portal to enter a separate, enclosed arena. Six persistent zombies are the placeholder encounter. All visitors share the same enemies and progress.
-- Kill every arena enemy to clear the rift. Players inside return outside and the rift closes. Future bosses can join this same tracked encounter.
-- After ten minutes of server time, an uncleared rift breaks, even if someone is inside. Its energy rim turns red and spawns two overworld zombies every fifteen seconds while its chunk is loaded.
-- A rift tracks up to twenty living escaped mobs to limit server load. Kills free slots for new waves. Escaped mobs remain after closure; clearing stops future waves.
-- The arena exit portal and `/rift leave` let players retreat without clearing the encounter. Portal travel has a five-second cooldown.
-- Rift coordinates, timers, arena progress, and enemy UUIDs are saved with the world. Timers pause while the server is off. Arena chunks stay loaded until cleared.
+Loaded overworld chunks cultivate soul essence. The base rate is **0.05 essence/second**, plus **0.05/second for each fully mature crystal cluster** in that chunk. Twenty mature clusters restore a total rate of 1.05/second. Unloaded chunks and offline servers do not accumulate missed time. Chunk essence and crystal growth stages persist across saves and restarts.
 
-Use Easy, Normal, or Hard difficulty. Peaceful removes the placeholder hostile mobs, so it cannot demonstrate combat or dungeon breaks. Arenas are simple bedrock rooms with lit ceilings; no custom models, loot, ranks, bosses, or progression yet. Avoid changing dimension data on an existing production world; test in a fresh world first.
+**Soul Essence Crystal Clusters** have one to five visible crystals. Mining one drops exactly that many **Soul Essence Crystal** items. Harvested crystals can be planted on any sturdy face as a one-crystal seed. Colonies grow across floors, up walls, around corners, and along ceilings. Their translucent voxel models and collision shapes follow their growth stage and attachment direction. They emit light level 12.
 
-## Soul essence
+Every 20 seconds, a cluster may spend 10 local essence to add one crystal. A mature five-crystal cluster instead attempts to plant neighboring seeds, spending 20 essence per successful seed. Actions require a chunk to have **more than 100 essence, or to have reached its configured critical mass**, and enough essence to pay the action's cost. Blocked locations and insufficient funds cost nothing. Each new seed starts at one crystal; player planting and spreading never generate free essence.
 
-Essence is a persistent `riftfall:soul_essence` chunk attachment. It accumulates only while the overworld chunk is loaded, including force-loaded chunks without nearby players. Arena chunks do not accumulate essence. Unloading a chunk or stopping the server pauses accumulation; loading it later resumes its saved value without adding missed time. Passive gain caps at critical mass.
+There are two natural sources:
 
-Failed probability rolls, unavailable terrain, existing rifts in the same chunk, and the active-rift cap preserve the chunk's charge for another attempt. Opening a rift consumes all of that chunk's essence, including when using the operator spawn command. The spawn-chunk bonus is applied once per world, including existing worlds on their first launch with this update; clearing a rift or restarting never grants it again.
+- **World generation:** a rare underground feature rolls approximately once per 32 chunks, then searches for a dry cave surface below Y=32 and at least eight blocks below the surface. Successful generation places a seed and adds **50 starting essence** to its chunk. This bonus is credited during generation, not every time the chunk loads.
+- **Existing loaded chunks:** high-essence chunks have a 0.1% chance per minute to attempt a new cave seed. Successful placement costs 20 local essence. This allows older worlds to develop colonies without regenerating terrain.
 
-- `/rift essence` reports the current chunk's points and critical threshold.
-- `/rift essence set <amount>` sets the current chunk's essence (operator permission required).
-- These commands only inspect already loaded overworld chunks.
+The block retains `riftfall:crystal_cluster` for existing-world compatibility. Find it under Natural Blocks. The new item is `riftfall:soul_essence_crystal`, under Ingredients.
 
-## Rift portals
+## Rift formation and root pools
 
-Each entrance and arena exit is a stationary `riftfall:rift` entity with a two-sided animated portal surface and a rippling energy rim. Exterior portals receive a random orientation when created, saved across restarts. The arena exit sits at the south end of the dungeon and always faces north; entering players also face north into the room. Each portal's orientation stays fixed in the world; it never turns toward the camera or moves with physics. The interior uses Minecraft's animated Nether portal texture, and nearby players hear the vanilla Nether portal ambient sound through the Blocks sound category. A broken entrance has a red-tinted rim.
+The world spawn chunk starts at critical mass once per world. The default critical mass is 600 essence. A critical chunk rolls a 10% chance every 10 seconds to form a rift on safe terrain. A successful formation consumes its chunk's charge into the rift's construction bank.
 
-Portal visuals are reconstructed from saved rift data when chunks load or a server restarts, so existing worlds automatically gain the new portals. Clearing a rift removes both endpoint entities. Clients and servers both need the updated mod for the custom entity renderer.
+**New rifts must be more than 1,000 horizontal blocks from every existing rift.** Active and dormant rifts both reserve this radius. Natural formation and `/rift spawn` use the same spacing rule. Previously saved rifts keep their locations.
 
-## Crystal cluster
+A rift's chunk is its **root chunk**. Edge-connected, fully loaded overworld chunks form its essence catchment. If two catchments meet, each chunk belongs to the nearest reachable root, with deterministic ties; essence is never counted twice. Unloaded chunks retain their stored points, but are not force-loaded or remotely drained.
 
-`riftfall:crystal_cluster` is a decorative, ground-mounted cluster of five translucent, pale blue, voxel-shaped crystal shards with stepped tips and a native 16×16 pixel texture. It emits light level 12 and uses a block entity with no ticking or special interaction yet. Place it on a sturdy upper surface; it drops itself when broken or when its support is removed.
+When a root falls below 25% of critical mass, it begins refilling from its connected donors, transferring up to 10 essence per second until it reaches critical mass again. Transfers conserve essence and never overdraw a donor. Each chunk's cultivation, including mature-crystal bonuses, contributes to this shared supply.
 
-Find **Crystal Cluster** in the Natural Blocks creative tab, or use `/give @s riftfall:crystal_cluster`. It has no crafting recipe or natural generation at this stage.
+An opening rift erupts with an entity-damaging explosion, smoke, flame, and a local Wither spawn cue. Terrain stays intact. The Wither cue uses a positional sound packet, audible at approximately 32 blocks, rather than the boss's global announcement. Portal entities remain stationary and use animated translucent interiors. Exterior orientation is randomized once and saved; dungeon exits sit on the south side facing north.
 
-## Required dependency
+## Delving, rewards, and dormancy
 
-Install [Epic Fight 21.17.3.1 for Minecraft 1.21.1 / NeoForge (CurseForge file 8175609)](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod/files/8175609) alongside Riftfall on both the client and server. Riftfall declares this exact version as required; the Epic Fight jar is installed separately, not bundled inside Riftfall.
+Enter a rift to reach its pocket dungeon. An initial encounter has six combat mobs. An uncleared rift breaks after ten minutes and spends its energy on repeated overworld waves while its root is loaded. The tracked escaped-mob cap defaults to 20 per rift.
 
-Gradle resolves the pinned file from CurseMaven for compilation and development runs. `epic_fight_file_id` and `epic_fight_version` in `gradle.properties` identify the required release.
+Defeat every tracked dungeon enemy to clear the encounter. **Clearing never teleports visitors out.** A reward chest appears at the dungeon's north end, the breach stops, and visitors can loot and explore before walking back through the south exit. Entering visitors start away from that exit so standing still does not automatically eject them.
+
+After the last visitor leaves, the entrance and exit disappear and the rift becomes **dormant**. It keeps its identity, power, bank, root, and reserved area. It can reopen after 60 seconds if its root reaches critical mass and the active-rift cap has room. Reopening transfers that charge to the bank and constructs a new encounter on the next entry. Existing escaped mobs remain in the world.
+
+Logged-out visitors are remembered: restarting or disconnecting inside a cleared dungeon does not discard their visit or forcibly close the gate. `/rift leave` is an escape option and counts as departing. Dormant rifts do not count against the active-rift cap.
+
+## Rift cultivation and encounter construction
+
+A loaded rift absorbs **0.1 essence per second** from its root into its bank and permanent power. Killing a player grants **50 essence immediately** to both the spendable bank and the historical power counter. Rift-owned mobs, and non-PvP deaths caused by hazards inside a dungeon, including traps while looting, credit the owning rift. Player kills therefore advance it much faster than ambient cultivation.
+
+Every 50 accumulated power unlocks another level, up to level 10. An encounter uses the highest unlocked level the rift can afford. If all visitors leave or die in an uncleared encounter, a newly stronger rift can refit it for the next attempt, provided it can pay for that upgrade. Occupied encounters are not rebuilt around visitors. Essence pays for its room shell, monsters, traps, and reserved rewards; power records its accumulated ability and is not erased by spending the bank.
+
+- Enemy counts start at six and increase by two per level. Any encounter exceeding six enemies gets a larger arena with partitioned chambers, connecting doorways, and corridors.
+- Increasing levels unlock more dangerous species, improve health and combat attributes, add appropriate weapons and armor, and raise Epic Fight Impact and Stun Armor.
+- The pool includes hostile mobs and common neutral combat mobs. Wither, Ender Dragon, Guardians, Elder Guardians, and the Warden are excluded. Datapacks can extend `riftfall:excluded_rift_mobs`; common boss tags and boss-like identifiers are also excluded.
+- Monsters are directed against delvers and share a team to discourage infighting. Hostile summoned offspring join the encounter and cost energy too. Encounters and reinforcements have a 128-mob ownership limit.
+- Stronger encounters buy doorway pressure-plate/dispenser arrow traps. These are functional traps with finite ammunition.
+- Reward chests scale with the constructed encounter's danger: more materials, then diamonds and higher-tier weapons. Rewards are created once per cleared encounter and persist when the server restarts.
+
+Basic costs are 20 essence for a simple room shell, 120 for a multiroom shell, 10–40 per monster according to its species, 15 per trap, and 20 per level reserved for rewards. Cleared encounters rebuild on the next visit after reopening; unclaimed container contents are reset for that new encounter. Vanilla dropped items retain their normal lifetime.
+
+## Commands
+
+- `/rift status` — active/dormant gates, timers, level, cultivated power, construction bank, and surviving enemies.
+- `/rift essence` — the current loaded chunk's charge, cultivation rate, mature-cluster count, and connected pool owner.
+- `/rift essence set <amount>` — set the current chunk's charge (operator).
+- `/rift spawn` — create a test rift at the command source, with the same spacing rule and opening eruption (operator; grants a starter bank if needed).
+- `/rift leave` — return from the dungeon without clearing it.
+- `/give @s riftfall:soul_essence_crystal` — obtain a plantable crystal item.
+- `/give @s riftfall:crystal_cluster` — obtain the cluster block item.
+
+## Configuration
+
+Server settings are in `<world>/serverconfig/riftfall-server.toml`:
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `baseEssencePerSecond` | 0.05 | Base cultivation in loaded overworld chunks |
+| `matureCrystalEssenceBonus` | 0.05 | Additional cultivation per mature cluster |
+| `criticalMass` | 600 | Rift formation/reopening threshold |
+| `essenceRollSeconds` / `essenceSpawnChance` | 10 / 0.1 | Natural rift rolls |
+| `crystalGrowthSeconds` | 20 | Growth/spread attempt interval |
+| `crystalGrowthCost` / `crystalSeedCost` | 10 / 20 | Paid growth and spreading |
+| `crystalCaveSeedSeconds` / `crystalCaveSeedChance` | 60 / 0.001 | Runtime cave seed rolls |
+| `riftPoolDrawPerSecond` | 10 | Low-root donor transfer limit |
+| `riftAmbientIntake` | 0.1 | Rift bank/power cultivation from its root |
+| `riftDeathEssence` / `riftUpgradeEssence` | 50 / 50 | Player-death gain and power per level |
+| `riftMaxLevel` | 10 | Danger cap |
+| `riftDormantSeconds` | 60 | Minimum closed interval after departure |
+| `breakSeconds` / `waveSeconds` | 600 / 15 | Breach deadline and outside wave interval |
+| `maxRifts` / `maxOutsideMobs` | 5 / 20 | Active-gate and escaped-mob limits |
+| `arenaEnemies` | 6 | Base encounter count |
+
+The old `essencePerSecond` key is replaced by `baseEssencePerSecond` so existing worlds receive the slower baseline. The original `spawnSeconds` timer is also retired. Worldgen frequency and the mob exclusion list are datapack resources.
 
 ## Build and run
 
 ```sh
-# Linux / macOS
 bash gradlew build
 bash gradlew runClient
-# Dedicated server (accept Minecraft's EULA in run/eula.txt first)
 bash gradlew runServer
 ```
 
-On Windows, use `gradlew.bat`. Built jars are in `build/libs/`.
+Use `gradlew.bat` on Windows. Accept Minecraft's EULA in the development run directory before running a dedicated server. Built jars are in `build/libs/`. Use Easy, Normal, or Hard difficulty; Peaceful removes hostile encounters and cannot validate dungeon combat.
 
-Server settings are generated in `<world>/serverconfig/riftfall-server.toml`:
+## Validation
 
-- `essencePerSecond` (1.0), `criticalMass` (600.0), `essenceRollSeconds` (10), and `essenceSpawnChance` (0.1) control soul essence and natural spawning. Set chance to 0 to disable natural spawning while retaining essence accumulation.
-- `breakSeconds`, `waveSeconds`, `maxRifts`, `arenaEnemies`, and `maxOutsideMobs` control encounters and dungeon breaks.
+The build includes tests for persistence, fractional essence, growth funding, cultivation bonuses, danger scaling, arena size limits, spacing boundaries, dormant reservations, connected pool ownership, and conserved donor transfers.
 
-The former `spawnSeconds` timer is no longer used.
-
-## Manual acceptance check
-
-1. Start a fresh creative world with cheats enabled; choose Normal difficulty.
-2. Stand on solid, open overworld ground. Use `/rift spawn` (operator permission required), then `/rift status`. A rift appears at your feet and should teleport you into its arena.
-3. Verify six enemies appear. Return through the exit portal after five seconds, or use `/rift leave`. Re-enter and confirm progress remains.
-4. Kill every enemy. Confirm automatic return, a closure announcement, and removal from `/rift status`.
-5. For a fast break test, set `breakSeconds = 10` and `waveSeconds = 2` in the server config, restart, then spawn another rift and step away. Verify repeated outside waves, the cap, and resumed spawning after kills.
-6. Enter and clear the broken rift. Confirm spawning stops. Already escaped mobs should remain.
-7. Restart during an active encounter and check remaining enemies and timer. Repeat with two players and with one player logged out inside during closure; that player should return to world spawn when reconnecting.
-8. Use `/rift essence` to inspect a chunk, wait a few seconds, and verify passive gain. In a fresh world, verify that the world spawn chunk starts critical.
-9. For a deterministic natural-spawn test, set `essenceSpawnChance = 1.0` and `essenceRollSeconds = 1`, then use `/rift essence set 600` in a loaded, open chunk. Verify an eruption and rift appear, the chunk's essence resets, and there is no terrain damage. Restore normal settings afterward.
-10. Test with one player near the spawn and one farther than 64 blocks away. Only the nearby player should hear the opening Wither cue. Nearby survival-mode entities should take blast damage.
-11. Unload and reload a partially charged chunk, then restart the server. Verify its saved essence resumes and the spawn chunk is not refilled after its initial bonus has been consumed.
-
-## Prototype validation
-
-`gradlew build` passes, including persistence tests for countdowns, broken state, tracked enemy IDs, and non-reuse of cleared arena IDs. A local dedicated-server check with an automated Minecraft client verified dimension loading, portal entry, six arena enemies, clearing and automatic return, dungeon breaks, the four-mob test cap, and reopening a saved broken rift after restart. Arena kills were issued through server commands. Clearing the broken rift left escaped mobs alive and stopped further waves. Human combat feel and long-term spawn balancing still need manual playtesting.
-
-The portal entity update was also checked with a real NeoForge client and dedicated server: animated frames, visibility from both faces, fixed orientation when the player changes sides, resistance to movement, entrance/exit entity creation, immediate removal of both entities on clearing, repeated portal ambient sound packets, and reconstruction of exactly one portal after a server restart.
-
-The soul essence update passes six unit tests and dedicated-server checks for spawn-chunk initialization, passive gain in force-loaded chunks without players, unload/reload pause behavior, probability-zero retries, natural spawning and charge consumption, and fractional attachment persistence across restarts. A measured before/after health check confirmed blast damage; a 1,024-block comparison confirmed terrain was unchanged. Packet checks with nearby and distant clients confirmed smoke/flame and explosion delivery plus a local Wither opening cue. A spent spawn chunk remained spent after restarting.
-
-The crystal cluster was checked in a real client with Epic Fight loaded, including its voxel model, transparent texture, inventory item, and nighttime glow. Server checks confirmed its block entity survives a restart, removing its support drops the cluster item, and saved world lighting records level 12 at the crystal and level 11 in the neighboring air block.
+Dedicated-server checks cover all five crystal drop counts, floor/wall/ceiling support, paid growth, spreading around surfaces, maturity bonuses, rare cave seeding, and native world generation with its initial essence credit. Real-client checks cover portal travel, staying inside after clearing, manual exit and conditional reopening, player-death progression, expanded encounters, Epic Fight attributes, functional arrow traps, and higher-tier rewards. Long-term balance and dungeon variety still need playtesting.

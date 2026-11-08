@@ -64,4 +64,29 @@ class RiftDataTest {
         assertTrue(restored.rifts.isEmpty());
         assertEquals(42, restored.nextId, "Cleared arena IDs must never be reused");
     }
+    @Test void dormantRiftPreservesItsIdentityAndProgression() {
+        RiftData original = new RiftData();
+        RiftData.Rift rift = new RiftData.Rift(3, new BlockPos(-32, 64, 48), 0);
+        rift.built = true; rift.cleared = true; rift.dormant = true;
+        rift.dormantTicks = 1200; rift.essence = 150; rift.energy = 345.5; rift.refilling = true;
+        UUID visitor = UUID.randomUUID(); rift.occupants.add(visitor);
+        UUID pendingRetirement = UUID.randomUUID(); rift.retired.add(pendingRetirement);
+        rift.cycle = 4; rift.encounterLevel = 3; rift.radius = 14;
+        original.rifts.add(rift);
+        RiftData restored = RiftData.load(original.save(new CompoundTag(), null), null);
+        RiftData.Rift saved = restored.rifts.getFirst();
+        assertEquals(0, restored.activeCount());
+        assertEquals(rift.pos, saved.pos);
+        assertTrue(saved.cleared && saved.dormant && saved.built);
+        assertEquals(1200, saved.dormantTicks);
+        assertEquals(150, saved.essence); assertEquals(345.5, saved.energy); assertTrue(saved.refilling);
+        assertEquals(java.util.Set.of(visitor), saved.occupants);
+        assertEquals(java.util.Set.of(pendingRetirement), saved.retired);
+        assertTrue(saved.spawned.isEmpty(), "Runtime spawn references are rebuilt rather than serialized");
+        assertEquals(4, saved.cycle); assertEquals(3, saved.encounterLevel);
+        assertEquals(14, saved.radius);
+        assertEquals(saved.arena().offset(0, 1, 12), saved.exit());
+        assertEquals(saved.arena().offset(0, 1, 9), saved.entry());
+    }
+
 }

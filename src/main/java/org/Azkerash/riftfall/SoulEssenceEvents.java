@@ -32,6 +32,7 @@ public final class SoulEssenceEvents {
     private static final Set<Long> LOADED = ConcurrentHashMap.newKeySet();
     private static int ticks;
     private static int rollSeconds;
+    private static int caveSeconds;
 
     @SubscribeEvent public static void loaded(ChunkEvent.Load event) {
         // Load events may precede FULL promotion. Only track coordinates here; interact
@@ -46,7 +47,7 @@ public final class SoulEssenceEvents {
     }
 
     @SubscribeEvent public static void stopped(ServerStoppedEvent event) {
-        LOADED.clear(); ticks = 0; rollSeconds = 0;
+        LOADED.clear(); CrystalCultivation.clear(); RiftEssencePools.clear(); ticks = 0; rollSeconds = 0; caveSeconds = 0;
     }
 
     @SubscribeEvent public static void tick(ServerTickEvent.Post event) {
@@ -58,6 +59,8 @@ public final class SoulEssenceEvents {
         ticks = 0;
         boolean roll = ++rollSeconds >= Config.ESSENCE_ROLL_SECONDS.get();
         if (roll) rollSeconds = 0;
+        boolean seedCaves = ++caveSeconds >= Config.CRYSTAL_CAVE_SECONDS.get();
+        if (seedCaves) caveSeconds = 0;
         var chunks = new ArrayList<>(LOADED);
         // Avoid preferring the same chunks whenever the active-rift cap is nearly full.
         if (roll) Collections.shuffle(chunks, new java.util.Random(world.random.nextLong()));
@@ -66,9 +69,18 @@ public final class SoulEssenceEvents {
             LevelChunk chunk = world.getChunkSource().getChunkNow(pos.x, pos.z);
             if (chunk == null) continue;
             SoulEssence previous = chunk.getData(ESSENCE);
-            SoulEssence essence = previous.accumulate(Config.ESSENCE_PER_SECOND.get(), criticalMass);
+            SoulEssence essence = previous.accumulate(CrystalCultivation.rate(Config.BASE_ESSENCE_PER_SECOND.get(), Config.MATURE_CRYSTAL_BONUS.get(), CrystalCultivation.count(world, pos)), criticalMass);
             if (!essence.equals(previous)) set(chunk, essence);
-            if (!roll || !essence.isCritical(criticalMass) || data.rifts.size() >= Config.MAX_RIFTS.get()) continue;
+            if (seedCaves && CrystalGrowth.canFund(essence.points(), criticalMass, Config.CRYSTAL_SEED_COST.get())
+                && world.random.nextDouble() < Config.CRYSTAL_CAVE_CHANCE.get()) {
+                BlockPos site = CrystalGrowth.caveSite(world, pos, world.random, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
+                if (site != null) {
+                    var seed = CrystalGrowth.seedState(world, site, net.minecraft.core.Direction.UP);
+                    if (seed != null && world.setBlock(site, seed, 3)) spend(world, site, Config.CRYSTAL_SEED_COST.get());
+                }
+                essence = chunk.getData(ESSENCE);
+            }
+            if (!roll || !essence.isCritical(criticalMass) || data.activeCount() >= Config.MAX_RIFTS.get()) continue;
             if (data.rifts.stream().anyMatch(r -> new ChunkPos(r.pos).equals(pos))) continue;
             if (world.random.nextDouble() >= Config.ESSENCE_SPAWN_CHANCE.get()) continue;
             BlockPos site = findSite(world, chunk, data);
@@ -76,6 +88,7 @@ public final class SoulEssenceEvents {
             // create() consumes essence only after finding a valid site. Failed rolls,
             // blocked terrain, and the global cap leave a critical chunk ready to retry.
         }
+        RiftEssencePools.tick(world, data, LOADED);
     }
 
     private static void seedSpawnChunk(ServerLevel world, RiftData data, double criticalMass) {
@@ -94,7 +107,7 @@ public final class SoulEssenceEvents {
             int x = chunk.getPos().getMinBlockX() + 4 + world.random.nextInt(8);
             int z = chunk.getPos().getMinBlockZ() + 4 + world.random.nextInt(8);
             BlockPos site = world.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
-            if (RiftEvents.safe(world, site) && data.rifts.stream().noneMatch(r -> r.pos.distSqr(site) < 256)) return site;
+            if (RiftEvents.safe(world, site) && RiftPlacement.available(data, site)) return site;
         }
         return null;
     }
@@ -102,6 +115,26 @@ public final class SoulEssenceEvents {
     static void consume(ServerLevel world, BlockPos pos) {
         LevelChunk chunk = world.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
         if (chunk != null) set(chunk, SoulEssence.EMPTY);
+    }
+
+    static double availableEssence(ServerLevel world, BlockPos pos) {
+        LevelChunk chunk = world.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+        return chunk == null ? -1 : chunk.getData(ESSENCE).points();
+    }
+
+    static void add(ServerLevel world, BlockPos pos, double amount) {
+        LevelChunk chunk = world.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+        if (chunk != null) set(chunk, new SoulEssence(chunk.getData(ESSENCE).points() + amount));
+    }
+
+    static boolean canSpend(ServerLevel world, BlockPos pos, double cost) {
+        LevelChunk chunk = world.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+        return chunk != null && CrystalGrowth.canFund(chunk.getData(ESSENCE).points(), Config.CRITICAL_MASS.get(), cost);
+    }
+
+    static void spend(ServerLevel world, BlockPos pos, double cost) {
+        LevelChunk chunk = world.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+        if (chunk != null) set(chunk, new SoulEssence(Math.max(0, chunk.getData(ESSENCE).points() - cost)));
     }
 
     private static void set(LevelChunk chunk, SoulEssence essence) {
@@ -126,6 +159,11 @@ public final class SoulEssenceEvents {
         source.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
             "Chunk [%d, %d]: %.1f / %.1f soul essence%s", chunk.getPos().x, chunk.getPos().z,
             essence.points(), Config.CRITICAL_MASS.get(), essence.isCritical(Config.CRITICAL_MASS.get()) ? " (CRITICAL)" : "")), false);
+        int mature = CrystalCultivation.count(source.getLevel(), chunk.getPos());
+        double rate = CrystalCultivation.rate(Config.BASE_ESSENCE_PER_SECOND.get(), Config.MATURE_CRYSTAL_BONUS.get(), mature);
+        source.sendSuccess(() -> Component.literal(String.format(Locale.ROOT, "Cultivation: %.3f/s (%d mature clusters)", rate, mature)), false);
+        Integer owner = RiftEssencePools.owner(source.getLevel(), chunk.getPos());
+        if (owner != null) source.sendSuccess(() -> Component.literal("Connected essence pool: rift #" + owner), false);
         return 1;
     }
 
