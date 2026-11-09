@@ -68,3 +68,5 @@ Java **21** is required.
 Tests cover goblin combat geometry, squad positioning and confidence, grapple escape, combat tremor, spell eligibility, and Enderman block-hiding transitions. Existing combat previews are in [docs/previews](docs/previews).
 
 The independent [weighted behavior engine and test entity](docs/behavior-engine.md) demonstrate reusable confidence sensing, situational awareness, and utility-based action selection. Warriors, archers and shamans now use this engine while retaining their established movesets and tactical actions.
+
+[Reusable facial animation](docs/facial-animation.md) adds blinking, target-tracking eyes, idle glances and expression previews to all goblin roles, with separate controller/profile and skin-layout APIs for future mobs.

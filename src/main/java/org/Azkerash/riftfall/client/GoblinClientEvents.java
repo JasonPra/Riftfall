@@ -9,6 +9,9 @@ import org.Azkerash.riftfall.Riftfall;
 
 @EventBusSubscriber(modid = Riftfall.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class GoblinClientEvents {
+    @SubscribeEvent public static void reload(net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener((net.minecraft.server.packs.resources.ResourceManagerReloadListener)manager->GoblinFaceTextures.clear());
+    }
     @SubscribeEvent public static void keys(net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent event) {
         event.register(HeldItemDebug.KEY);
     }
@@ -22,8 +25,9 @@ public final class GoblinClientEvents {
                 ForearmBucklerRenderer::new));
         yesman.epicfight.api.client.event.EpicFightClientEventHooks.Registry.ADD_PATCHED_ENTITY.registerEvent(event -> {
             for (var type : java.util.List.of(GoblinEntities.GOBLIN.get(), GoblinEntities.GOBLIN_SHAMAN.get(), GoblinEntities.GOBLIN_ARCHER.get()))
-                event.addPatchedEntityRenderer(type, t -> new yesman.epicfight.client.renderer.patched.entity.PHumanoidRenderer<>(
-                    t==GoblinEntities.GOBLIN_SHAMAN.get() ? GoblinMeshes.SHAMAN : GoblinMeshes.BODY,event.getContext(),t));
+                event.addPatchedEntityRenderer(type, t -> { var renderer=new yesman.epicfight.client.renderer.patched.entity.PHumanoidRenderer<org.Azkerash.riftfall.GoblinEntity,org.Azkerash.riftfall.GoblinPatch,net.minecraft.client.model.HumanoidModel<org.Azkerash.riftfall.GoblinEntity>,GoblinRenderer,yesman.epicfight.client.mesh.HumanoidMesh>(
+                    t==GoblinEntities.GOBLIN_SHAMAN.get() ? GoblinMeshes.SHAMAN : GoblinMeshes.BODY,event.getContext(),t);
+                    renderer.addPatchedLayer(GoblinFacialLayer.class,new PatchedGoblinFacialLayer());return renderer;});
         });
     }
     @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers event) {

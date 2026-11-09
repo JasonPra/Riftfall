@@ -14,13 +14,18 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** Living humanoids: the shaman is a separate entity type, never an undead caster. */
-public final class GoblinEntity extends Monster implements net.minecraft.world.entity.monster.RangedAttackMob, org.Azkerash.riftfall.confidence.ConfidenceParticipant {
+public final class GoblinEntity extends Monster implements net.minecraft.world.entity.monster.RangedAttackMob, org.Azkerash.riftfall.confidence.ConfidenceParticipant, org.Azkerash.riftfall.facial.FacialParticipant {
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> GRAPPLED_PLAYER =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> ESCAPE_PROGRESS =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> CONFIDENCE =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> FACE=
+        net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private org.Azkerash.riftfall.facial.FacialController face;
+    @Override public org.Azkerash.riftfall.facial.FacialController facialController() { return face; }
+    @Override public org.Azkerash.riftfall.facial.FaceFrame facialFrame() { return org.Azkerash.riftfall.facial.FaceFrame.unpack(entityData.get(FACE)); }
     private float previousVisualConfidence=.5F,visualConfidence=.5F;
     final GoblinSquadTactics squad=new GoblinSquadTactics(this);
     long bucklerAttackUntil, bucklerNextAttack;
@@ -30,7 +35,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     GoblinBehavior behavior;
     @Override public org.Azkerash.riftfall.confidence.CombatConfidenceController confidenceController() { return behavior.confidence; }
     @Override protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder); builder.define(GRAPPLED_PLAYER,-1); builder.define(ESCAPE_PROGRESS,0); builder.define(CONFIDENCE,50);
+        super.defineSynchedData(builder); builder.define(GRAPPLED_PLAYER,-1); builder.define(ESCAPE_PROGRESS,0); builder.define(CONFIDENCE,50);builder.define(FACE,org.Azkerash.riftfall.facial.FaceFrame.NEUTRAL.pack());
     }
     public float tremorConfidence(float partialTick) {
         return level().isClientSide ? net.minecraft.util.Mth.lerp(partialTick,previousVisualConfidence,visualConfidence)
@@ -42,6 +47,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public GoblinEntity(EntityType<? extends GoblinEntity> type, Level level) {
         super(type,level);
         xpReward=isShaman()?12:5;
+        face=new org.Azkerash.riftfall.facial.FacialController(this,org.Azkerash.riftfall.facial.FacialProfile.defaults(),packed->entityData.set(FACE,packed));
         setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:GoblinItems.SHORTSWORD.get()));
         setDropChance(EquipmentSlot.MAINHAND,0);
     }
