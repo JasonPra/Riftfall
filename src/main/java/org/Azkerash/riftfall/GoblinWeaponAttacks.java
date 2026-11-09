@@ -32,6 +32,14 @@ final class GoblinWeaponAttacks {
         animation.addStateRemoveOld(EntityState.TURNING_LOCKED,false);
         return animation;
     }
+    static AttackAnimation steppingAnimation(AnimationAccessor<? extends AttackAnimation> accessor,AttackAnimation.Phase... phases) {
+        var animation=animation(accessor,phases);
+        animation.addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.COORD_SET_BEGIN,
+            yesman.epicfight.api.animation.property.MoveCoordFunctions.RAW_COORD);
+        animation.addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.COORD_SET_TICK,
+            yesman.epicfight.api.animation.property.MoveCoordFunctions.RAW_COORD);
+        return animation;
+    }
     static AttackAnimation grapple(AnimationAccessor<? extends AttackAnimation> accessor) {
         var phases=new AttackAnimation.Phase[4];
         for (int i=0;i<4;i++) {
@@ -91,7 +99,8 @@ final class GoblinWeaponAttacks {
             increment(mob,"RiftfallClubHits");
         } else if (name.equals("riftfall:biped/goblin_grapple")) counter="RiftfallBackstabs";
         else if (name.equals("riftfall:biped/goblin_plunge")) counter="RiftfallPlungeHits";
-        else if (name.equals("riftfall:biped/goblin_slash") || name.equals("riftfall:biped/goblin_backswing")
+        else if (name.equals("riftfall:biped/goblin_sword_swipe") || name.equals("riftfall:biped/goblin_sword_reverse")
+            || name.equals("riftfall:biped/goblin_slash") || name.equals("riftfall:biped/goblin_backswing")
             || name.equals("riftfall:biped/goblin_shield_overhead") || name.equals("riftfall:biped/goblin_flurry") || name.equals("riftfall:biped/goblin_frenzy")) counter="RiftfallMeleeHits";
         else return;
         increment(mob,counter);

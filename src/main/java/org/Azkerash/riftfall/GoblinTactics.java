@@ -125,7 +125,7 @@ final class GoblinTactics {
         return height>=.5 && height<=1.75 && horizontalDistanceSqr>=1.5*1.5 && horizontalDistanceSqr<=4.5*4.5;
     }
     enum SwordAttack {
-        SWIPE(18,8), BACKSWING(18,8), FLURRY(34,6,17,28), FRENZY(28,6,11,16,21), SHIELD_OVERHEAD(24,11);
+        SWIPE(18,8), BACKSWING(18,8), FLURRY(34,6,17,28), FRENZY(28,6,11,16,21), SWORD_SWIPE(12,5), SWORD_REVERSE(12,5), SHIELD_OVERHEAD(24,11);
         final int duration;
         private final int[] impacts;
         SwordAttack(int duration,int... impacts) { this.duration=duration; this.impacts=impacts; }
@@ -150,6 +150,8 @@ final class GoblinTactics {
                 var selected=GoblinSwordCombat.select(goblin.getMainHandItem(),goblin.getOffhandItem(),nextAttack);
                 var planned=switch (selected) {
                     case SWIPE -> GoblinAnimations.SLASH;
+                    case SWORD_SWIPE -> GoblinAnimations.SWORD_SWIPE;
+                    case SWORD_REVERSE -> GoblinAnimations.SWORD_REVERSE;
                     case BACKSWING -> GoblinAnimations.BACKSWING;
                     case FLURRY -> GoblinAnimations.FLURRY;
                     case FRENZY -> GoblinAnimations.FRENZY;
@@ -160,11 +162,11 @@ final class GoblinTactics {
                     return;
                 }
                 resetAttackCooldown(); victim=target;
-                attack=selected; nextAttack=(nextAttack+1)%3;
+                attack=selected; nextAttack=(nextAttack+1)%GoblinSwordCombat.comboLength(goblin.getMainHandItem().is(GoblinItems.SHORTSWORD.get()),goblin.getOffhandItem().getItem() instanceof net.minecraft.world.item.ShieldItem);
                 remaining=attack.duration;
                 GoblinBuckler.lowerForAttack(goblin, attack.duration);
                 GoblinAnimations.play(goblin,planned);
-                String counter=switch (attack) { case SWIPE -> "RiftfallSwipes"; case BACKSWING -> "RiftfallBackswings"; case FLURRY, FRENZY -> "RiftfallFlurries"; case SHIELD_OVERHEAD -> "RiftfallShieldOverheads"; };
+                String counter=switch (attack) { case SWIPE, SWORD_SWIPE -> "RiftfallSwipes"; case BACKSWING, SWORD_REVERSE -> "RiftfallBackswings"; case FLURRY, FRENZY -> "RiftfallFlurries"; case SHIELD_OVERHEAD -> "RiftfallShieldOverheads"; };
                 goblin.getPersistentData().putInt(counter,goblin.getPersistentData().getInt(counter)+1);
                 goblin.getPersistentData().putInt("RiftfallMeleeSwings",goblin.getPersistentData().getInt("RiftfallMeleeSwings")+1);
             }

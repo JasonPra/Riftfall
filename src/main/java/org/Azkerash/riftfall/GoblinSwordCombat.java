@@ -21,13 +21,12 @@ final class GoblinSwordCombat {
     }
     static GoblinTactics.SwordAttack select(boolean goblinSword,boolean emptyOffhand,boolean shield,int combo) {
         if (goblinSword) {
-            if (emptyOffhand) return GoblinTactics.SwordAttack.FRENZY;
-            if (shield)
-                return switch (Math.floorMod(combo,3)) {
-                    case 0 -> GoblinTactics.SwordAttack.SWIPE;
-                    case 1 -> GoblinTactics.SwordAttack.BACKSWING;
-                    default -> GoblinTactics.SwordAttack.SHIELD_OVERHEAD;
-                };
+            return switch (Math.floorMod(combo,comboLength(true,shield))) {
+                case 0 -> shield ? GoblinTactics.SwordAttack.SWIPE : GoblinTactics.SwordAttack.SWORD_SWIPE;
+                case 1 -> shield ? GoblinTactics.SwordAttack.BACKSWING : GoblinTactics.SwordAttack.SWORD_REVERSE;
+                case 2 -> GoblinTactics.SwordAttack.FRENZY;
+                default -> GoblinTactics.SwordAttack.SHIELD_OVERHEAD;
+            };
         }
         // Other equipped weapons retain the basic sword combo and their own colliders.
         return switch (Math.floorMod(combo,3)) {
@@ -36,6 +35,7 @@ final class GoblinSwordCombat {
             default -> GoblinTactics.SwordAttack.FLURRY;
         };
     }
+    static int comboLength(boolean goblinSword,boolean shield) { return goblinSword && shield ? 4 : 3; }
     static void presets(WeaponCapabilityPresetRegistryEvent event) {
         event.getTypeEntry().put(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"goblin_shortsword"),item ->
             WeaponCapability.builder().category(WeaponCategories.SWORD)
@@ -44,9 +44,9 @@ final class GoblinSwordCombat {
                 .collider(new yesman.epicfight.api.collider.MultiOBBCollider(5,.09,.08,.36,0,-.04,-.32))
                 .styleProvider(patch -> patch.getOriginal().getOffhandItem().isEmpty() ? Stance.GOBLIN_FRENZY : Styles.ONE_HAND)
                 .newStyleCombo(Styles.ONE_HAND,GoblinAnimations.SLASH,GoblinAnimations.BACKSWING,
-                    GoblinAnimations.SHIELD_OVERHEAD,GoblinAnimations.SLASH,GoblinAnimations.PLUNGE)
-                .newStyleCombo(Stance.GOBLIN_FRENZY,GoblinAnimations.FRENZY,
-                    GoblinAnimations.FRENZY,GoblinAnimations.PLUNGE)
+                    GoblinAnimations.FRENZY,GoblinAnimations.SHIELD_OVERHEAD,yesman.epicfight.gameasset.Animations.SWORD_DASH,GoblinAnimations.PLUNGE)
+                .newStyleCombo(Stance.GOBLIN_FRENZY,GoblinAnimations.SWORD_SWIPE,GoblinAnimations.SWORD_REVERSE,
+                    GoblinAnimations.FRENZY,yesman.epicfight.gameasset.Animations.SWORD_DASH,GoblinAnimations.PLUNGE)
                 .weaponCombinationPredicator(patch -> patch.getOriginal().getOffhandItem().getItem()
                     instanceof net.minecraft.world.item.ShieldItem)
                 .canBePlacedOffhand(false));

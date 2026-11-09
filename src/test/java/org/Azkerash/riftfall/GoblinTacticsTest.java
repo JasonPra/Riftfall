@@ -16,15 +16,18 @@ class GoblinTacticsTest {
         assertEquals(.8F,GoblinFlurryStun.chainTime(.8F));
     }
     @Test void goblinSwordAndOffhandChooseTheMovesetWithoutAffectingOtherWeapons() {
-        for (int combo=0;combo<3;combo++) {
-            assertEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(true,true,false,combo));
-            assertNotEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(false,true,false,combo));
-            assertNotEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(true,false,false,combo));
-        }
+        assertEquals(GoblinTactics.SwordAttack.SWORD_SWIPE,GoblinSwordCombat.select(true,true,false,0));
+        assertEquals(GoblinTactics.SwordAttack.SWORD_REVERSE,GoblinSwordCombat.select(true,true,false,1));
+        assertEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(true,true,false,2));
+        assertEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(true,false,true,2));
+        assertEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(true,false,false,2));
         assertEquals(GoblinTactics.SwordAttack.SWIPE,GoblinSwordCombat.select(true,false,true,0));
         assertEquals(GoblinTactics.SwordAttack.BACKSWING,GoblinSwordCombat.select(true,false,true,1));
-        assertEquals(GoblinTactics.SwordAttack.SHIELD_OVERHEAD,GoblinSwordCombat.select(true,false,true,2));
+        assertEquals(GoblinTactics.SwordAttack.SHIELD_OVERHEAD,GoblinSwordCombat.select(true,false,true,3));
         assertEquals(GoblinTactics.SwordAttack.FLURRY,GoblinSwordCombat.select(false,false,true,2));
+        assertEquals(3,GoblinSwordCombat.comboLength(true,false));
+        assertEquals(4,GoblinSwordCombat.comboLength(true,true));
+        assertEquals(3,GoblinSwordCombat.comboLength(false,true));
     }
     @Test void plungesRequireNearbyHighGround() {
         assertTrue(GoblinTactics.canPlunge(1,3*3));

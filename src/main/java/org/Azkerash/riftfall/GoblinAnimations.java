@@ -12,7 +12,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public final class GoblinAnimations {
     public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, GRAPPLE_RELEASE;
-    public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, FRENZY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
+    public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, SWORD_SWIPE, SWORD_REVERSE, FRENZY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
             GRAPPLE_RELEASE=builder.nextAccessor("biped/goblin_grapple_release",a->new ActionAnimation(.05F,a,Armatures.BIPED));
@@ -25,6 +25,10 @@ public final class GoblinAnimations {
                 GoblinWeaponAttacks.phase(1.1F,1.30F,1.50F,1.6F,1.7F)));
             SLASH=builder.nextAccessor("biped/goblin_slash",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.phase(0,.30F,.48F,.75F,.9F)));
+            SWORD_SWIPE=builder.nextAccessor("biped/goblin_sword_swipe",a->GoblinWeaponAttacks.steppingAnimation(a,
+                GoblinWeaponAttacks.phase(0,.17F,.32F,.4F,.6F)));
+            SWORD_REVERSE=builder.nextAccessor("biped/goblin_sword_reverse",a->GoblinWeaponAttacks.steppingAnimation(a,
+                GoblinWeaponAttacks.phase(0,.17F,.32F,.4F,.6F)));
             FRENZY=builder.nextAccessor("biped/goblin_frenzy",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.flurryPhase(0,.16F,.33F,.34F,.35F),
                 GoblinWeaponAttacks.flurryPhase(.35F,.37F,.58F,.60F,.62F),

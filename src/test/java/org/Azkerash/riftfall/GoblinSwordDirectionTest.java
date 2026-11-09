@@ -209,6 +209,26 @@ class GoblinSwordDirectionTest {
             }
         }
     }
+    @Test void regularShortswordSwipesCutInOppositeDirectionsWithARelaxedOffhand() {
+        var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+        assertTrue(blade("goblin_sword_swipe",.12F).x>.2F && blade("goblin_sword_swipe",.28F).x<-.2F);
+        assertTrue(blade("goblin_sword_reverse",.12F).x<-.2F && blade("goblin_sword_reverse",.28F).x>.2F);
+        for (String name:new String[]{"goblin_sword_swipe","goblin_sword_reverse"}) {
+            var clip=resource("assets/riftfall/animmodels/animations/biped/"+name+".json");
+            var face=tool(rig,new Matrix4f(),clip,.28F).transformDirection(new Vector3f(1,0,0)).normalize();
+            assertTrue(Math.abs(face.z)>.95F,"A horizontal swipe must present its edge");
+            var clipTimes=clip.getAsJsonArray("animation").get(0).getAsJsonObject().getAsJsonArray("time");
+            for (var time:clipTimes) {
+                float t=time.getAsFloat();
+                var hilt=tool(rig,new Matrix4f(),clip,t).transformPosition(new Vector3f(0,.08995792F,-.04705085F));
+                var palm=joint(rig,new Matrix4f(),clip,t,"Hand_R").transformPosition(new Vector3f(0,.272858F,0));
+                assertTrue(hilt.distance(palm)<.01F);
+                var empty=joint(rig,new Matrix4f(),clip,t,"Tool_L").getTranslation(new Vector3f());
+                assertTrue(empty.z<1.25F,"The empty hand must stay relaxed below the shield guard");
+            }
+            assertEquals(.6F,clipTimes.get(clipTimes.size()-1).getAsFloat(),.001F);
+        }
+    }
     @Test void shieldOverheadRaisesThenCutsDownInFront() {
         var raised=blade("goblin_shield_overhead",.4F);
         var cut=blade("goblin_shield_overhead",.55F);
