@@ -12,6 +12,7 @@ public final class ConfidenceConfig {
     public static Settings defaults() {
         return new Settings(new ConfidenceProfile(Map.of("riftfall:goblin",5D,"riftfall:goblin_archer",1D,"riftfall:goblin_shaman",10D),
             Map.ofEntries(Map.entry("base",5D),Map.entry("self.low_health",-9D),Map.entry("target.low_health",10D),
+                Map.entry("self.poison",-8D),Map.entry("self.wither",-10D),Map.entry("self.harmful_effect",-4D),
                 Map.entry("target.poison",8D),Map.entry("target.wither",8D),Map.entry("equipment.unarmed",-5D),
                 Map.entry("equipment.shield_only",-3D),Map.entry("equipment.sword",3D),Map.entry("equipment.sword_shield",6D),
                 Map.entry("equipment.bow",2D),Map.entry("equipment.bow_shield",1D),Map.entry("equipment.staff",4D),
@@ -51,9 +52,16 @@ public final class ConfidenceConfig {
         for (String s:entries) { int split=s.lastIndexOf('=');values.put(s.substring(0,split).trim(),Double.parseDouble(s.substring(split+1).trim())); }
         return values;
     }
+    /** Existing TOML lists predate these factors. Explicit values, including zero, always win. */
+    public static Map<String,Double> withStatusDefaults(Map<String,Double> configured) {
+        Map<String,Double> factors=new LinkedHashMap<>(configured);
+        for (String key:List.of("self.poison","self.wither","self.harmful_effect"))
+            factors.putIfAbsent(key,defaults().profile().factorWeights().get(key));
+        return factors;
+    }
     public static void loaded(ModConfigEvent event) {
         if (event.getConfig().getSpec()==SPEC)
-            current=new Settings(new ConfidenceProfile(parse(UNITS.get()),parse(FACTORS.get()),SCALE.get()),BOLD.get(),WOUNDED.get(),VULNERABLE.get(),RETREATING.get());
+            current=new Settings(new ConfidenceProfile(parse(UNITS.get()),withStatusDefaults(parse(FACTORS.get())),SCALE.get()),BOLD.get(),WOUNDED.get(),VULNERABLE.get(),RETREATING.get());
     }
     public static Settings settings() { return current; }
     private ConfidenceConfig() {}

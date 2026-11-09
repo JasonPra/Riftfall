@@ -24,6 +24,9 @@ Each combatant's confidence points
 │  ├─ Shield without a weapon                  −3
 │  └─ Unarmed / holding a nonweapon            −5
 ├─ Personal health below 35%                   −9
+├─ Personally poisoned                        −8
+├─ Personally withered                       −10
+├─ Other harmful effects                      −4 per distinct effect
 ├─ Target health at or below 30%              +10
 ├─ Target poisoned                             +8
 └─ Target withered                             +8

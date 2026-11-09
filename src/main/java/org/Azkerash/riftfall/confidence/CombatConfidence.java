@@ -29,11 +29,24 @@ public final class CombatConfidence {
             return shield?Loadout.OTHER_WEAPON_SHIELD:Loadout.OTHER_WEAPON;
         return shield?Loadout.SHIELD_ONLY:Loadout.UNARMED;
     }
+    /** Presence-based penalties: each distinct effect counts once, regardless of amplifier or duration. */
+    public static Map<String,Double> selfStatusFactors(boolean poisoned,boolean withered,int otherHarmfulEffects) {
+        if (otherHarmfulEffects<0) throw new IllegalArgumentException("Negative harmful effect count");
+        Map<String,Double> factors=new LinkedHashMap<>();
+        if (poisoned) factors.put("self.poison",1D);
+        if (withered) factors.put("self.wither",1D);
+        if (otherHarmfulEffects>0) factors.put("self.harmful_effect",(double)otherHarmfulEffects);
+        return factors;
+    }
     public static Map<String,Double> factors(LivingEntity actor,LivingEntity target,double woundedFraction,double vulnerableFraction) {
         Map<String,Double> factors=new LinkedHashMap<>();
         factors.put("base",1D);
         factors.put(loadout(actor.getMainHandItem(),actor.getOffhandItem()).factor(),1D);
         if (actor.getHealth()<actor.getMaxHealth()*woundedFraction) factors.put("self.low_health",1D);
+        int otherHarmful=(int)actor.getActiveEffects().stream().filter(effect->
+            effect.getEffect().value().getCategory()==net.minecraft.world.effect.MobEffectCategory.HARMFUL
+                && !effect.getEffect().equals(MobEffects.POISON) && !effect.getEffect().equals(MobEffects.WITHER)).count();
+        factors.putAll(selfStatusFactors(actor.hasEffect(MobEffects.POISON),actor.hasEffect(MobEffects.WITHER),otherHarmful));
         if (target!=null && target.isAlive()) {
             if (target.getHealth()<=target.getMaxHealth()*vulnerableFraction) factors.put("target.low_health",1D);
             if (target.hasEffect(MobEffects.POISON)) factors.put("target.poison",1D);

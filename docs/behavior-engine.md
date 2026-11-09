@@ -101,3 +101,19 @@ The demo policy is defined in `BehaviorTestProfile`, not hardcoded into the engi
 Action callbacks own pathfinding and combat. Override `start`, `tick`, and `stop` for stateful actions; stop should clean up navigation/flags that the action owns. The goal claims MOVE, LOOK and JUMP, so higher-priority goals such as floating can interrupt it. Target acquisition remains a separate responsibility. Registered rule IDs must have matching action implementations; incomplete integrations fail at construction.
 
 This is an initial combat behavior engine. Formation allocation, weapon colliders, spell selection, and goblin migration are separate extensions, not behavior implicitly supplied by the engine.
+
+## Harmful effects on the actor
+
+Self-inflicted vulnerabilities now reduce confidence immediately: poison costs eight points, wither ten points, and every other distinct effect classified as `HARMFUL` costs four points. This includes modded harmful effects. Beneficial and neutral effects do not contribute. Penalties stack with each other and low health; poison/wither are excluded from the generic count so they are not counted twice. Amplifier and remaining duration do not multiply the penalty. Clearing an effect removes its contribution on the next update.
+
+Tune `self.poison`, `self.wither`, and `self.harmful_effect` in `combatConfidence.factorWeights`. Existing config files receive these defaults in memory when their older lists lack the entries; add an explicit `=0` entry to disable a penalty. Other configured weights are preserved. Independently supplied profiles must define their own desired weights.
+
+To test, spawn four nearby testers and apply effects to the nearest one:
+
+```mcfunction
+/effect give @e[type=riftfall:behavior_tester,sort=nearest,limit=1] minecraft:poison 30 0
+/effect give @e[type=riftfall:behavior_tester,sort=nearest,limit=1] minecraft:wither 30 0
+/effect clear @e[type=riftfall:behavior_tester,sort=nearest,limit=1]
+```
+
+The nameplate and `Contributions` show the changes. Damage can separately trigger the existing low-health penalty. These inputs are shared by the test engine and the current goblin confidence adapter.
