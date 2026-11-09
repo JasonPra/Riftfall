@@ -6,6 +6,7 @@
   "mixins": [
   ],
   "client": [
+    "EndermanCarryRenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
