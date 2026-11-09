@@ -6,7 +6,7 @@ Minecraft **1.21.1 / NeoForge**. This branch is a fresh gameplay foundation cont
 
 - **Warrior:** sword swipes, backswing and flurry attacks, high-ground plunges, and rear grapples. Mash the attack button to escape a grapple.
 - **Archer:** bow attacks, panicked retreats when unsupported, cover for retreating warriors, formation positioning behind warriors, and reachable elevated firing positions.
-- **Shaman:** Iron's Spells casting through the Bone Staff, a close-range staff-club attack, and area healing for allied goblins. Bone helmet, tooth necklace, and primitive clothing are retained.
+- **Shaman:** Iron's Spells casting through the Bone Staff, two close-range staff attacks: a slow, telegraphed sweep with the original knockback, and an exaggerated two-handed overhead smash, and area healing for allied goblins. Bone helmet, tooth necklace, and primitive clothing are retained.
 - Four or more warriors can flank and surround shared enemies. Warriors screen archers. Larger groups and weakened enemies make goblins bolder. Combat animations retain the head and limb tremor.
 - Zombies and skeletons hunt goblins; goblins recognize them as enemies.
 - Goblins retain their approximately 1.5-block height, models, textures, held-item alignment, Epic Fight attacks, and animations.

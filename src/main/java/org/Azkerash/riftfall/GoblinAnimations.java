@@ -10,7 +10,7 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public final class GoblinAnimations {
-    public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, CLUB, SLASH, BACKSWING, FLURRY, PLUNGE, GRAPPLE, GRAPPLE_RELEASE;
+    public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, PLUNGE, GRAPPLE, GRAPPLE_RELEASE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
             GRAPPLE_RELEASE=builder.nextAccessor("biped/goblin_grapple_release",a->new ActionAnimation(.05F,a,Armatures.BIPED));
@@ -24,7 +24,9 @@ public final class GoblinAnimations {
             PLUNGE=builder.nextAccessor("biped/goblin_plunge",a->new ActionAnimation(.05F,a,Armatures.BIPED)
                 .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.STOP_MOVEMENT,false)
                 .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.REMOVE_DELTA_MOVEMENT,false));
-            CLUB=builder.nextAccessor("biped/staff_club",a->new ActionAnimation(.08F,a,Armatures.BIPED)
+            STAFF_SWEEP=builder.nextAccessor("biped/staff_sweep",a->new ActionAnimation(.12F,a,Armatures.BIPED)
+                .addStateRemoveOld(EntityState.TURNING_LOCKED,false));
+            STAFF_SMASH=builder.nextAccessor("biped/staff_smash",a->new ActionAnimation(.12F,a,Armatures.BIPED)
                 .addStateRemoveOld(EntityState.TURNING_LOCKED,false));
             CHARGE=builder.nextAccessor("biped/cast_charge",a->new ActionAnimation(.1F,a,Armatures.BIPED)
                 .addStateRemoveOld(EntityState.TURNING_LOCKED,false));

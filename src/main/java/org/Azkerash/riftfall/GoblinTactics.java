@@ -222,33 +222,56 @@ final class GoblinTactics {
         }
         @Override public void stop() { victim=null; mob.setAggressive(false); }
     }
+    enum StaffAttack {
+        SWEEP(40,22,.9), SMASH(48,28,.45);
+        final int duration, impact;
+        final double knockback;
+        StaffAttack(int duration,int impact,double knockback) {
+            this.duration=duration; this.impact=impact; this.knockback=knockback;
+        }
+    }
     static final class StaffClub extends Goal {
         final GoblinEntity mob;
-        int ticks;
+        LivingEntity victim;
+        StaffAttack attack;
+        int ticks, nextAttack;
         long ready;
-        StaffClub(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
+        StaffClub(GoblinEntity mob) {
+            this.mob=mob; nextAttack=mob.getRandom().nextInt(2);
+            setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK));
+        }
         @Override public boolean canUse() {
             var target=mob.getTarget();
-            return mob.level().getGameTime()>=ready && mob.hurtTime==0 && target!=null && target.isAlive()
+            return mob.level().getGameTime()>=ready && !interrupted(mob) && target!=null && target.isAlive()
                 && !mob.isAlliedTo(target) && mob.distanceToSqr(target)<2.5*2.5 && mob.getSensing().hasLineOfSight(target);
         }
-        @Override public boolean canContinueToUse() { return ticks<18 && mob.getTarget()!=null && mob.getTarget().isAlive() && mob.hurtTime==0; }
+        @Override public boolean canContinueToUse() {
+            return ticks<attack.duration && victim!=null && victim.isAlive() && !mob.isAlliedTo(victim) && !interrupted(mob);
+        }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
-            ticks=0; ready=mob.level().getGameTime()+45; mob.getNavigation().stop();
-            GoblinAnimations.play(mob,GoblinAnimations.CLUB);
+            victim=mob.getTarget(); attack=StaffAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%2;
+            ticks=0; ready=mob.level().getGameTime()+attack.duration+25; mob.getNavigation().stop();
+            mob.getPersistentData().putString("RiftfallStaffAttack",attack.name());
+            GoblinAnimations.play(mob,attack==StaffAttack.SWEEP ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH);
         }
         @Override public void tick() {
-            LivingEntity target=mob.getTarget(); if (target==null) return;
-            mob.getLookControl().setLookAt(target,90,90);
-            if (++ticks==8 && mob.distanceToSqr(target)<3*3 && mob.getSensing().hasLineOfSight(target)) {
+            if (victim==null) return;
+            mob.getNavigation().stop();
+            // Track through the wind-up, then commit instead of steering the hit around a dodge.
+            if (ticks<attack.impact-4) mob.getLookControl().setLookAt(victim,90,90);
+            if (++ticks==attack.impact && mob.distanceToSqr(victim)<3*3 && mob.getSensing().hasLineOfSight(victim)
+                && mob.getViewVector(1).multiply(1,0,1).dot(victim.position().subtract(mob.position()).multiply(1,0,1))>=0) {
                 mob.swing(InteractionHand.MAIN_HAND);
-                if (mob.doHurtTarget(target)) {
-                    target.knockback(.9,mob.getX()-target.getX(),mob.getZ()-target.getZ());
+                if (mob.doHurtTarget(victim)) {
+                    victim.knockback(attack.knockback,mob.getX()-victim.getX(),mob.getZ()-victim.getZ());
+                    String counter=attack==StaffAttack.SWEEP ? "RiftfallStaffSweepHits" : "RiftfallStaffSmashHits";
+                    mob.getPersistentData().putInt(counter,mob.getPersistentData().getInt(counter)+1);
                     mob.getPersistentData().putInt("RiftfallClubHits",mob.getPersistentData().getInt("RiftfallClubHits")+1);
                 }
             }
         }
+        @Override public void stop() { victim=null; mob.getPersistentData().remove("RiftfallStaffAttack"); }
     }
     static final class Heal extends Goal {
         final GoblinEntity mob;
