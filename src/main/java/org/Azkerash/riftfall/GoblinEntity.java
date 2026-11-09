@@ -41,7 +41,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public GoblinEntity(EntityType<? extends GoblinEntity> type, Level level) {
         super(type,level);
         xpReward=isShaman()?12:5;
-        setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:Items.STONE_SWORD));
+        setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:GoblinItems.SHORTSWORD.get()));
         setDropChance(EquipmentSlot.MAINHAND,0);
     }
     public boolean isShaman() { return getType()==GoblinEntities.GOBLIN_SHAMAN.get(); }
@@ -93,6 +93,8 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
             if (!isRanged() && (getMainHandItem().is(Items.IRON_SWORD) || getMainHandItem().is(Items.DIAMOND_SWORD) || getMainHandItem().is(Items.NETHERITE_SWORD)))
                 setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(Items.STONE_SWORD));
         }
+        if (!isRanged() && getMainHandItem().is(Items.STONE_SWORD))
+            setItemSlot(EquipmentSlot.MAINHAND,getMainHandItem().transmuteCopy(GoblinItems.SHORTSWORD.get()));
         // Update the old default without overwriting deliberately customized speeds.
         var speed=getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed!=null && Math.abs(speed.getBaseValue()-.28)<.00001) speed.setBaseValue(.23);

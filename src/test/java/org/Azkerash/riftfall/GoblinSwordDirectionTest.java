@@ -109,6 +109,12 @@ class GoblinSwordDirectionTest {
         assertEquals(blade("goblin_twohand_flurry",.3F),blade("goblin_twohand_flurry",.8F));
         assertEquals(blade("goblin_twohand_flurry",.55F),blade("goblin_twohand_flurry",1.05F));
     }
+    @Test void shieldOverheadRaisesThenCutsDownInFront() {
+        var raised=blade("goblin_shield_overhead",.4F);
+        var cut=blade("goblin_shield_overhead",.55F);
+        assertTrue(raised.z>.6F && cut.z<-.5F);
+        assertTrue(raised.y>.4F && cut.y>.5F);
+    }
     @Test void everyBackstabPointsDownwardIntoThePlayerFacingSide() {
         for (float time : new float[]{1,1.8F,2.6F,3.4F}) {
             var direction=blade("goblin_grapple",time);

@@ -11,6 +11,7 @@ public class Riftfall {
     public Riftfall(IEventBus bus) {
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
+        yesman.epicfight.api.event.EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(GoblinSwordCombat::presets);
         bus.addListener(GoblinEntities::attributes);
         bus.addListener(GrappleEscapePayload::register);
         bus.addListener(GoblinAnimations::register);

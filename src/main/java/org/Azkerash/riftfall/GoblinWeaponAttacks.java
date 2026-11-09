@@ -92,7 +92,7 @@ final class GoblinWeaponAttacks {
         } else if (name.equals("riftfall:biped/goblin_grapple")) counter="RiftfallBackstabs";
         else if (name.equals("riftfall:biped/goblin_plunge")) counter="RiftfallPlungeHits";
         else if (name.equals("riftfall:biped/goblin_slash") || name.equals("riftfall:biped/goblin_backswing")
-            || name.equals("riftfall:biped/goblin_flurry") || name.equals("riftfall:biped/goblin_twohand_flurry")) counter="RiftfallMeleeHits";
+            || name.equals("riftfall:biped/goblin_shield_overhead") || name.equals("riftfall:biped/goblin_flurry") || name.equals("riftfall:biped/goblin_twohand_flurry")) counter="RiftfallMeleeHits";
         else return;
         increment(mob,counter);
     }

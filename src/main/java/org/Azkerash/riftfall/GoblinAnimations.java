@@ -12,7 +12,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public final class GoblinAnimations {
     public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, GRAPPLE_RELEASE;
-    public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, TWOHAND_FLURRY, PLUNGE, GRAPPLE;
+    public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, TWOHAND_FLURRY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
             GRAPPLE_RELEASE=builder.nextAccessor("biped/goblin_grapple_release",a->new ActionAnimation(.05F,a,Armatures.BIPED));
@@ -30,6 +30,8 @@ public final class GoblinAnimations {
                 GoblinWeaponAttacks.flurryPhase(.4F,.45F,.6F,.62F,.65F),
                 GoblinWeaponAttacks.flurryPhase(.65F,.7F,.85F,.87F,.9F),
                 GoblinWeaponAttacks.flurryPhase(.9F,.95F,1.1F,1.15F,1.4F)));
+            SHIELD_OVERHEAD=builder.nextAccessor("biped/goblin_shield_overhead",a->GoblinWeaponAttacks.animation(a,
+                GoblinWeaponAttacks.phase(0,.4F,.62F,.9F,1.2F)));
             PLUNGE=builder.nextAccessor("biped/goblin_plunge",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.phase(0,.70F,1.15F,1.4F,1.6F))
                 .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.STOP_MOVEMENT,false)
