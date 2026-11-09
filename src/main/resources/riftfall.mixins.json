@@ -3,12 +3,12 @@
   "minVersion": "0.8",
   "package": "org.Azkerash.riftfall.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-  ],
+  "mixins": [],
   "client": [
     "EndermanCarryRenderMixin",
     "EndermanCarriedBlockLayerMixin",
-    "EndermanCarryParticlesMixin"
+    "EndermanCarryParticlesMixin",
+    "HeldItemDebugMixin"
   ],
   "injectors": {
     "defaultRequire": 1

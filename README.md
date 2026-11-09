@@ -31,6 +31,16 @@ Both items are in the Combat creative tab. Goblin spawn eggs are in Spawn Eggs. 
 
 Shamans drop bones instead of the removed soul essence crystal item. Previously spell-trained living Pillagers retain their casting behavior; no system grants new rift-based caster upgrades.
 
+## Weapon collision and debugging
+
+Custom goblin sword combos, plunges, staff attacks, and grapple stabs use Epic Fight `AttackAnimation` phases and swept weapon colliders. Distance only starts an attack or drives navigation; it never awards a melee hit. The equipped weapon collider must intersect a target hurtbox during the contact phase. Existing Epic Fight enemy attacks retain their native collision systems. Arrows and spells continue using their projectile collisions.
+
+- **F8** or `/riftfall debug helditems`: toggle held-item **model bounds**, cyan for shields and gold for other items. These follow the rendered hand/forearm transforms in first and third person, including held swords, staffs, and bucklers.
+- **F3+B** or `/riftfall debug colliders`: toggle entity hurtboxes and Epic Fight's native attack-collider visualizer. Attack colliders appear during attacks; these are the actual damage-contact shapes.
+- `/riftfall debug off`: disable both overlays.
+
+The Bone Staff's collider is editable in `data/riftfall/capabilities/weapons/bone_staff.json`: `center` is the joint-local offset, `size` contains half-extents before entity scaling, and `number` controls sweep samples. Model bounds are visual alignment aids, not damage or shield-blocking shapes. Shield defense still uses Minecraft's raised-shield frontal blocking rules. Debug toggles are client-only and need no operator permission.
+
 ## Enderman fixes
 
 Outside combat, block-carrying Endermen use the correct vanilla carrying pose. In combat, the carried block is hidden and Epic Fight animations take priority. Hiding a previously visible block produces one purple ender-particle puff, suppressed immediately after a teleport. The actual held block is retained and becomes visible again after combat.

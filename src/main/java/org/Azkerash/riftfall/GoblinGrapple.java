@@ -77,8 +77,6 @@ final class GoblinGrapple extends Goal {
         int tick=(int)(mob.level().getGameTime()-began);
         if (GrappleStruggle.stabsAt(tick)) {
             mob.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
-            if (victim.hurt(mob.damageSources().mobAttack(mob),1))
-                mob.getPersistentData().putInt("RiftfallBackstabs",mob.getPersistentData().getInt("RiftfallBackstabs")+1);
         }
     }
     private void release(boolean escaped) {

@@ -17,6 +17,7 @@ public class Riftfall {
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.ENTITY_PATCH.registerEvent(GoblinEntities::patches);
         NeoForge.EVENT_BUS.register(MobSpellcasting.class);
         NeoForge.EVENT_BUS.register(GoblinTactics.class);
+        NeoForge.EVENT_BUS.register(GoblinWeaponAttacks.class);
         NeoForge.EVENT_BUS.register(GoblinHostility.class);
         NeoForge.EVENT_BUS.register(GoblinGrapple.class);
     }

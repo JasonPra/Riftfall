@@ -9,6 +9,9 @@ import org.Azkerash.riftfall.Riftfall;
 
 @EventBusSubscriber(modid = Riftfall.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class GoblinClientEvents {
+    @SubscribeEvent public static void keys(net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent event) {
+        event.register(HeldItemDebug.KEY);
+    }
     @SubscribeEvent public static void layers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(GoblinModel.LAYER,GoblinModel::layer);
         event.registerLayerDefinition(GoblinModel.SHAMAN_LAYER,()->GoblinModel.layer(true));

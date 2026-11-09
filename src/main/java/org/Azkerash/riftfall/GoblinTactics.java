@@ -167,11 +167,7 @@ final class GoblinTactics {
             goblin.getNavigation().stop();
             if (interrupted(goblin) || victim==null || !victim.isAlive() || goblin.isAlliedTo(victim)) { remaining=0; victim=null; return; }
             goblin.getLookControl().setLookAt(victim,90,90);
-            if (attack.hitsAt(attack.duration- --remaining) && goblin.isWithinMeleeAttackRange(victim) && goblin.getSensing().hasLineOfSight(victim)) {
-                goblin.swing(InteractionHand.MAIN_HAND);
-                if (goblin.doHurtTarget(victim))
-                    goblin.getPersistentData().putInt("RiftfallMeleeHits",goblin.getPersistentData().getInt("RiftfallMeleeHits")+1);
-            }
+            if (attack.hitsAt(attack.duration- --remaining)) goblin.swing(InteractionHand.MAIN_HAND);
         }
         @Override public void stop() { super.stop(); remaining=0; victim=null; }
     }
@@ -212,16 +208,13 @@ final class GoblinTactics {
             if (ticks==6) {
                 mob.setDeltaMovement(launch.x,.35,launch.z); mob.setOnGround(false); mob.hasImpulse=true;
             }
-            // Only the descent can hit, at most once; moving away or a wall makes it miss.
-            if (!struck && ticks>=17 && mob.getDeltaMovement().y<0 && victim!=null && !mob.isAlliedTo(victim)
-                && mob.isWithinMeleeAttackRange(victim) && mob.getSensing().hasLineOfSight(victim)) {
+            if (!struck && ticks>=17 && mob.getDeltaMovement().y<0) {
                 struck=true; mob.swing(InteractionHand.MAIN_HAND);
-                if (mob.doHurtTarget(victim))
-                    mob.getPersistentData().putInt("RiftfallPlungeHits",mob.getPersistentData().getInt("RiftfallPlungeHits")+1);
             }
         }
         @Override public void stop() { victim=null; mob.setAggressive(false); }
     }
+    static float staffFacing(double x,double z) { return (float)(Math.toDegrees(Math.atan2(z,x))-90); }
     enum StaffAttack {
         SWEEP(40,22,.9), SMASH(48,28,.45);
         final int duration, impact;
@@ -236,6 +229,7 @@ final class GoblinTactics {
         StaffAttack attack;
         int ticks, nextAttack;
         long ready;
+        float facing;
         StaffClub(GoblinEntity mob) {
             this.mob=mob; nextAttack=mob.getRandom().nextInt(2);
             setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK));
@@ -252,6 +246,8 @@ final class GoblinTactics {
         @Override public void start() {
             victim=mob.getTarget(); attack=StaffAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%2;
             ticks=0; ready=mob.level().getGameTime()+attack.duration+25; mob.getNavigation().stop();
+            facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
+            face();
             mob.getPersistentData().putString("RiftfallStaffAttack",attack.name());
             GoblinAnimations.play(mob,attack==StaffAttack.SWEEP ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH);
         }
@@ -259,17 +255,14 @@ final class GoblinTactics {
             if (victim==null) return;
             mob.getNavigation().stop();
             // Track through the wind-up, then commit instead of steering the hit around a dodge.
-            if (ticks<attack.impact-4) mob.getLookControl().setLookAt(victim,90,90);
-            if (++ticks==attack.impact && mob.distanceToSqr(victim)<3*3 && mob.getSensing().hasLineOfSight(victim)
-                && mob.getViewVector(1).multiply(1,0,1).dot(victim.position().subtract(mob.position()).multiply(1,0,1))>=0) {
-                mob.swing(InteractionHand.MAIN_HAND);
-                if (mob.doHurtTarget(victim)) {
-                    victim.knockback(attack.knockback,mob.getX()-victim.getX(),mob.getZ()-victim.getZ());
-                    String counter=attack==StaffAttack.SWEEP ? "RiftfallStaffSweepHits" : "RiftfallStaffSmashHits";
-                    mob.getPersistentData().putInt(counter,mob.getPersistentData().getInt(counter)+1);
-                    mob.getPersistentData().putInt("RiftfallClubHits",mob.getPersistentData().getInt("RiftfallClubHits")+1);
-                }
-            }
+            if (ticks<attack.impact-4) facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
+            face();
+            if (++ticks==attack.impact) mob.swing(InteractionHand.MAIN_HAND);
+        }
+        private void face() {
+            mob.setYRot(facing); mob.setYBodyRot(facing); mob.setYHeadRot(facing);
+            double radians=Math.toRadians(facing);
+            mob.getLookControl().setLookAt(mob.getX()-Math.sin(radians)*4,mob.getEyeY(),mob.getZ()+Math.cos(radians)*4,90,90);
         }
         @Override public void stop() { victim=null; mob.getPersistentData().remove("RiftfallStaffAttack"); }
     }
