@@ -29,7 +29,11 @@ public final class GoblinAnimations {
                 GoblinWeaponAttacks.flurryPhase(0,.16F,.33F,.34F,.35F),
                 GoblinWeaponAttacks.flurryPhase(.35F,.37F,.58F,.60F,.62F),
                 GoblinWeaponAttacks.flurryPhase(.62F,.66F,.83F,.84F,.85F),
-                GoblinWeaponAttacks.flurryPhase(.85F,.87F,1.08F,1.15F,1.4F)));
+                GoblinWeaponAttacks.flurryPhase(.85F,.87F,1.08F,1.15F,1.4F))
+                .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.COORD_SET_BEGIN,
+                    yesman.epicfight.api.animation.property.MoveCoordFunctions.RAW_COORD)
+                .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.COORD_SET_TICK,
+                    yesman.epicfight.api.animation.property.MoveCoordFunctions.RAW_COORD));
             SHIELD_OVERHEAD=builder.nextAccessor("biped/goblin_shield_overhead",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.phase(0,.4F,.62F,.9F,1.2F)));
             PLUNGE=builder.nextAccessor("biped/goblin_plunge",a->GoblinWeaponAttacks.animation(a,

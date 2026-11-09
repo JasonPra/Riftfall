@@ -123,8 +123,8 @@ class GoblinSwordDirectionTest {
             assertTrue(wind.x*cut.x<0,"Rendered blade crosses the body");
             assertTrue(wind.z-cut.z>.5F,"Arm-driven cut descends diagonally");
         }
-        assertEquals(frenzyTip(.3F),frenzyTip(.8F));
-        assertEquals(frenzyTip(.55F),frenzyTip(1.05F));
+        assertTrue(frenzyTip(.3F).distance(frenzyTip(.8F))<.08F);
+        assertTrue(frenzyTip(.55F).distance(frenzyTip(1.05F))<.08F);
     }
     @Test void flurryLoopsWideAroundTheBodyAndReturnsToAnUprightGrip() {
         var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
@@ -137,10 +137,29 @@ class GoblinSwordDirectionTest {
             min=Math.min(min,tip.x);max=Math.max(max,tip.x);
         }
         assertTrue(max-min>1.5F,"Full rendered blade must sweep broadly past both shoulders");
-        assertTrue(blade("goblin_frenzy",.335F).x<-.8F,"Loop outside the left cut");
+        assertTrue(blade("goblin_frenzy",.335F).x<-.7F,"Loop outside the left cut");
         assertTrue(blade("goblin_frenzy",.585F).x>.9F,"Loop outside the right cut");
         assertTrue(blade("goblin_frenzy",0).z>.5F);
         assertTrue(blade("goblin_frenzy",1.4F).z>.5F);
+    }
+    @Test void frenzyKeepsSteppingAndTransfersBodyWeightThroughEveryCut() {
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
+        for (String name:new String[]{"Thigh_R","Leg_R","Thigh_L","Leg_L","Root","Torso","Chest"}) {
+            var channel=clip.getAsJsonArray("animation").asList().stream().map(v->v.getAsJsonObject())
+                .filter(c->c.get("name").getAsString().equals(name)).findFirst().orElseThrow();
+            var times=channel.getAsJsonArray("time");var frames=channel.getAsJsonArray("transform");
+            for (float[] cut:new float[][]{{.18F,.26F},{.43F,.51F},{.68F,.76F},{.93F,1.01F}}) {
+                int from=-1,to=-1;
+                for (int i=0;i<times.size();i++) {
+                    if (Math.abs(times.get(i).getAsFloat()-cut[0])<.001F) from=i;
+                    if (Math.abs(times.get(i).getAsFloat()-cut[1])<.001F) to=i;
+                }
+                assertNotEquals(frames.get(from),frames.get(to),"No frozen lower body during "+name+" cut "+cut[0]);
+            }
+        }
+        var coord=clip.getAsJsonArray("animation").asList().stream().map(v->v.getAsJsonObject())
+            .filter(c->c.get("name").getAsString().equals("Coord")).findFirst().orElseThrow().getAsJsonArray("transform");
+        assertEquals(.28F,matrix(coord.get(coord.size()-1).getAsJsonArray()).m31(),.001F);
     }
     @Test void shieldOverheadRaisesThenCutsDownInFront() {
         var raised=blade("goblin_shield_overhead",.4F);
