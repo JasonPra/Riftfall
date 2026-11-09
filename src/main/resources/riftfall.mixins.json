@@ -6,7 +6,9 @@
   "mixins": [
   ],
   "client": [
-    "EndermanCarryRenderMixin"
+    "EndermanCarryRenderMixin",
+    "EndermanCarriedBlockLayerMixin",
+    "EndermanCarryParticlesMixin"
   ],
   "injectors": {
     "defaultRequire": 1
