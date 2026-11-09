@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,8 +33,18 @@ class GoblinSwordDirectionTest {
             var channel=value.getAsJsonObject(); if (!channel.get("name").getAsString().equals(name)) continue;
             var times=channel.getAsJsonArray("time"); int key=-1;
             for (int i=0;i<times.size();i++) if (Math.abs(times.get(i).getAsFloat()-time)<.0001) key=i;
-            assertTrue(key>=0,"Expected an authored keyframe at "+time);
-            local=matrix(channel.getAsJsonArray("transform").get(key).getAsJsonArray()); break;
+            var frames=channel.getAsJsonArray("transform");
+            if (key>=0) local=matrix(frames.get(key).getAsJsonArray());
+            else {
+                int from=0;
+                while (from+1<times.size()-1 && times.get(from+1).getAsFloat()<time) from++;
+                float u=(time-times.get(from).getAsFloat())/(times.get(from+1).getAsFloat()-times.get(from).getAsFloat());
+                var a=matrix(frames.get(from).getAsJsonArray());var b=matrix(frames.get(from+1).getAsJsonArray());
+                local=new Matrix4f().translation(a.getTranslation(new Vector3f()).lerp(b.getTranslation(new Vector3f()),u))
+                    .rotate(a.getUnnormalizedRotation(new Quaternionf()).slerp(b.getUnnormalizedRotation(new Quaternionf()),u))
+                    .scale(a.getScale(new Vector3f()).lerp(b.getScale(new Vector3f()),u));
+            }
+            break;
         }
         Matrix4f world=new Matrix4f(parent).mul(local);
         if (name.equals(wanted)) return world;
@@ -89,7 +100,7 @@ class GoblinSwordDirectionTest {
         return tool(rig,new Matrix4f(),clip,time).transformPosition(new Vector3f(0,.08995792F,-.04705085F))
             .add(blade("goblin_frenzy",time).mul(.675F));
     }
-    @Test void oneHandedFlurryMovesTheArmWithoutSteeringAtTheWristOrDisplacingSockets() {
+    @Test void oneHandedFlurryMovesTheArmWithoutChangingTheBladePathOrDisplacingSockets() {
         var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
         var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
         float minX=10,maxX=-10,minZ=10,maxZ=-10;
@@ -109,7 +120,16 @@ class GoblinSwordDirectionTest {
             var channel=entry.getAsJsonObject();String name=channel.get("name").getAsString();
             var transforms=channel.getAsJsonArray("transform");
             for (var frame:transforms) {
-                if (java.util.Set.of("Tool_R","Shoulder_R","Shoulder_L").contains(name))
+                if (name.equals("Tool_R")) {
+                    var reference=matrix(transforms.get(0).getAsJsonArray());var current=matrix(frame.getAsJsonArray());
+                    var axis=new Vector3f(0,-(float)Math.sin(Math.toRadians(10)),-(float)Math.cos(Math.toRadians(10)));
+                    assertTrue(reference.transformDirection(new Vector3f(axis)).distance(current.transformDirection(new Vector3f(axis)))<.001F,
+                        "Grip roll must not steer the blade away from the arm-driven path");
+                    var grip=new Vector3f(0,.08995792F,-.04705085F);
+                    assertTrue(reference.transformPosition(new Vector3f(grip)).distance(current.transformPosition(new Vector3f(grip)))<.001F,
+                        "Roll must preserve the hilt in the fist");
+                }
+                if (java.util.Set.of("Shoulder_R","Shoulder_L").contains(name))
                     assertEquals(transforms.get(0),frame,"No independent weapon steering or raised clavicle: "+name);
                 if (java.util.Set.of("Arm_R","Hand_R").contains(name))
                     assertEquals(matrix(transforms.get(0).getAsJsonArray()).getTranslation(new Vector3f()),
@@ -160,6 +180,20 @@ class GoblinSwordDirectionTest {
         var coord=clip.getAsJsonArray("animation").asList().stream().map(v->v.getAsJsonObject())
             .filter(c->c.get("name").getAsString().equals("Coord")).findFirst().orElseThrow().getAsJsonArray("transform");
         assertEquals(.28F,matrix(coord.get(coord.size()-1).getAsJsonArray()).m31(),.001F);
+    }
+    @Test void everyFrenzyCutLeadsWithTheEdgeAcrossTheEntireFastStroke() {
+        var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
+        for (float start:new float[]{.18F,.43F,.68F,.93F}) {
+            for (int i=1;i<16;i++) {
+                float t=start+i*.005F;
+                var direction=blade("goblin_frenzy",t);
+                var travel=frenzyTip(t+.0005F).sub(frenzyTip(t-.0005F));
+                travel.sub(new Vector3f(direction).mul(travel.dot(direction))).normalize();
+                var face=tool(rig,new Matrix4f(),clip,t).transformDirection(new Vector3f(1,0,0)).normalize();
+                assertTrue(Math.abs(face.dot(travel))<.08F,"Cut must not strike with its flat at "+t);
+            }
+        }
     }
     @Test void shieldOverheadRaisesThenCutsDownInFront() {
         var raised=blade("goblin_shield_overhead",.4F);
