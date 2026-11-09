@@ -6,8 +6,8 @@ Minecraft **1.21.1 / NeoForge**. This branch is a fresh gameplay foundation cont
 
 - **Warrior:** sword swipes, backswing and flurry attacks, high-ground plunges, and rear grapples. Mash the attack button to escape a grapple.
 - **Archer:** bow attacks, panicked retreats when unsupported, cover for retreating warriors, formation positioning behind warriors, and reachable elevated firing positions.
-- **Shaman:** Iron's Spells casting through the Bone Staff, two close-range staff attacks: a slow, telegraphed sweep with the original knockback, and an exaggerated two-handed overhead smash, and area healing for allied goblins. Bone helmet, tooth necklace, and primitive clothing are retained.
-- Four or more warriors can flank and surround shared enemies. Warriors screen archers. Larger groups and weakened enemies make goblins bolder. Combat animations retain the head and limb tremor.
+- **Shaman:** Iron's Spells casting through the Bone Staff, two close-range staff attacks: two-second warnings followed by a lightning-fast sweep (3 hearts base damage, original knockback) or a two-handed overhead smash (4½ hearts base damage). The smash leans back before snapping forward into a full ground-reaching follow-through; physical ground contact produces a small dust cloud with no area damage. Shamans also heal allied goblins. Bone helmet, tooth necklace, and primitive clothing are retained.
+- Four or more warriors can flank and surround shared enemies. Warriors screen archers. Larger groups and weakened enemies make goblins bolder. Combat animations retain the head and limb tremor. Its strength scales from **2× at zero confidence** down to **0.35× at full confidence**, using the same server confidence that drives retreat and boldness. Client smoothing prevents abrupt changes when allies join or leave. The torso and root stay steady.
 - Zombies and skeletons hunt goblins; goblins recognize them as enemies.
 - Goblins retain their approximately 1.5-block height, models, textures, held-item alignment, Epic Fight attacks, and animations.
 
@@ -38,6 +38,8 @@ Custom goblin sword combos, plunges, staff attacks, and grapple stabs use Epic F
 - **F8** or `/riftfall debug helditems`: toggle held-item **model bounds**, cyan for shields and gold for other items. These follow the rendered hand/forearm transforms in first and third person, including held swords, staffs, and bucklers.
 - **F3+B** or `/riftfall debug colliders`: toggle entity hurtboxes and Epic Fight's native attack-collider visualizer. Attack colliders appear during attacks; these are the actual damage-contact shapes.
 - `/riftfall debug off`: disable both overlays.
+
+Shamans and warriors predict contact using the equipped Epic Fight weapon collider across the planned attack phases before winding up. The public `WeaponReach.canContact` helper supports future mob variants and add-on weapons without a fixed reach value. A shaman under close pressure moves in until that query succeeds; longer properly configured weapons can begin attacks farther away. Staff attack damage scales with the equipped weapon (1.2× sweep, 1.8× smash), preserving fully blocked shield hits. They commit to the swing after the warning; a target that moves out of the weapon path can still dodge it.
 
 The Bone Staff's collider is editable in `data/riftfall/capabilities/weapons/bone_staff.json`: `center` is the joint-local offset, `size` contains half-extents before entity scaling, and `number` controls sweep samples. Model bounds are visual alignment aids, not damage or shield-blocking shapes. Shield defense still uses Minecraft's raised-shield frontal blocking rules. Debug toggles are client-only and need no operator permission.
 

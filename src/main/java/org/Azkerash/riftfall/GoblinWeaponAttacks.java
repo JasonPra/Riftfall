@@ -36,6 +36,30 @@ final class GoblinWeaponAttacks {
         }
         return animation(accessor,phases);
     }
+    static net.minecraft.world.phys.Vec3 staffHead(GoblinEntity mob,float time) {
+        var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(mob,GoblinPatch.class);
+        if (patch==null) return mob.position();
+        var animation=GoblinAnimations.STAFF_SMASH.get();
+        var matrix=patch.getArmature().getBoundTransformFor(animation.getPoseByTime(patch,time,1F),Armatures.BIPED.get().toolR);
+        matrix.mulFront(patch.getModelMatrix(1F));
+        var head=yesman.epicfight.api.utils.math.OpenMatrix4f.transform(matrix,new net.minecraft.world.phys.Vec3(.146,-.021875,-.962));
+        return new net.minecraft.world.phys.Vec3(mob.getX()-head.x,mob.getY()+head.y,mob.getZ()-head.z);
+    }
+    static void groundImpact(GoblinEntity mob) {
+        if (!(mob.level() instanceof net.minecraft.server.level.ServerLevel world)) return;
+        var from=staffHead(mob,2.15F);
+        var to=staffHead(mob,2.3F).add(0,-.14*mob.getScale(),0);
+        var hit=world.clip(new net.minecraft.world.level.ClipContext(from,to,
+            net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,mob));
+        if (hit.getType()!=net.minecraft.world.phys.HitResult.Type.BLOCK) return;
+        var pos=hit.getLocation();
+        var state=world.getBlockState(hit.getBlockPos());
+        if (state.isAir()) return;
+        world.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK,state),
+            pos.x,pos.y+.06,pos.z,24,.3,.06,.3,.035);
+        world.playSound(null,pos.x,pos.y,pos.z,net.minecraft.sounds.SoundEvents.WOOD_HIT,net.minecraft.sounds.SoundSource.HOSTILE,.7F,.7F);
+        increment(mob,"RiftfallStaffGroundImpacts");
+    }
     @SubscribeEvent public static void hit(LivingDamageEvent.Post event) {
         if (event.getEntity().level().isClientSide() || event.getNewDamage()<=0
             || !(event.getSource() instanceof EpicFightDamageSource source)

@@ -143,7 +143,19 @@ final class GoblinTactics {
                     && goblin.squad.hasWarriorPlan() && goblin.distanceToSqr(goblin.getTarget())<28*28) || super.canContinueToUse();
         }
         @Override protected void checkAndPerformAttack(LivingEntity target) {
-            if (remaining==0 && GoblinBuckler.canAttack(goblin) && canPerformAttack(target) && goblin.squad.mayStrike() && !interrupted(goblin)) {
+            if (remaining==0 && GoblinBuckler.canAttack(goblin) && isTimeToAttack() && goblin.squad.mayStrike()
+                && !interrupted(goblin) && goblin.getSensing().hasLineOfSight(target)) {
+                float yaw=staffFacing(target.getX()-goblin.getX(),target.getZ()-goblin.getZ());
+                goblin.setYRot(yaw); goblin.setYBodyRot(yaw); goblin.setYHeadRot(yaw);
+                var planned=switch (SwordAttack.values()[nextAttack]) {
+                    case SWIPE -> GoblinAnimations.SLASH;
+                    case BACKSWING -> GoblinAnimations.BACKSWING;
+                    case FLURRY -> GoblinAnimations.FLURRY;
+                };
+                if (!WeaponReach.canContact(goblin,target,planned.get())) {
+                    if (!goblin.squad.hasWarriorPlan()) goblin.getNavigation().moveTo(target.getX(),target.getY(),target.getZ(),1.1);
+                    return;
+                }
                 resetAttackCooldown(); victim=target;
                 attack=SwordAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%SwordAttack.values().length;
                 remaining=attack.duration;
@@ -216,18 +228,24 @@ final class GoblinTactics {
     }
     static float staffFacing(double x,double z) { return (float)(Math.toDegrees(Math.atan2(z,x))-90); }
     enum StaffAttack {
-        SWEEP(40,22,.9), SMASH(48,28,.45);
+        SWEEP(56,42,.9,6), SMASH(64,43,.45,9);
         final int duration, impact;
         final double knockback;
-        StaffAttack(int duration,int impact,double knockback) {
-            this.duration=duration; this.impact=impact; this.knockback=knockback;
+        final float damage;
+        yesman.epicfight.api.utils.math.ValueModifier damageModifier() {
+            // A multiplier preserves zero damage after a shield block and add-on weapon scaling.
+            return yesman.epicfight.api.utils.math.ValueModifier.multiplier(damage/5F);
+        }
+        StaffAttack(int duration,int impact,double knockback,float damage) {
+            this.duration=duration; this.impact=impact; this.knockback=knockback; this.damage=damage;
         }
     }
     static final class StaffClub extends Goal {
         final GoblinEntity mob;
         LivingEntity victim;
         StaffAttack attack;
-        int ticks, nextAttack;
+        int ticks, nextAttack, approachTicks;
+        boolean windingUp;
         long ready;
         float facing;
         StaffClub(GoblinEntity mob) {
@@ -237,34 +255,59 @@ final class GoblinTactics {
         @Override public boolean canUse() {
             var target=mob.getTarget();
             return mob.level().getGameTime()>=ready && !interrupted(mob) && target!=null && target.isAlive()
-                && !mob.isAlliedTo(target) && mob.distanceToSqr(target)<2.5*2.5 && mob.getSensing().hasLineOfSight(target);
+                && !mob.isAlliedTo(target) && mob.getSensing().hasLineOfSight(target)
+                && (WeaponReach.canContact(mob,target,(StaffAttack.values()[nextAttack]==StaffAttack.SWEEP
+                    ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH).get()) || mob.distanceToSqr(target)<2.5*2.5);
         }
         @Override public boolean canContinueToUse() {
-            return ticks<attack.duration && victim!=null && victim.isAlive() && !mob.isAlliedTo(victim) && !interrupted(mob);
+            return victim!=null && victim.isAlive() && !mob.isAlliedTo(victim) && !interrupted(mob)
+                && (windingUp ? ticks<attack.duration : approachTicks<40 && mob.distanceToSqr(victim)<3.5*3.5);
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
             victim=mob.getTarget(); attack=StaffAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%2;
-            ticks=0; ready=mob.level().getGameTime()+attack.duration+25; mob.getNavigation().stop();
-            facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
-            face();
+            ticks=0; approachTicks=0; windingUp=false; ready=mob.level().getGameTime()+10;
+            mob.getPersistentData().putBoolean("RiftfallStaffApproaching",true);
+            facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
+            if (inReach()) beginSwing();
+        }
+        private boolean inReach() {
+            return mob.getSensing().hasLineOfSight(victim) && WeaponReach.canContact(mob,victim,
+                (attack==StaffAttack.SWEEP ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH).get());
+        }
+        private void beginSwing() {
+            windingUp=true; ticks=0; ready=mob.level().getGameTime()+attack.duration+25;
+            mob.getNavigation().stop();
+            facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
+            mob.getPersistentData().putBoolean("RiftfallStaffApproaching",false);
             mob.getPersistentData().putString("RiftfallStaffAttack",attack.name());
             GoblinAnimations.play(mob,attack==StaffAttack.SWEEP ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH);
         }
         @Override public void tick() {
             if (victim==null) return;
+            if (!windingUp) {
+                approachTicks++;
+                facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
+                if (inReach()) beginSwing();
+                else mob.getNavigation().moveTo(victim.getX(),victim.getY(),victim.getZ(),1.0);
+                return;
+            }
             mob.getNavigation().stop();
             // Track through the wind-up, then commit instead of steering the hit around a dodge.
             if (ticks<attack.impact-4) facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
             face();
             if (++ticks==attack.impact) mob.swing(InteractionHand.MAIN_HAND);
+            if (attack==StaffAttack.SMASH && ticks==47) GoblinWeaponAttacks.groundImpact(mob);
         }
         private void face() {
             mob.setYRot(facing); mob.setYBodyRot(facing); mob.setYHeadRot(facing);
             double radians=Math.toRadians(facing);
             mob.getLookControl().setLookAt(mob.getX()-Math.sin(radians)*4,mob.getEyeY(),mob.getZ()+Math.cos(radians)*4,90,90);
         }
-        @Override public void stop() { victim=null; mob.getPersistentData().remove("RiftfallStaffAttack"); }
+        @Override public void stop() {
+            victim=null; mob.getNavigation().stop();
+            mob.getPersistentData().remove("RiftfallStaffAttack"); mob.getPersistentData().remove("RiftfallStaffApproaching");
+        }
     }
     static final class Heal extends Goal {
         final GoblinEntity mob;

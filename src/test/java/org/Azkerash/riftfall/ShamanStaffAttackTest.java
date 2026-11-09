@@ -10,6 +10,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShamanStaffAttackTest {
+    @Test void staffDamagePreservesFullyBlockedHitsAndScalesAddonWeapons() {
+        for (var attack:GoblinTactics.StaffAttack.values()) {
+            var modifier=yesman.epicfight.api.utils.math.ValueModifier.calculator().attach(attack.damageModifier());
+            assertEquals(0,modifier.getResult(0));
+            assertEquals(attack.damage,modifier.getResult(5),.001F);
+            assertEquals(attack.damage*2,modifier.getResult(10),.001F);
+        }
+    }
     private static JsonObject resource(String path) {
         var stream=ShamanStaffAttackTest.class.getClassLoader().getResourceAsStream(path);
         assertNotNull(stream,path);
@@ -54,7 +62,7 @@ class ShamanStaffAttackTest {
         assertEquals(.9,GoblinTactics.StaffAttack.SWEEP.knockback);
     }
     @Test void overheadSmashKeepsTheSecondHandOnTheActualStaffShaft() {
-        for (float time:new float[]{.35F,.8F,1.2F,1.4F,1.65F,1.9F}) {
+        for (float time:new float[]{.35F,.85F,2.0F,2.15F,2.3F,2.7F}) {
             var secondaryGrip=tool("staff_smash",time,"R").transformPosition(new Vector3f(-.01F,-.021875F,.153125F));
             var palm=tool("staff_smash",time,"L").getTranslation(new Vector3f());
             assertTrue(palm.distance(secondaryGrip)<.015,"Secondary hand must grip the shaft at "+time);
@@ -62,13 +70,27 @@ class ShamanStaffAttackTest {
     }
     @Test void smashDropsTheStaffHeadAndSweepCrossesInFrontOfTheBody() {
         Vector3f top=new Vector3f(-.01F,-.021875F,-.983125F);
-        float raised=tool("staff_smash",1.2F,"R").transformPosition(new Vector3f(top)).z;
-        float impact=tool("staff_smash",1.4F,"R").transformPosition(new Vector3f(top)).z;
-        float follow=tool("staff_smash",1.65F,"R").transformPosition(new Vector3f(top)).z;
+        float raised=tool("staff_smash",2.0F,"R").transformPosition(new Vector3f(top)).z;
+        float impact=tool("staff_smash",2.15F,"R").transformPosition(new Vector3f(top)).z;
+        float follow=tool("staff_smash",2.3F,"R").transformPosition(new Vector3f(top)).z;
         assertTrue(raised>impact+.5 && impact>follow+.5);
-        var start=tool("staff_sweep",.9F,"R").transformPosition(new Vector3f(top));
-        var end=tool("staff_sweep",1.1F,"R").transformPosition(new Vector3f(top));
+        assertTrue(Math.abs(follow)<.2,"Full follow-through reaches ground level");
+        var start=tool("staff_sweep",2.0F,"R").transformPosition(new Vector3f(top));
+        var end=tool("staff_sweep",2.1F,"R").transformPosition(new Vector3f(top));
         assertTrue(start.x>.7 && end.x<-.5);
         assertTrue(start.y>0 && end.y>0);
     }
+    @Test void sweepWaitsTwoSecondsThenCrossesInOneTenthOfASecond() {
+        assertEquals(42,GoblinTactics.StaffAttack.SWEEP.impact);
+        var channels=resource("assets/riftfall/animmodels/animations/biped/staff_sweep.json").getAsJsonArray("animation");
+        for (var entry:channels) {
+            var channel=entry.getAsJsonObject();
+            var times=channel.getAsJsonArray("time");
+            assertEquals(2F,times.get(3).getAsFloat(),.001);
+            assertEquals(.1F,times.get(4).getAsFloat()-times.get(3).getAsFloat(),.001);
+            assertEquals(channel.getAsJsonArray("transform").get(2),channel.getAsJsonArray("transform").get(3),"Hold the warning pose before the fast swing");
+        }
+    }
+
+
 }

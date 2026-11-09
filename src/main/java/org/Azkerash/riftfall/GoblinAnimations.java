@@ -30,9 +30,13 @@ public final class GoblinAnimations {
                 .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.STOP_MOVEMENT,false)
                 .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.REMOVE_DELTA_MOVEMENT,false));
             STAFF_SWEEP=builder.nextAccessor("biped/staff_sweep",a->GoblinWeaponAttacks.animation(a,
-                GoblinWeaponAttacks.phase(0,1.0F,1.25F,1.65F,2.0F)));
+                GoblinWeaponAttacks.phase(0,2.0F,2.2F,2.55F,2.8F)
+                    .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,
+                        GoblinTactics.StaffAttack.SWEEP.damageModifier())));
             STAFF_SMASH=builder.nextAccessor("biped/staff_smash",a->GoblinWeaponAttacks.animation(a,
-                GoblinWeaponAttacks.phase(0,1.25F,1.65F,1.9F,2.4F)));
+                GoblinWeaponAttacks.phase(0,2.05F,2.3F,2.7F,3.2F)
+                    .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,
+                        GoblinTactics.StaffAttack.SMASH.damageModifier())));
             CHARGE=builder.nextAccessor("biped/cast_charge",a->new ActionAnimation(.1F,a,Armatures.BIPED)
                 .addStateRemoveOld(EntityState.TURNING_LOCKED,false));
             RELEASE=builder.nextAccessor("biped/cast_release",a->new ActionAnimation(.05F,a,Armatures.BIPED)

@@ -34,4 +34,12 @@ class WeaponColliderTest {
             assertEquals(1,(-Math.sin(yaw)*target[0]+Math.cos(yaw)*target[1])/length,.00001);
         }
     }
+    @Test void longerAddonWeaponColliderReachesTargetsThatShortWeaponsCannot() {
+        var shortBlade=box(.06,.06,.5,0,0,-.5);
+        var longBlade=box(.06,.06,1.5,0,0,-1.5);
+        var target=box(.2,.4,.2,0,0,-2);
+        assertFalse(shortBlade.isCollide(target));
+        assertTrue(longBlade.isCollide(target));
+    }
+
 }

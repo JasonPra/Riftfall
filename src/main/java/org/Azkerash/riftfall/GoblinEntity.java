@@ -19,6 +19,9 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> ESCAPE_PROGRESS =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> CONFIDENCE =
+        net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private float previousVisualConfidence=.5F,visualConfidence=.5F;
     final GoblinSquadTactics squad=new GoblinSquadTactics(this);
     long bucklerAttackUntil, bucklerNextAttack;
     GoblinEntity coveredAlly;
@@ -26,7 +29,11 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     long retreatCoverUntil;
     private boolean castingGoalAdded;
     @Override protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder); builder.define(GRAPPLED_PLAYER,-1); builder.define(ESCAPE_PROGRESS,0);
+        super.defineSynchedData(builder); builder.define(GRAPPLED_PLAYER,-1); builder.define(ESCAPE_PROGRESS,0); builder.define(CONFIDENCE,50);
+    }
+    public float tremorConfidence(float partialTick) {
+        return level().isClientSide ? net.minecraft.util.Mth.lerp(partialTick,previousVisualConfidence,visualConfidence)
+            : entityData.get(CONFIDENCE)/100F;
     }
     public int grappledPlayerId() { return entityData.get(GRAPPLED_PLAYER); }
     public int escapeProgress() { return entityData.get(ESCAPE_PROGRESS); }
@@ -123,7 +130,14 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     }
     @Override public void tick() {
         super.tick();
+        if (level().isClientSide) {
+            previousVisualConfidence=visualConfidence;
+            visualConfidence+=(entityData.get(CONFIDENCE)/100F-visualConfidence)*.15F;
+        }
         if (!level().isClientSide) {
+            // Reuse the server's tactical confidence; send only changed percentages.
+            // The client smooths these values rather than scanning nearby mobs per rendered pose.
+            if (tickCount%10==0) entityData.set(CONFIDENCE,(int)Math.round(squad.courage()*100));
             var target=getTarget();
             // Keep the client combat pose active while withdrawing or covering allies as well.
             setAggressive(target!=null && target.isAlive() && !isAlliedTo(target));

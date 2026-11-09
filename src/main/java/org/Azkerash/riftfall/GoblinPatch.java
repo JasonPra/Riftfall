@@ -30,7 +30,7 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         if (!original.isAlive() || original.isNoAi() || isStunned()) return;
         boolean action=animation instanceof yesman.epicfight.api.animation.types.ActionAnimation;
         if (original.isAggressive() || action)
-            GoblinCombatTremor.apply(pose,(original.tickCount+partialTick)/20F,original.getId(),action);
+            GoblinCombatTremor.apply(pose,(original.tickCount+partialTick)/20F,original.getId(),action,original.tremorConfidence(partialTick));
     }
     @Override public void updateMotion(boolean considerInaction) { if (original.isArcher()) commonAggressiveRangedMobUpdateMotion(considerInaction);
         else commonAggressiveMobUpdateMotion(considerInaction);
