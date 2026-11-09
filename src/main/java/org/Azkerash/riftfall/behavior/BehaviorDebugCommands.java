@@ -14,6 +14,9 @@ import org.Azkerash.riftfall.Riftfall;
 public final class BehaviorDebugCommands {
     @SubscribeEvent public static void register(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("riftfall").then(Commands.literal("behavior").requires(s->s.hasPermission(2))
+            .then(Commands.literal("debug").executes(c->BehaviorOverlay.toggle(c.getSource().getPlayerOrException(),null))
+                .then(Commands.literal("on").executes(c->BehaviorOverlay.toggle(c.getSource().getPlayerOrException(),true)))
+                .then(Commands.literal("off").executes(c->BehaviorOverlay.toggle(c.getSource().getPlayerOrException(),false))))
             .then(Commands.literal("inspect").then(Commands.argument("entity",EntityArgument.entity()).executes(context->{
                 var entity=EntityArgument.getEntity(context,"entity");
                 if (!(entity instanceof Mob mob) || !mob.getPersistentData().contains("RiftfallBehavior")) {

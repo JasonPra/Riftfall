@@ -188,3 +188,31 @@ Inspect each role with:
 ```
 
 Additional signals include `ready.<action>`, `committed.<action>`, `self.interrupted`, `cover.safe`, and `target.exposed`. The diagnostic candidate evaluations show which goblin action was eligible and how its utility was calculated. The tester remains available as an independent consumer for isolating engine changes from goblin-specific execution.
+
+## Equipment threat and willingness to advance
+
+Low confidence now prevents a warrior from voluntarily closing into melee. The old policy could select melee at any confidence as long as the warrior was healthy; a low score alone did not prevent approaching. Warriors now need `engagePoints` (default **12 raw points**) to advance. Below that threshold they watch from a distance or use the existing imperfect panic retreat when approached, and do not pursue remembered positions without sufficient confidence. If cornered at close range they can still defend themselves. Committed attacks finish before reassessing; wounds, stuns and invalid targets retain their interruption rules. Flanking/organized tactics still use the separate `boldPoints` threshold.
+
+Visible opponents are compared using actual current attack-damage, armor, armor-toughness attributes and current health. These include equipped items' attribute modifiers, including Epic Fight weapons such as the iron greatsword. The generic confidence factors are:
+
+| Factor | Input | Default weight | Maximum absolute contribution |
+|---|---|---:|---:|
+| `combat.damage_advantage` | (own damage − enemy damage) / 4, clamped to ±3 | +4 | 12 |
+| `combat.armor_advantage` | (own armor − enemy armor) / 5, clamped to ±4 | +5 | 20 |
+| `combat.toughness_advantage` | (own toughness − enemy toughness) / 4, clamped to ±3 | +3 | 9 |
+| `combat.health_advantage` | (own health − enemy health) / 10, clamped to ±3 | +2 | 6 |
+
+A stronger opponent produces negative contributions; better personal equipment produces positive ones. Ally support can outweigh the disadvantage. This is an observable-stat threat heuristic, not a prediction of exact damage, enchantments, DPS, or armor penetration. Hidden opponents do not supply live equipment or health inputs.
+
+All four factor weights can be adjusted or disabled through global `factorWeights` or per-observer `entityOverrides`. `engagePoints` also supports a per-species override, for example `"riftfall:goblin|engagePoints=10"`. New factor defaults are supplied when older configuration lists lack them; explicit zero values are preserved. Independently supplied confidence profiles must define their desired comparison weights.
+
+## Live overhead holograms
+
+```mcfunction
+/riftfall behavior debug on
+/riftfall behavior debug off
+```
+
+`/riftfall behavior debug` toggles the display. These operator commands enable a personal world-space overlay over nearby engine entities, including Epic Fight-rendered goblins and the independent tester. They do not rename mobs, create display entities, or enable other players' overlays.
+
+The display updates four times per second and shows current action, normalized confidence, raw points, advance threshold, self/opponent combat stats, every nonzero confidence contribution (green positive/red negative), and loss/search-memory timers. It covers the nearest 32 engine entities within 32 blocks. Session state clears on login/logout; received entries expire if updates stop and are matched by both entity ID and UUID. Debug text uses the vanilla see-through nameplate pass for readability, including while testing occlusion. Large custom profiles get an explicit overflow notice pointing to `inspect`, which remains the complete detailed view. Turning the overlay off clears it immediately.

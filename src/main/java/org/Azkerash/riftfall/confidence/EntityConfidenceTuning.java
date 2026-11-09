@@ -10,6 +10,7 @@ public final class EntityConfidenceTuning {
         if (key.startsWith("unit.")) return key.substring(5).matches("[a-z0-9_.-]+:[a-z0-9/._-]+") && value>=0 && value<=1000;
         return switch (key) {
             case "normalizationPoints" -> value>=1 && value<=10000;
+            case "engagePoints" -> value>=-1000 && value<=1000;
             case "boldPoints" -> value>=0 && value<=10000;
             case "woundedHealthFraction","vulnerableTargetHealthFraction","retreatingAllyMultiplier" -> value>=0 && value<=1;
             case "witnessRadius" -> value>=0 && value<=128;

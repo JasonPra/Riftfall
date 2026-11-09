@@ -26,6 +26,7 @@ final class GoblinBehavior {
         awareness=new CombatBehaviorController(mob,confidence,100,this::sense);
         look=new LookAtPlayerGoal(mob,Player.class,8);
         if (!mob.isRanged()) {
+            add("cautious_retreat",new GoblinTactics.Retreat(mob),()->false);
             add("warrior_retreat",new GoblinTactics.WarriorRetreat(mob),()->false);
             var grapple=new GoblinGrapple(mob);add("grapple",grapple,()->true);
             var plunge=new GoblinTactics.Plunge(mob);add("plunge",plunge,()->true);
@@ -54,6 +55,7 @@ final class GoblinBehavior {
         }
         boolean interrupted=GoblinTactics.interrupted(mob);
         signals.put("self.interrupted",interrupted?1D:0D);
+        signals.put("self.melee_role",mob.isRanged()?0D:1D);
         signals.put("cover.safe",GoblinTactics.coverSafe(mob)?1D:0D);
         signals.put("target.exposed",snapshot.targetVisible() && GoblinTactics.exposedToStaff(snapshot.target())?1D:0D);
         Map<String,Boolean> prepared=new HashMap<>();String committed=null;
@@ -70,7 +72,11 @@ final class GoblinBehavior {
             boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal")):
                 !snapshot.context().active("target.present");
             // Do not pathfind or advance idle ability cooldowns while another animation owns the action slot.
-            boolean ready=!interrupted && allowed && (committedAction==null || committedAction.equals(id))
+            boolean advancing=id.equals("melee") || id.equals("grapple") || id.equals("plunge");
+            boolean defensive=id.equals("melee") && snapshot.context().get("target.distance")<=1.8;
+            boolean willing=!advancing || snapshot.context().active("engage") || defensive || action.running() && commitments.get(id).getAsBoolean();
+            if (id.equals("cautious_retreat")) willing=!snapshot.context().active("engage");
+            boolean ready=!interrupted && allowed && willing && (committedAction==null || committedAction.equals(id))
                 && prepared.computeIfAbsent(id,key->action.prepare());
             signals.put("ready."+id,ready?1D:0D);
             signals.put("committed."+id,ready && action.running() && commitments.get(id).getAsBoolean()?1D:0D);
@@ -89,6 +95,9 @@ final class GoblinBehavior {
             @Override public void stop() { stopLook(); }
         });
         actions.put("interrupted",s->mob.getNavigation().stop());
+        actions.put("watch",s->{
+            mob.getNavigation().stop();if (s.target()!=null) mob.getLookControl().setLookAt(s.target(),45,45);
+        });
         actions.put("search",new BehaviorAction() {
             @Override public void start(CombatSituation s) { nextSearchPath=0; }
             @Override public void tick(CombatSituation s) {

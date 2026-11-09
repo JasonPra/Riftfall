@@ -11,7 +11,7 @@ public final class ConfidenceConfig {
     public record Settings(ConfidenceProfile profile,double boldPoints,double woundedFraction,double vulnerableFraction,double retreatingMultiplier) {}
     public static Settings defaults() {
         return new Settings(new ConfidenceProfile(Map.of("riftfall:goblin",5D,"riftfall:goblin_archer",1D,"riftfall:goblin_shaman",10D),
-            Map.ofEntries(Map.entry("base",5D),Map.entry("self.low_health",-9D),Map.entry("target.low_health",10D),
+            Map.ofEntries(Map.entry("combat.damage_advantage",4D),Map.entry("combat.armor_advantage",5D),Map.entry("combat.toughness_advantage",3D),Map.entry("combat.health_advantage",2D),Map.entry("base",5D),Map.entry("self.low_health",-9D),Map.entry("target.low_health",10D),
                 Map.entry("self.witnessed_ally_death",-8D),Map.entry("self.poison",-8D),Map.entry("self.wither",-10D),Map.entry("self.harmful_effect",-4D),
                 Map.entry("target.poison",8D),Map.entry("target.wither",8D),Map.entry("equipment.unarmed",-5D),
                 Map.entry("equipment.shield_only",-3D),Map.entry("equipment.sword",3D),Map.entry("equipment.sword_shield",6D),
@@ -25,7 +25,8 @@ public final class ConfidenceConfig {
     private static final ModConfigSpec.DoubleValue WITNESS_RADIUS;
     private static volatile WitnessSettings witness=WitnessSettings.defaults();
     private static volatile Map<String,Map<String,Double>> overrides=Map.of();
-    private static final ModConfigSpec.DoubleValue SCALE,BOLD,WOUNDED,VULNERABLE,RETREATING;
+    private static final ModConfigSpec.DoubleValue SCALE,BOLD,WOUNDED,VULNERABLE,RETREATING,ENGAGE;
+    private static volatile double engagePoints=12;
     private static volatile Settings current=defaults();
     static {
         var defaults=defaults();var b=new ModConfigSpec.Builder();b.push("combatConfidence");
@@ -35,6 +36,7 @@ public final class ConfidenceConfig {
             .defineListAllowEmpty("factorWeights",entries(defaults.profile.factorWeights()),()->"example.factor=1",v->valid(v,false));
         SCALE=b.comment("Points corresponding to full confidence; final confidence is clamped to 0..1.").defineInRange("normalizationPoints",40D,1D,10000D);
         BOLD=b.comment("Points needed for organized retreat and bold tactics.").defineInRange("boldPoints",25D,0D,10000D);
+        ENGAGE=b.comment("Points needed to voluntarily advance into melee; cornered actors can still defend themselves.").defineInRange("engagePoints",12D,-1000D,1000D);
         WOUNDED=b.defineInRange("woundedHealthFraction",.35D,0D,1D);
         VULNERABLE=b.defineInRange("vulnerableTargetHealthFraction",.30D,0D,1D);
         RETREATING=b.comment("Multiplier applied to the contribution of an ally that is retreating.").defineInRange("retreatingAllyMultiplier",.25D,0D,1D);
@@ -64,7 +66,7 @@ public final class ConfidenceConfig {
     /** Existing TOML lists predate these factors. Explicit values, including zero, always win. */
     public static Map<String,Double> withStatusDefaults(Map<String,Double> configured) {
         Map<String,Double> factors=new LinkedHashMap<>(configured);
-        for (String key:List.of("self.poison","self.wither","self.harmful_effect","self.witnessed_ally_death"))
+        for (String key:List.of("self.poison","self.wither","self.harmful_effect","self.witnessed_ally_death","combat.damage_advantage","combat.armor_advantage","combat.toughness_advantage","combat.health_advantage"))
             factors.putIfAbsent(key,defaults().profile().factorWeights().get(key));
         return factors;
     }
@@ -78,6 +80,7 @@ public final class ConfidenceConfig {
     public static Settings forEntity(String id,Settings base) {
         var values=overrides.get(id);return values==null?base:EntityConfidenceTuning.apply(base,values);
     }
+    public static double engagePointsFor(String id) { return overrides.getOrDefault(id,Map.of()).getOrDefault("engagePoints",engagePoints); }
     public static Settings settingsFor(String id) { return forEntity(id,current); }
     public static double maxWitnessRadius() {
         return Math.max(witness.radius(),overrides.values().stream().mapToDouble(v->v.getOrDefault("witnessRadius",0D)).max().orElse(0));
@@ -88,6 +91,7 @@ public final class ConfidenceConfig {
     public static void loaded(ModConfigEvent event) {
         if (event.getConfig().getSpec()==SPEC) {
             current=new Settings(new ConfidenceProfile(parse(UNITS.get()),withStatusDefaults(parse(FACTORS.get())),SCALE.get()),BOLD.get(),WOUNDED.get(),VULNERABLE.get(),RETREATING.get());
+            engagePoints=ENGAGE.get();
             witness=new WitnessSettings(WITNESS_RADIUS.get(),WITNESS_DURATION.get(),WITNESS_CAP.get());
             Map<String,Map<String,Double>> parsed=new LinkedHashMap<>();
             for (String entry:OVERRIDES.get()) {

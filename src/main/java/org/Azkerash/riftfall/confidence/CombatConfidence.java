@@ -48,6 +48,7 @@ public final class CombatConfidence {
                 && !effect.getEffect().equals(MobEffects.POISON) && !effect.getEffect().equals(MobEffects.WITHER)).count();
         factors.putAll(selfStatusFactors(actor.hasEffect(MobEffects.POISON),actor.hasEffect(MobEffects.WITHER),otherHarmful));
         if (target!=null && target.isAlive()) {
+            factors.putAll(CombatStrength.factors(CombatStrength.stats(actor),CombatStrength.stats(target)));
             if (target.getHealth()<=target.getMaxHealth()*vulnerableFraction) factors.put("target.low_health",1D);
             if (target.hasEffect(MobEffects.POISON)) factors.put("target.poison",1D);
             if (target.hasEffect(MobEffects.WITHER)) factors.put("target.wither",1D);

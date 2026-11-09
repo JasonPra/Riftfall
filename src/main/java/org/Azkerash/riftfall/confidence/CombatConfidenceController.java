@@ -21,6 +21,7 @@ public final class CombatConfidenceController {
     private int allyCount;
     private final WitnessedDeathMemory witnessed=new WitnessedDeathMemory();
     private Map<String,Double> lastFactors=Map.of();
+    private LivingEntity observedOpponent;
     private java.util.List<net.minecraft.nbt.CompoundTag> allyDetails=java.util.List.of(),excludedDetails=java.util.List.of();
     public CombatConfidenceController(Mob mob) { this(mob,ConfidenceConfig::settings); }
     private String entityId() { return BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString(); }
@@ -67,6 +68,7 @@ public final class CombatConfidenceController {
             }
             units=Map.copyOf(nearby);allyDetails=List.copyOf(details);excludedDetails=List.copyOf(excluded);
         }
+        observedOpponent=target;
         var config=settings();
         var factors=CombatConfidence.factors(mob,target,config.woundedFraction(),config.vulnerableFraction());
         int deaths=witnessed.active(now,witnessSettings().maxStacks()).size();
@@ -74,6 +76,11 @@ public final class CombatConfidenceController {
         extraFactors.accept(target,factors);
         lastFactors=Map.copyOf(factors);
         return ConfidenceEngine.evaluate(config.profile(),units,factors);
+    }
+    private static net.minecraft.nbt.CompoundTag combatStats(LivingEntity entity) {
+        var stats=CombatStrength.stats(entity);var data=new net.minecraft.nbt.CompoundTag();
+        data.putDouble("AttackDamage",stats.damage());data.putDouble("Armor",stats.armor());data.putDouble("Toughness",stats.toughness());data.putDouble("Health",stats.health());
+        data.putString("MainHand",BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString());return data;
     }
     public int allyCount() { return allyCount; }
     public ConfidenceConfig.Settings settings() { return ConfidenceConfig.forEntity(entityId(),settings.get()); }
@@ -88,6 +95,9 @@ public final class CombatConfidenceController {
             entry.putString("Category",effect.getEffect().value().getCategory().name());entry.putInt("Amplifier",effect.getAmplifier());entry.putInt("RemainingTicks",effect.getDuration());effects.add(entry);
         }
         data.put("ActiveEffects",effects);
+        data.putDouble("EngagePoints",ConfidenceConfig.engagePointsFor(entityId()));
+        data.put("SelfCombatStats",combatStats(mob));
+        if (observedOpponent!=null && observedOpponent.isAlive()) data.put("VisibleTargetCombatStats",combatStats(observedOpponent));
         data.putDouble("NormalizationPoints",config.profile().normalizationPoints());data.putDouble("BoldPoints",config.boldPoints());
         data.putDouble("WoundedHealthFraction",config.woundedFraction());data.putDouble("VulnerableTargetHealthFraction",config.vulnerableFraction());
         data.putDouble("RetreatingAllyMultiplier",config.retreatingMultiplier());data.putDouble("SupportRadius",radius);data.putInt("ScanIntervalTicks",scanTicks);

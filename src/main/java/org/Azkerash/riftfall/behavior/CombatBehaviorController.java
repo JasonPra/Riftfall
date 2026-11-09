@@ -41,6 +41,7 @@ public final class CombatBehaviorController {
         // Hidden targets do not leak their current position, equipment or health into confidence inputs.
         var result=confidence.update(visible?target:null);var settings=confidence.settings();
         Map<String,Double> signals=new HashMap<>();
+        signals.put("engage",result.atLeast(org.Azkerash.riftfall.confidence.ConfidenceConfig.engagePointsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()))?1D:0D);
         signals.put("confidence",result.value());signals.put("fear",1-result.value());signals.put("confidence.points",result.points());
         signals.put("bold",result.atLeast(settings.boldPoints())?1D:0D);
         signals.put("self.health",(double)mob.getHealth()/mob.getMaxHealth());

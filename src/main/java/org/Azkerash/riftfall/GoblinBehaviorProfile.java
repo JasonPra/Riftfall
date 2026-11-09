@@ -9,6 +9,8 @@ final class GoblinBehaviorProfile {
         var rules=new ArrayList<BehaviorRule>();
         rules.add(new BehaviorRule("interrupted",5000,Map.of(),c->c.active("self.interrupted")));
         rules.add(rule("warrior_retreat",500,Map.of("fear",50D,"self.wounded",40D)));
+        rules.add(rule("cautious_retreat",300,Map.of("fear",50D)));
+        rules.add(new BehaviorRule("watch",100,Map.of("fear",20D),c->c.active("self.melee_role") && c.active("target.visible") && !c.active("engage")));
         rules.add(rule("grapple",400,Map.of("confidence",20D)));
         rules.add(rule("plunge",350,Map.of("confidence",20D)));
         rules.add(rule("staff",500,Map.of("target.exposed",40D)));
@@ -18,7 +20,7 @@ final class GoblinBehaviorProfile {
         rules.add(rule("position",160,Map.of("fear",10D)));
         rules.add(rule("bow",140,Map.of("confidence",10D,"cover.safe",200D)));
         rules.add(rule("melee",150,Map.of("confidence",20D)));
-        rules.add(new BehaviorRule("search",50,Map.of("confidence",5D),c->c.active("target.remembered")));
+        rules.add(new BehaviorRule("search",50,Map.of("confidence",5D),c->c.active("target.remembered") && (!c.active("self.melee_role") || c.active("engage"))));
         rules.add(rule("wander",10,Map.of()));
         rules.add(new BehaviorRule("idle",0,Map.of(),c->true));
         return new BehaviorEngine(rules,2);

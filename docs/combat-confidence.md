@@ -45,7 +45,7 @@ Support is scanned in the existing local area (16 blocks horizontally, four vert
 
 Formation geometry still requires actual units: at least two melee goblins for a surrounding ring, and actual warriors for an archer screen. Weighted confidence determines willingness; shamans do not become imaginary shield-bearing warriors. Guard and ring-slot allocation still uses the actual formation size. The old four-warrior confidence gate and old headcount caps are removed.
 
-Examples (healthy observer, healthy target):
+Examples (healthy observer and target with equal combat attributes, so relative-strength contributions are zero):
 
 | Observer | Nearby allies | Raw points | Confidence | Bold? |
 |---|---|---:|---:|---|
@@ -86,3 +86,5 @@ var result = ConfidenceEngine.evaluate(profile,
 ```
 
 `CombatConfidence.factors` provides reusable Minecraft loadout, health, and target-effect inputs for any `LivingEntity`. Custom combatants can extend those inputs or provide their own. Adding a unit weight does not automatically attach goblin tactics to that mob.
+
+Visible-opponent equipment/health comparisons and the separate melee advance threshold are documented in [the behavior engine guide](behavior-engine.md#equipment-threat-and-willingness-to-advance). A low confidence score alone previously did not prevent warrior pursuit; the engagement threshold now controls that decision.
