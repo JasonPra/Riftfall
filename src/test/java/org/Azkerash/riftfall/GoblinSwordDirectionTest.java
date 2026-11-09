@@ -97,6 +97,18 @@ class GoblinSwordDirectionTest {
         for (float t:new float[]{.3F,.55F,.8F,1.05F})
             assertTrue(blade("goblin_twohand_flurry",t).z<-.3F,"Each cut rakes downwards");
     }
+    @Test void flurryRepeatsCrossedDescendingCutsInAFigureEight() {
+        for (float[] pair:new float[][]{{.12F,.3F},{.37F,.55F},{.62F,.8F},{.87F,1.05F}}) {
+            var wind=blade("goblin_twohand_flurry",pair[0]);
+            var cut=blade("goblin_twohand_flurry",pair[1]);
+            assertTrue(wind.x*cut.x<-.25F,"Cut crosses the body");
+            assertTrue(wind.z>.3F && cut.z<-.3F,"Cut descends diagonally");
+        }
+        assertTrue(blade("goblin_twohand_flurry",.3F).x<0);
+        assertTrue(blade("goblin_twohand_flurry",.55F).x>0);
+        assertEquals(blade("goblin_twohand_flurry",.3F),blade("goblin_twohand_flurry",.8F));
+        assertEquals(blade("goblin_twohand_flurry",.55F),blade("goblin_twohand_flurry",1.05F));
+    }
     @Test void everyBackstabPointsDownwardIntoThePlayerFacingSide() {
         for (float time : new float[]{1,1.8F,2.6F,3.4F}) {
             var direction=blade("goblin_grapple",time);
