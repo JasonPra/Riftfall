@@ -49,6 +49,10 @@ class RiftEcologyTest {
         var r=new RiftData.Rift(1,BlockPos.ZERO,1);r.theme="plains";
         assertTrue(RiftEcology.weight("riftfall:goblin",r)>RiftEcology.weight("minecraft:zombie",r));
         assertEquals(0,RiftEcology.weight("minecraft:witch",r));
+        r.roster.put("minecraft:zombie",100); r.roster.put("minecraft:skeleton",100);
+        for (String undead : Set.of("minecraft:zombie","minecraft:skeleton","minecraft:husk","minecraft:stray","minecraft:drowned","minecraft:wither_skeleton","minecraft:bogged"))
+            assertEquals(0,RiftEcology.weight(undead,r),"Even stale plains rosters must exclude undead");
+        assertEquals(Set.of("riftfall:goblin","riftfall:goblin_archer","riftfall:goblin_shaman"),RiftEcology.PLAINS.keySet());
         for (String id : Set.of("irons_spellbooks:pyromancer","irons_spellbooks:cryomancer","irons_spellbooks:archevoker","irons_spellbooks:necromancer","irons_spellbooks:cultist")) {
             assertTrue(RiftEcology.overworldOnly(id));
             for (String theme : Set.of("plains","frozen","vanilla")) assertFalse(RiftEcology.matches(id,theme,Set.of(id)));

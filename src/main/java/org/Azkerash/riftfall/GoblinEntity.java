@@ -19,6 +19,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> ESCAPE_PROGRESS =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    final GoblinSquadTactics squad=new GoblinSquadTactics(this);
     GoblinEntity coveredAlly;
     net.minecraft.world.entity.LivingEntity retreatThreat;
     long retreatCoverUntil;
@@ -87,8 +88,9 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         if (isRanged()) {
             targetSelector.addGoal(0,new GoblinTactics.CoverRetreat(this));
             goalSelector.addGoal(3,new GoblinTactics.Retreat(this));
+            goalSelector.addGoal(4,new GoblinSquadTactics.Position(this));
         }
-        if (isArcher()) goalSelector.addGoal(4,new GoblinTactics.Bow(this));
+        if (isArcher()) goalSelector.addGoal(5,new GoblinTactics.Bow(this));
         if (!isRanged()) {
             goalSelector.addGoal(1,new GoblinTactics.WarriorRetreat(this));
             goalSelector.addGoal(1,new GoblinGrapple(this));
@@ -99,6 +101,9 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         goalSelector.addGoal(7,new LookAtPlayerGoal(this,Player.class,8));
         targetSelector.addGoal(1,new HurtByTargetGoal(this));
         targetSelector.addGoal(2,new NearestAttackableTargetGoal<>(this,Player.class,true));
+        targetSelector.addGoal(3,new GoblinSquadTactics.Assist(this));
+        targetSelector.addGoal(4,new NearestAttackableTargetGoal<>(this,net.minecraft.world.entity.LivingEntity.class,10,true,false,
+            target->GoblinHostility.undeadHunter(target) && !isAlliedTo(target)));
     }
     @Override public void tick() {
         super.tick();

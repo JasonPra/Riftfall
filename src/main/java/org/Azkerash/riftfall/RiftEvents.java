@@ -51,7 +51,7 @@ public final class RiftEvents {
                     r.energy += intake; r.essence += intake;
                 }
             }
-            if ((r.sourceBiome.isEmpty() && world.hasChunkAt(r.pos)) || (!r.sourceBiome.isEmpty() && r.rosterVersion<2)) RiftEcology.capture(world,r);
+            if ((r.sourceBiome.isEmpty() && world.hasChunkAt(r.pos)) || (!r.sourceBiome.isEmpty() && r.rosterVersion<RiftEcology.ROSTER_VERSION)) RiftEcology.capture(world,r);
             RiftDungeons.migrate(arena,r);
             for (UUID id : java.util.Set.copyOf(r.enemies)) {
                 var mob=RiftMobs.find(arena,r,id);

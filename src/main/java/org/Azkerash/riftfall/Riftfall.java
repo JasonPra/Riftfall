@@ -25,6 +25,7 @@ public class Riftfall {
         NeoForge.EVENT_BUS.register(RiftEvents.class);
         NeoForge.EVENT_BUS.register(RiftSpellcasting.class);
         NeoForge.EVENT_BUS.register(GoblinTactics.class);
+        NeoForge.EVENT_BUS.register(GoblinHostility.class);
         NeoForge.EVENT_BUS.register(GoblinGrapple.class);
         NeoForge.EVENT_BUS.register(SoulEssenceEvents.class);
     }

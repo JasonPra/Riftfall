@@ -74,11 +74,11 @@ Each rift saves its **entrance biome and weighted monster roster**. Reopened enc
 
 | Entrance | Current pool |
 | --- | --- |
-| Plains / sunflower plains | Goblin (weight 7), Goblin Archer (3), Zombie (2), Skeleton (2); Goblin Shaman (2) unlocks at level three |
+| Plains / sunflower plains | Goblin (weight 7), Goblin Archer (3); Goblin Shaman (2) unlocks at level three. No undead |
 | Cold biomes | The entrance biome's vanilla monster weights; no Drowned or Husks. A funded level-five-plus encounter can add an Ice Spider boss |
 | Other biomes | That biome's default vanilla monster roster and weights, subject to the general animal, guardian, boss, silverfish and endermite exclusions |
 
-At least two thirds of the initial level-one plains encounter are goblins, so random rolls cannot turn it into a mostly zombie dungeon. **Every Iron's Spells wizard/mage, including the Archevoker, is overworld-exclusive.** No Iron's Spells mob enters a normal rift roster. The **Ice Spider** is the sole enabled exception for a boss encounter, restricted to cold rifts and a separated, fixed northern boss enclosure with a health bar. The boss must die before clearing; boss rewards include extra soul crystals and diamonds. Older saved rosters are migrated to these rules; incompatible old inhabitants are removed.
+Plains encounters contain only goblins. Saved rosters are migrated, and tracked undead left in old plains encounters are removed. Zombies (including their variants) and skeletons now hunt goblins; goblins also recognize those undead as enemies. **Every Iron's Spells wizard/mage, including the Archevoker, is overworld-exclusive.** No Iron's Spells mob enters a normal rift roster. The **Ice Spider** is the sole enabled exception for a boss encounter, restricted to cold rifts and a separated, fixed northern boss enclosure with a health bar. The boss must die before clearing; boss rewards include extra soul crystals and diamonds. Older saved rosters are migrated to these rules; incompatible old inhabitants are removed.
 
 **Goblins** are primitive, living humanoids, about 1.5 blocks tall. Their pointed-ear meshes, textured faces, hide clothing and hand attachments work in Epic Fight and the vanilla renderer. Existing goblins using either previous default scale are corrected on load; deliberately customized scales are preserved.
 
@@ -90,7 +90,12 @@ Warrior goblins cycle through an Epic Fight swipe, backswing, and three-cut flur
 
 A warrior close behind a grounded player can climb onto their back and restrain them for up to four seconds, making four stabs for **1 base damage (half a heart) each**, before normal armor/resistance effects. The HUD prompts the player to mash their bound attack key; **six distinct presses** shake the goblin off. The server validates and rate-limits escape presses. Damage/stun to the goblin, death, disconnection, changing dimension, switching to Creative/Spectator, or teleporting out also ends the hold. Only one goblin can hold a player at a time, and that goblin has a ten-second grapple cooldown.
 
-Goblin base movement speed is **0.23** (down from 0.28). Warriors below 35% health try to retreat. Nearby allied archers and shamans prioritize the retreating warrior's pursuer, hold their ground to provide covering attacks at safe distance, and resume fleeing if the pursuer gets within 3.5 blocks. Shamans prioritize wounded retreating warriors for healing. These tactics respect rift teams and do not cover enemies from another rift.
+Goblin base movement speed is **0.23**. Four or more available warriors fighting the same enemy spread into distinct flank slots, approach around that enemy, and then close in to strike. This applies to any enemy they attack, including mobs. A portion of the frontline screens nearby archers; archers position behind warriors, spread into firing lanes, and seek reachable ground one or two blocks higher when it offers a clear shot. Blocked routes fall back to ordinary pursuit rather than teleporting or forcing terrain changes.
+
+Unsupported archers flee in short, slower, imperfect directions with pauses, rather than continuously selecting the best escape vector. Four nearby available warriors enable more organized retreats behind their screen. Nearby numbers increase confidence, wounds reduce it, and targets at or below **30% health**, or affected by **poison or wither**, make goblins bolder. Confidence lowers the distance at which ranged goblins panic and the health threshold at which warriors retreat. Archers avoid shooting through allies. Nearby allies can assist an existing fight, and the target and tactical positions update as enemies move or reinforcements arrive or die.
+
+Archers and shamans still prioritize covering a withdrawing warrior's pursuer, and shamans prioritize healing wounded retreating warriors. Tactics respect faction/scoreboard alliances and never cooperate across different rift teams. Positions use loaded, supported terrain with reachable navigation paths.
+
 
 Animated in-game previews: [high-ground plunge](docs/previews/goblin-high-ground-plunge.gif), [swipe / backswing / flurry](docs/previews/goblin-sword-combo.gif), [rear grapple](docs/previews/goblin-back-grapple.gif), and [attack-button escape](docs/previews/goblin-grapple-escape.gif).
 

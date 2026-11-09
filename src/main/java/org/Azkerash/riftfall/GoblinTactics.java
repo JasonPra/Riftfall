@@ -14,18 +14,13 @@ import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.phys.Vec3;
 
 final class GoblinTactics {
-    static Vec3 behind(Vec3 enemy,Vec3 defender) {
-        Vec3 away=defender.subtract(enemy).multiply(1,0,1).normalize();
-        return defender.add(away.scale(6));
-    }
     static boolean needsHealing(float health,float max) { return health>0 && max-health>=2; }
-    static boolean threatened(double squaredDistance) { return squaredDistance<6.5*6.5; }
     private static boolean needsCover(GoblinEntity mob) {
         return mob.retreatThreat!=null && mob.retreatThreat.isAlive() && mob.level().getGameTime()<mob.retreatCoverUntil;
     }
     static boolean coverSafe(GoblinEntity mob) {
         return mob.coveredAlly!=null && mob.coveredAlly.isAlive() && needsCover(mob.coveredAlly)
-            && mob.getTarget()!=null && mob.distanceToSqr(mob.getTarget())>=3.5*3.5;
+            && mob.getTarget()!=null && mob.distanceToSqr(mob.getTarget())>=Math.pow(Math.max(3.5,mob.squad.panicRange()),2);
     }
     /** Target selection does not occupy MOVE/LOOK, so bow/spell goals can provide cover. */
     static final class CoverRetreat extends Goal {
@@ -61,7 +56,7 @@ final class GoblinTactics {
         WarriorRetreat(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
             var target=mob.getTarget();
-            if (target==null || !target.isAlive() || mob.getHealth()>mob.getMaxHealth()*.35
+            if (target==null || !target.isAlive() || mob.getHealth()>mob.getMaxHealth()*GoblinSquadTactics.retreatHealth(mob.squad.courage())
                 || mob.level().getGameTime()<ready || mob.distanceToSqr(target)>7*7) return false;
             destination=LandRandomPos.getPosAway(mob,10,2,target.position());
             return destination!=null && destination.distanceToSqr(target.position())>mob.distanceToSqr(target);
@@ -88,37 +83,8 @@ final class GoblinTactics {
             mob.getPersistentData().putBoolean("RiftfallRetreating",false); mob.getNavigation().stop();
         }
     }
-    static final class Retreat extends Goal {
-        final GoblinEntity mob;
-        Vec3 destination;
-        int ticks;
-        Retreat(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE)); }
-        @Override public boolean canUse() {
-            var target=mob.getTarget();
-            if (target==null || !target.isAlive() || coverSafe(mob)) return false;
-            var defender=mob.level().getEntitiesOfClass(GoblinEntity.class,mob.getBoundingBox().inflate(12),
-                g->g!=mob && g.isAlive() && !g.isRanged() && mob.isAlliedTo(g)
-                    && g.distanceToSqr(target)<mob.distanceToSqr(target))
-                .stream().min(Comparator.comparingDouble(g->g.distanceToSqr(mob))).orElse(null);
-            Vec3 cover=defender==null ? null : behind(target.position(),defender.position());
-            boolean exposed=cover!=null && !mob.isUsingItem() && mob.distanceToSqr(cover)>25 && mob.distanceToSqr(target)<18*18;
-            if (!threatened(mob.distanceToSqr(target)) && !exposed) return false;
-            destination=cover;
-            if (destination==null || threatened(destination.distanceToSqr(target.position())))
-                destination=LandRandomPos.getPosAway(mob,10,2,target.position());
-            return destination!=null && destination.distanceToSqr(target.position())>mob.distanceToSqr(target);
-        }
-        @Override public void start() {
-            ticks=0; mob.getPersistentData().putBoolean("RiftfallRetreating",true);
-            mob.getNavigation().moveTo(destination.x,destination.y,destination.z,1.35);
-        }
-        @Override public boolean canContinueToUse() {
-            return !coverSafe(mob) && ticks<50 && mob.getTarget()!=null && mob.getTarget().isAlive() && !mob.getNavigation().isDone()
-                && mob.distanceToSqr(destination)>1;
-        }
-        @Override public boolean requiresUpdateEveryTick() { return true; }
-        @Override public void tick() { ticks++; }
-        @Override public void stop() { mob.getPersistentData().putBoolean("RiftfallRetreating",false); }
+    static final class Retreat extends GoblinSquadTactics.PanicRetreat {
+        Retreat(GoblinEntity mob) { super(mob); }
     }
     static final class Bow extends Goal {
         final GoblinEntity mob;
@@ -139,9 +105,12 @@ final class GoblinTactics {
             }
             mob.getNavigation().stop();
             if (cooldown>0) { cooldown--; return; }
+            if (draw==0 && !mob.squad.clearShot()) return;
             if (draw==0) mob.startUsingItem(InteractionHand.MAIN_HAND);
             if (++draw>=20) {
-                mob.stopUsingItem(); mob.performRangedAttack(target,1); draw=0; cooldown=40;
+                mob.stopUsingItem(); draw=0;
+                if (!mob.squad.clearShot()) { cooldown=10; return; }
+                mob.performRangedAttack(target,1); cooldown=40;
                 var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(mob,yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch.class);
                 if (patch!=null) patch.playShootingAnimation();
             }
@@ -170,10 +139,11 @@ final class GoblinTactics {
         SwordAttack attack;
         Melee(GoblinEntity mob) { super(mob,1.1,false); goblin=mob; }
         @Override public boolean canContinueToUse() {
-            return (remaining>0 && victim!=null && victim.isAlive() && !interrupted(goblin)) || super.canContinueToUse();
+            return (remaining>0 && victim!=null && victim.isAlive() && !interrupted(goblin)) || (GoblinSquadTactics.validEnemy(goblin,goblin.getTarget())
+                    && goblin.squad.hasWarriorPlan() && goblin.distanceToSqr(goblin.getTarget())<28*28) || super.canContinueToUse();
         }
         @Override protected void checkAndPerformAttack(LivingEntity target) {
-            if (remaining==0 && canPerformAttack(target) && !interrupted(goblin)) {
+            if (remaining==0 && canPerformAttack(target) && goblin.squad.mayStrike() && !interrupted(goblin)) {
                 resetAttackCooldown(); victim=target;
                 attack=SwordAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%SwordAttack.values().length;
                 remaining=attack.duration;
@@ -189,7 +159,10 @@ final class GoblinTactics {
         }
         @Override public void tick() {
             super.tick();
-            if (remaining<=0) return;
+            if (remaining<=0) {
+                if (!interrupted(goblin)) goblin.squad.moveWarrior();
+                return;
+            }
             goblin.getNavigation().stop();
             if (interrupted(goblin) || victim==null || !victim.isAlive() || goblin.isAlliedTo(victim)) { remaining=0; victim=null; return; }
             goblin.getLookControl().setLookAt(victim,90,90);
@@ -283,7 +256,7 @@ final class GoblinTactics {
         Heal(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
             if (mob.level().getGameTime()<mob.getPersistentData().getLong("RiftfallNextHeal") || mob.hurtTime>0
-                || mob.getTarget()!=null && threatened(mob.distanceToSqr(mob.getTarget())) && !coverSafe(mob) || !SpellRegistry.HEALING_CIRCLE_SPELL.get().isEnabled()) return false;
+                || mob.getTarget()!=null && mob.distanceToSqr(mob.getTarget())<Math.pow(mob.squad.panicRange(),2) && !coverSafe(mob) || !SpellRegistry.HEALING_CIRCLE_SPELL.get().isEnabled()) return false;
             recipient=mob.level().getEntitiesOfClass(LivingEntity.class,mob.getBoundingBox().inflate(10),
                 g->g!=mob && g.isAlive() && mob.isAlliedTo(g) && needsHealing(g.getHealth(),g.getMaxHealth()) && mob.getSensing().hasLineOfSight(g))
                 .stream().min(Comparator.<LivingEntity>comparingInt(g->g instanceof GoblinEntity goblin
@@ -293,7 +266,7 @@ final class GoblinTactics {
         }
         @Override public boolean canContinueToUse() {
             return ticks<34 && mob.hurtTime==0 && recipient!=null && recipient.isAlive() && mob.distanceToSqr(recipient)<12*12
-                && (mob.getTarget()==null || !threatened(mob.distanceToSqr(mob.getTarget())) || coverSafe(mob));
+                && (mob.getTarget()==null || mob.distanceToSqr(mob.getTarget())>=Math.pow(mob.squad.panicRange(),2) || coverSafe(mob));
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {

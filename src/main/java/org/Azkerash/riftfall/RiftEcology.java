@@ -13,9 +13,10 @@ import org.Azkerash.riftfall.RiftData.Rift;
 
 /** Entrance-specific, saved weighted rosters. Iron's wizards remain overworld encounters. */
 final class RiftEcology {
+    static final int ROSTER_VERSION=3;
     static final Set<String> BOSS_ONLY = Set.of("irons_spellbooks:archevoker", "irons_spellbooks:grand_evoker", "irons_spellbooks:ice_spider");
     static final Map<String,Integer> PLAINS = Map.of("riftfall:goblin",7,"riftfall:goblin_archer",3,
-        "riftfall:goblin_shaman",2,"minecraft:zombie",2,"minecraft:skeleton",2);
+        "riftfall:goblin_shaman",2);
     static String theme(String biome, boolean ocean, boolean cold, boolean desert, boolean swamp, boolean forest) {
         return cold ? "frozen" : biome.equals("minecraft:plains") || biome.equals("minecraft:sunflower_plains") ? "plains" : "vanilla";
     }
@@ -36,7 +37,7 @@ final class RiftEcology {
                 r.roster.put(id,entry.getWeight().asInt());
         }
         if (r.theme.equals("plains")) { r.roster.clear(); r.roster.putAll(PLAINS); }
-        r.rosterVersion=2;
+        r.rosterVersion=ROSTER_VERSION;
     }
     static boolean matches(String id,String theme,Set<String> natives) {
         if (!RiftMobs.allowedId(id) || BOSS_ONLY.contains(id) || overworldOnly(id)) return false;
