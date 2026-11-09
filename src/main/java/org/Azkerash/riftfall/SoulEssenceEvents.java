@@ -71,7 +71,8 @@ public final class SoulEssenceEvents {
             SoulEssence previous = chunk.getData(ESSENCE);
             SoulEssence essence = previous.accumulate(CrystalCultivation.rate(Config.BASE_ESSENCE_PER_SECOND.get(), Config.MATURE_CRYSTAL_BONUS.get(), CrystalCultivation.count(world, pos)), criticalMass);
             if (!essence.equals(previous)) set(chunk, essence);
-            if (seedCaves && canSpend(world, pos.getWorldPosition(), Config.CRYSTAL_SEED_COST.get())
+            if (seedCaves && world.random.nextInt(Config.CRYSTAL_CAVE_RARITY.get()) == 0
+                && canSpend(world, pos.getWorldPosition(), Config.CRYSTAL_SEED_COST.get())
                 && world.random.nextDouble() < Config.CRYSTAL_CAVE_CHANCE.get()) {
                 BlockPos site = CrystalGrowth.caveSite(world, pos, world.random, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
                 if (site != null) {

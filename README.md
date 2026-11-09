@@ -31,8 +31,10 @@ Every 20 seconds, a cluster may spend 10 local essence to add one crystal. A mat
 
 There are two natural sources:
 
-- **World generation:** a rare underground feature rolls approximately once per 32 chunks, then searches for a dry cave surface below Y=32 and at least eight blocks below the surface. Successful generation places a colony of **8–15 blocks**, including **two or three mature five-crystal clusters** and surrounding one- or two-crystal young growth. Patches follow nearby exposed cave surfaces and skip cramped sites without enough room. Each colony adds **50 starting essence** to its chunk, regardless of its size. This bonus is credited during generation, not every time the chunk loads.
-- **Existing loaded chunks:** high-essence chunks have a 0.1% chance per minute to attempt a new cave seed. Successful placement costs 20 local essence. This allows older worlds to develop colonies without regenerating terrain.
+- **World generation:** an extremely rare underground feature rolls approximately once per 2,048 chunks (64 times rarer than before), then searches for a dry cave surface below Y=32 and at least eight blocks below the surface. Successful generation places a colony of **8–15 blocks**, including **two or three mature five-crystal clusters** and surrounding one- or two-crystal young growth. Patches follow nearby exposed cave surfaces and skip cramped sites without enough room. Each colony adds **50 starting essence** to its chunk, regardless of its size. This bonus is credited during generation, not every time the chunk loads.
+- **Existing loaded chunks:** high-essence chunks have a **0.001% chance per minute** to attempt a new cave seed by default (the existing 0.1% roll plus a new 1-in-100 rarity gate). The new gate also applies to existing worlds retaining their old settings. Successful placement costs 20 local essence. This allows older worlds to develop colonies without regenerating terrain.
+
+World-generation rarity changes apply to newly generated chunks. Existing crystal colonies remain in place and continue growing normally.
 
 The block retains `riftfall:crystal_cluster` for existing-world compatibility. Find it under Natural Blocks. The new item is `riftfall:soul_essence_crystal`, under Ingredients.
 
@@ -129,7 +131,8 @@ Server settings are in `<world>/serverconfig/riftfall-server.toml`:
 | `essenceRollSeconds` / `essenceSpawnChance` | 10 / 0.1 | Natural rift rolls |
 | `crystalGrowthSeconds` | 20 | Growth/spread attempt interval |
 | `crystalGrowthCost` / `crystalSeedCost` | 10 / 20 | Paid growth and spreading |
-| `crystalCaveSeedSeconds` / `crystalCaveSeedChance` | 60 / 0.001 | Runtime cave seed rolls |
+| `crystalCaveSeedSeconds` / `crystalCaveSeedChance` | 60 / 0.001 | Runtime cave seed rolls, before the additional rarity gate |
+| `crystalCaveSeedRarity` | 100 | Additional 1-in-100 gate; effective default chance is 0.001% per minute |
 | `riftPoolDrawPerSecond` | 10 | Low-root donor transfer limit |
 | `riftAmbientIntake` | 0.1 | Rift bank/power cultivation from its root |
 | `riftDeathEssence` / `riftUpgradeEssence` | 50 / 50 | Player-death gain and power per level |

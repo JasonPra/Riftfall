@@ -26,6 +26,7 @@ public final class Config {
     public static final ModConfigSpec.DoubleValue CRYSTAL_SEED_COST = B.defineInRange("crystalSeedCost", 20.0, 0.1, 1_000_000_000.0);
     public static final ModConfigSpec.IntValue CRYSTAL_CAVE_SECONDS = B.defineInRange("crystalCaveSeedSeconds", 60, 1, 86400);
     public static final ModConfigSpec.DoubleValue CRYSTAL_CAVE_CHANCE = B.comment("Chance per high-essence loaded chunk per cave seeding check.").defineInRange("crystalCaveSeedChance", 0.001, 0.0, 1.0);
+    public static final ModConfigSpec.IntValue CRYSTAL_CAVE_RARITY = B.comment("Additional 1-in-N rarity gate for runtime cave seeds. Applies in existing worlds too; default makes the existing cave seed chance 100 times rarer.").defineInRange("crystalCaveSeedRarity", 100, 1, 1000000);
     static final ModConfigSpec SPEC = B.build();
     private Config() {}
 }
