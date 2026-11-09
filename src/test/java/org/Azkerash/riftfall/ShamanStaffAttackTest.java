@@ -62,7 +62,7 @@ class ShamanStaffAttackTest {
         assertEquals(.9,GoblinTactics.StaffAttack.SWEEP.knockback);
     }
     @Test void overheadSmashKeepsTheSecondHandOnTheActualStaffShaft() {
-        for (float time:new float[]{.35F,.85F,2.0F,2.15F,2.3F,2.7F}) {
+        for (float time:new float[]{.35F,.85F,2.0F,2.0875F,2.1F,2.7F}) {
             var secondaryGrip=tool("staff_smash",time,"R").transformPosition(new Vector3f(-.01F,-.021875F,.153125F));
             var palm=tool("staff_smash",time,"L").getTranslation(new Vector3f());
             assertTrue(palm.distance(secondaryGrip)<.015,"Secondary hand must grip the shaft at "+time);
@@ -71,8 +71,8 @@ class ShamanStaffAttackTest {
     @Test void smashDropsTheStaffHeadAndSweepCrossesInFrontOfTheBody() {
         Vector3f top=new Vector3f(-.01F,-.021875F,-.983125F);
         float raised=tool("staff_smash",2.0F,"R").transformPosition(new Vector3f(top)).z;
-        float impact=tool("staff_smash",2.15F,"R").transformPosition(new Vector3f(top)).z;
-        float follow=tool("staff_smash",2.3F,"R").transformPosition(new Vector3f(top)).z;
+        float impact=tool("staff_smash",2.0875F,"R").transformPosition(new Vector3f(top)).z;
+        float follow=tool("staff_smash",2.1F,"R").transformPosition(new Vector3f(top)).z;
         assertTrue(raised>impact+.5 && impact>follow+.5);
         assertTrue(Math.abs(follow)<.2,"Full follow-through reaches ground level");
         var start=tool("staff_sweep",2.0F,"R").transformPosition(new Vector3f(top));
@@ -80,17 +80,19 @@ class ShamanStaffAttackTest {
         assertTrue(start.x>.7 && end.x<-.5);
         assertTrue(start.y>0 && end.y>0);
     }
-    @Test void sweepWaitsTwoSecondsThenCrossesInOneTenthOfASecond() {
-        assertEquals(42,GoblinTactics.StaffAttack.SWEEP.impact);
-        var channels=resource("assets/riftfall/animmodels/animations/biped/staff_sweep.json").getAsJsonArray("animation");
-        for (var entry:channels) {
-            var channel=entry.getAsJsonObject();
-            var times=channel.getAsJsonArray("time");
-            assertEquals(2F,times.get(3).getAsFloat(),.001);
-            assertEquals(.1F,times.get(4).getAsFloat()-times.get(3).getAsFloat(),.001);
-            assertEquals(channel.getAsJsonArray("transform").get(2),channel.getAsJsonArray("transform").get(3),"Hold the warning pose before the fast swing");
+    @Test void bothStrikesHoldThenAccelerateSharplyIntoContact() {
+        for (String clip:new String[]{"staff_sweep","staff_smash"}) {
+            var top=new Vector3f(-.01F,-.021875F,-.983125F);
+            var start=tool(clip,2F,"R").transformPosition(new Vector3f(top));
+            var early=tool(clip,2.025F,"R").transformPosition(new Vector3f(top));
+            var late=tool(clip,2.075F,"R").transformPosition(new Vector3f(top));
+            var end=tool(clip,2.1F,"R").transformPosition(new Vector3f(top));
+            assertTrue(late.distance(end)>start.distance(early)*4,"Accelerate into impact: "+clip);
+            var channels=resource("assets/riftfall/animmodels/animations/biped/"+clip+".json").getAsJsonArray("animation");
+            for (var entry:channels) {
+                var transforms=entry.getAsJsonObject().getAsJsonArray("transform");
+                assertEquals(transforms.get(2),transforms.get(3),"Hold tension until release");
+            }
         }
     }
-
-
 }

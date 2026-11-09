@@ -47,18 +47,21 @@ final class GoblinWeaponAttacks {
     }
     static void groundImpact(GoblinEntity mob) {
         if (!(mob.level() instanceof net.minecraft.server.level.ServerLevel world)) return;
-        var from=staffHead(mob,2.15F);
-        var to=staffHead(mob,2.3F).add(0,-.14*mob.getScale(),0);
+        var from=staffHead(mob,2.0F);
+        var to=staffHead(mob,2.1F).add(0,-.14*mob.getScale(),0);
         var hit=world.clip(new net.minecraft.world.level.ClipContext(from,to,
             net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,mob));
         if (hit.getType()!=net.minecraft.world.phys.HitResult.Type.BLOCK) return;
         var pos=hit.getLocation();
         var state=world.getBlockState(hit.getBlockPos());
         if (state.isAir()) return;
-        world.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK,state),
+        world.sendParticles(soulImpactParticle(),
             pos.x,pos.y+.06,pos.z,24,.3,.06,.3,.035);
         world.playSound(null,pos.x,pos.y,pos.z,net.minecraft.sounds.SoundEvents.WOOD_HIT,net.minecraft.sounds.SoundSource.HOSTILE,.7F,.7F);
         increment(mob,"RiftfallStaffGroundImpacts");
+    }
+    private static net.minecraft.core.particles.DustParticleOptions soulImpactParticle() {
+        return new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(.65F,.12F,.95F),1.15F);
     }
     @SubscribeEvent public static void hit(LivingDamageEvent.Post event) {
         if (event.getEntity().level().isClientSide() || event.getNewDamage()<=0
@@ -73,6 +76,12 @@ final class GoblinWeaponAttacks {
             counter=sweep ? "RiftfallStaffSweepHits" : "RiftfallStaffSmashHits";
             var target=event.getEntity();
             target.knockback((sweep ? GoblinTactics.StaffAttack.SWEEP : GoblinTactics.StaffAttack.SMASH).knockback,mob.getX()-target.getX(),mob.getZ()-target.getZ());
+            if (mob.level() instanceof net.minecraft.server.level.ServerLevel world) {
+                world.sendParticles(soulImpactParticle(),target.getX(),target.getY()+target.getBbHeight()*.5,
+                    target.getZ(),18,.22,.25,.22,.025);
+                world.sendParticles(net.minecraft.core.particles.ParticleTypes.REVERSE_PORTAL,target.getX(),
+                    target.getY()+target.getBbHeight()*.5,target.getZ(),8,.2,.2,.2,.08);
+            }
             increment(mob,"RiftfallClubHits");
         } else if (name.equals("riftfall:biped/goblin_grapple")) counter="RiftfallBackstabs";
         else if (name.equals("riftfall:biped/goblin_plunge")) counter="RiftfallPlungeHits";

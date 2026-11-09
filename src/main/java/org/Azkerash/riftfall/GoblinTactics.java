@@ -228,7 +228,7 @@ final class GoblinTactics {
     }
     static float staffFacing(double x,double z) { return (float)(Math.toDegrees(Math.atan2(z,x))-90); }
     enum StaffAttack {
-        SWEEP(56,42,.9,6), SMASH(64,43,.45,9);
+        SWEEP(56,42,.9,6), SMASH(64,42,.45,9);
         final int duration, impact;
         final double knockback;
         final float damage;
@@ -240,12 +240,23 @@ final class GoblinTactics {
             this.duration=duration; this.impact=impact; this.knockback=knockback; this.damage=damage;
         }
     }
+    static boolean exposedToStaff(LivingEntity target) {
+        var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(target,
+            yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch.class);
+        if (patch==null) return target.hurtTime>0;
+        if (patch.isStunned()) return true;
+        var player=patch.getAnimator().getPlayerFor(null);
+        var animation=player.getRealAnimation().get();
+        return animation instanceof yesman.epicfight.api.animation.types.AttackAnimation
+            && patch.getEntityState().inaction() && animation.getTotalTime()>=1F
+            && animation.getTotalTime()-player.getElapsedTime()>=.35F;
+    }
     static final class StaffClub extends Goal {
         final GoblinEntity mob;
         LivingEntity victim;
         StaffAttack attack;
         int ticks, nextAttack, approachTicks;
-        boolean windingUp;
+        boolean windingUp,opportunistic;
         long ready;
         float facing;
         StaffClub(GoblinEntity mob) {
@@ -257,15 +268,17 @@ final class GoblinTactics {
             return mob.level().getGameTime()>=ready && !interrupted(mob) && target!=null && target.isAlive()
                 && !mob.isAlliedTo(target) && mob.getSensing().hasLineOfSight(target)
                 && (WeaponReach.canContact(mob,target,(StaffAttack.values()[nextAttack]==StaffAttack.SWEEP
-                    ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH).get()) || mob.distanceToSqr(target)<2.5*2.5);
+                    ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH).get()) || mob.distanceToSqr(target)<2.5*2.5
+                    || mob.distanceToSqr(target)<6*6 && exposedToStaff(target));
         }
         @Override public boolean canContinueToUse() {
             return victim!=null && victim.isAlive() && !mob.isAlliedTo(victim) && !interrupted(mob)
-                && (windingUp ? ticks<attack.duration : approachTicks<40 && mob.distanceToSqr(victim)<3.5*3.5);
+                && (windingUp ? ticks<attack.duration : approachTicks<40 && mob.distanceToSqr(victim)<(opportunistic ? 6*6 : 3.5*3.5));
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
-            victim=mob.getTarget(); attack=StaffAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%2;
+            victim=mob.getTarget(); opportunistic=exposedToStaff(victim);
+            attack=opportunistic ? StaffAttack.SMASH : StaffAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%2;
             ticks=0; approachTicks=0; windingUp=false; ready=mob.level().getGameTime()+10;
             mob.getPersistentData().putBoolean("RiftfallStaffApproaching",true);
             facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
@@ -289,15 +302,19 @@ final class GoblinTactics {
                 approachTicks++;
                 facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
                 if (inReach()) beginSwing();
-                else mob.getNavigation().moveTo(victim.getX(),victim.getY(),victim.getZ(),1.0);
+                else {
+                    // Vanilla's one-node arrival tolerance can stop outside a short weapon's collider.
+                    var path=mob.getNavigation().createPath(victim.blockPosition(),0);
+                    if (path!=null) mob.getNavigation().moveTo(path,1.0);
+                }
                 return;
             }
             mob.getNavigation().stop();
             // Track through the wind-up, then commit instead of steering the hit around a dodge.
-            if (ticks<attack.impact-4) facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
+            if (ticks<40) facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
             face();
             if (++ticks==attack.impact) mob.swing(InteractionHand.MAIN_HAND);
-            if (attack==StaffAttack.SMASH && ticks==47) GoblinWeaponAttacks.groundImpact(mob);
+            if (attack==StaffAttack.SMASH && ticks==43) GoblinWeaponAttacks.groundImpact(mob);
         }
         private void face() {
             mob.setYRot(facing); mob.setYBodyRot(facing); mob.setYHeadRot(facing);

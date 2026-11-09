@@ -30,11 +30,11 @@ public final class GoblinAnimations {
                 .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.STOP_MOVEMENT,false)
                 .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty.REMOVE_DELTA_MOVEMENT,false));
             STAFF_SWEEP=builder.nextAccessor("biped/staff_sweep",a->GoblinWeaponAttacks.animation(a,
-                GoblinWeaponAttacks.phase(0,2.0F,2.2F,2.55F,2.8F)
+                GoblinWeaponAttacks.phase(0,2.0F,2.12F,2.55F,2.8F)
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,
                         GoblinTactics.StaffAttack.SWEEP.damageModifier())));
             STAFF_SMASH=builder.nextAccessor("biped/staff_smash",a->GoblinWeaponAttacks.animation(a,
-                GoblinWeaponAttacks.phase(0,2.05F,2.3F,2.7F,3.2F)
+                GoblinWeaponAttacks.phase(0,2.0F,2.12F,2.7F,3.2F)
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,
                         GoblinTactics.StaffAttack.SMASH.damageModifier())));
             CHARGE=builder.nextAccessor("biped/cast_charge",a->new ActionAnimation(.1F,a,Armatures.BIPED)
