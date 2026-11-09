@@ -89,7 +89,10 @@ class GoblinSwordDirectionTest {
         for (var time:clip.getAsJsonArray("animation").get(0).getAsJsonObject().getAsJsonArray("time")) {
             float t=time.getAsFloat();
             var tool=tool(rig,new Matrix4f(),clip,t);
-            var secondary=tool.transformPosition(new Vector3f(0,.08995792F,-.04705085F))
+            var primary=tool.transformPosition(new Vector3f(0,.08995792F,-.04705085F));
+            var primaryPalm=joint(rig,new Matrix4f(),clip,t,"Hand_R").transformPosition(new Vector3f(0,.272858F,0));
+            assertTrue(primary.distance(primaryPalm)<.01F,"Primary fist must hold the hilt, not the blade: "+t);
+            var secondary=new Vector3f(primary)
                 .sub(blade("goblin_twohand_flurry",t).mul(.075F));
             var palm=joint(rig,new Matrix4f(),clip,t,"Tool_L").getTranslation(new Vector3f());
             assertTrue(palm.distance(secondary)<.02F,"Grip at "+t);
@@ -108,6 +111,22 @@ class GoblinSwordDirectionTest {
         assertTrue(blade("goblin_twohand_flurry",.55F).x>0);
         assertEquals(blade("goblin_twohand_flurry",.3F),blade("goblin_twohand_flurry",.8F));
         assertEquals(blade("goblin_twohand_flurry",.55F),blade("goblin_twohand_flurry",1.05F));
+    }
+    @Test void flurryLoopsWideAroundTheBodyAndReturnsToAnUprightGrip() {
+        var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_twohand_flurry.json");
+        float min=0,max=0;
+        for (var time:clip.getAsJsonArray("animation").get(0).getAsJsonObject().getAsJsonArray("time")) {
+            float t=time.getAsFloat();
+            var tip=tool(rig,new Matrix4f(),clip,t).transformPosition(new Vector3f(0,.08995792F,-.04705085F))
+                .add(blade("goblin_twohand_flurry",t).mul(.675F));
+            min=Math.min(min,tip.x);max=Math.max(max,tip.x);
+        }
+        assertTrue(max-min>1.5F,"Full rendered blade must sweep broadly past both shoulders");
+        assertTrue(blade("goblin_twohand_flurry",.335F).x<-.9F,"Loop outside the left cut");
+        assertTrue(blade("goblin_twohand_flurry",.585F).x>.9F,"Loop outside the right cut");
+        assertTrue(blade("goblin_twohand_flurry",0).z>.5F);
+        assertTrue(blade("goblin_twohand_flurry",1.4F).z>.5F);
     }
     @Test void shieldOverheadRaisesThenCutsDownInFront() {
         var raised=blade("goblin_shield_overhead",.4F);
