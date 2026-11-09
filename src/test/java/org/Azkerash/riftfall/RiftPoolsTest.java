@@ -41,6 +41,41 @@ class RiftPoolsTest {
         assertEquals(0,RiftEssencePools.transfer(600,50,10,600));
     }
 
+    @Test void catchmentsStopAtThousandBlocksEvenWithAContinuousLoadedPath() {
+        var loaded = new java.util.HashSet<Long>();
+        for (int x = 0; x <= 70; x++) loaded.add(ChunkPos.asLong(x, 0));
+        var owned = RiftEssencePools.assign(loaded, Map.of(ChunkPos.asLong(0, 0), 1));
+        assertEquals(1, owned.get(ChunkPos.asLong(62, 0))); // 992 blocks
+        assertFalse(owned.containsKey(ChunkPos.asLong(63, 0))); // 1008 blocks
+        assertFalse(RiftEssencePools.withinRadius(new ChunkPos(0, 0), new ChunkPos(50, 50)));
+    }
+
+    @Test void parallelDonorsRefillTenTimesFasterWithoutCreatingEssence() {
+        double root = 0, withdrawn = 0;
+        double[] donors = new double[12];
+        java.util.Arrays.fill(donors, 600);
+        for (int second = 0; second < 6; second++) {
+            double budget = RiftEssencePools.drawBudget(donors.length, 10, 100);
+            for (int i = 0; i < donors.length; i++) {
+                double amount = RiftEssencePools.transfer(root, donors[i], Math.min(10, budget), 600);
+                root += amount; donors[i] -= amount; budget -= amount; withdrawn += amount;
+            }
+        }
+        assertEquals(600, root);
+        assertEquals(root, withdrawn);
+        assertEquals(7200, root + java.util.Arrays.stream(donors).sum());
+        assertEquals(10, RiftEssencePools.drawBudget(1, 10, 100));
+        assertEquals(0, RiftEssencePools.drawBudget(12, 0, 100));
+        assertEquals(0, RiftEssencePools.drawBudget(12, 10, 0));
+    }
+
+    @Test void dormantRootsReserveTheirOpeningChargeFromCrystalSpending() {
+        for (double balance : new double[]{120, 300, 599, 600})
+            assertFalse(RiftEssencePools.canFundCrystal(balance, 600, 10, true));
+        assertTrue(RiftEssencePools.canFundCrystal(610, 600, 10, true));
+        assertTrue(RiftEssencePools.canFundCrystal(120, 600, 10, false));
+    }
+
     @Test void bossesAndGuardiansAreExcludedButOrdinaryHostilesAreAllowed() {
         for (String name : new String[]{"wither","ender_dragon","guardian","elder_guardian","warden","silverfish","endermite"}) assertFalse(RiftMobs.allowedId("minecraft:"+name));
         assertTrue(RiftMobs.allowedId("minecraft:wither_skeleton"));

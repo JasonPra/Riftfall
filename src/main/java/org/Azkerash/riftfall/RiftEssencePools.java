@@ -16,6 +16,8 @@ final class RiftEssencePools {
 
     static Map<Long, Integer> assign(Set<Long> loaded, Map<Long, Integer> roots) {
         Map<Long, Integer> owned = new HashMap<>();
+        Map<Integer, ChunkPos> centers = new HashMap<>();
+        roots.forEach((key, id) -> centers.put(id, new ChunkPos(key)));
         var queue = new ArrayDeque<Long>();
         roots.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach(root -> {
             if (loaded.contains(root.getKey()) && owned.putIfAbsent(root.getKey(), root.getValue()) == null) queue.add(root.getKey());
@@ -24,9 +26,23 @@ final class RiftEssencePools {
             long key = queue.removeFirst();
             ChunkPos pos = new ChunkPos(key);
             long[] neighbors = {ChunkPos.asLong(pos.x-1,pos.z),ChunkPos.asLong(pos.x+1,pos.z),ChunkPos.asLong(pos.x,pos.z-1),ChunkPos.asLong(pos.x,pos.z+1)};
-            for (long next : neighbors) if (loaded.contains(next) && owned.putIfAbsent(next, owned.get(key)) == null) queue.addLast(next);
+            for (long next : neighbors) if (loaded.contains(next) && withinRadius(centers.get(owned.get(key)), new ChunkPos(next))
+                && owned.putIfAbsent(next, owned.get(key)) == null) queue.addLast(next);
         }
         return owned;
+    }
+
+    static boolean withinRadius(ChunkPos root, ChunkPos donor) {
+        double x = ((double) donor.x - root.x) * 16, z = ((double) donor.z - root.z) * 16;
+        return x * x + z * z <= (double) RiftPlacement.RADIUS * RiftPlacement.RADIUS;
+    }
+
+    static double drawBudget(int donors, double perDonor, double totalLimit) {
+        return Math.min(Math.max(0, totalLimit), Math.max(0, donors) * Math.max(0, perDonor));
+    }
+
+    static boolean canFundCrystal(double points, double criticalMass, double cost, boolean dormantRoot) {
+        return CrystalGrowth.canFund(points, criticalMass, cost) && (!dormantRoot || points - cost >= criticalMass);
     }
 
     static double transfer(double root, double donor, double limit, double target) {
@@ -50,15 +66,15 @@ final class RiftEssencePools {
         for (var r : data.rifts) {
             double balance = SoulEssenceEvents.availableEssence(world,r.pos);
             if (balance < 0) continue;
-            if (balance < target * .25) r.refilling = true;
-            if (balance >= target) r.refilling = false;
+            r.refilling = balance < target;
             if (!r.refilling) continue;
-            double budget = Config.RIFT_POOL_DRAW.get();
             long root = new ChunkPos(r.pos).toLong();
+            int donorCount = (int) owners.entrySet().stream().filter(e -> e.getKey() != root && e.getValue() == r.id).count();
+            double budget = drawBudget(donorCount, Config.RIFT_POOL_DRAW.get(), Config.RIFT_POOL_TOTAL_DRAW.get());
             for (long donor : donors) {
                 if (donor == root || owners.get(donor) != r.id) continue;
                 LevelChunk chunk = chunks.get(donor);
-                double amount = transfer(balance,chunk.getData(SoulEssenceEvents.ESSENCE).points(),budget,target);
+                double amount = transfer(balance,chunk.getData(SoulEssenceEvents.ESSENCE).points(),Math.min(budget, Config.RIFT_POOL_DRAW.get()),target);
                 if (amount <= 0) continue;
                 SoulEssenceEvents.spend(world, chunk.getPos().getWorldPosition(), amount);
                 SoulEssenceEvents.add(world,r.pos,amount);

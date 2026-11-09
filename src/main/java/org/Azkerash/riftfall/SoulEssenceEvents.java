@@ -71,7 +71,7 @@ public final class SoulEssenceEvents {
             SoulEssence previous = chunk.getData(ESSENCE);
             SoulEssence essence = previous.accumulate(CrystalCultivation.rate(Config.BASE_ESSENCE_PER_SECOND.get(), Config.MATURE_CRYSTAL_BONUS.get(), CrystalCultivation.count(world, pos)), criticalMass);
             if (!essence.equals(previous)) set(chunk, essence);
-            if (seedCaves && CrystalGrowth.canFund(essence.points(), criticalMass, Config.CRYSTAL_SEED_COST.get())
+            if (seedCaves && canSpend(world, pos.getWorldPosition(), Config.CRYSTAL_SEED_COST.get())
                 && world.random.nextDouble() < Config.CRYSTAL_CAVE_CHANCE.get()) {
                 BlockPos site = CrystalGrowth.caveSite(world, pos, world.random, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
                 if (site != null) {
@@ -129,7 +129,10 @@ public final class SoulEssenceEvents {
 
     static boolean canSpend(ServerLevel world, BlockPos pos, double cost) {
         LevelChunk chunk = world.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
-        return chunk != null && CrystalGrowth.canFund(chunk.getData(ESSENCE).points(), Config.CRITICAL_MASS.get(), cost);
+        if (chunk == null) return false;
+        boolean dormantRoot = RiftData.get(world.getServer()).rifts.stream()
+            .anyMatch(r -> r.dormant && new ChunkPos(r.pos).equals(chunk.getPos()));
+        return RiftEssencePools.canFundCrystal(chunk.getData(ESSENCE).points(), Config.CRITICAL_MASS.get(), cost, dormantRoot);
     }
 
     static void spend(ServerLevel world, BlockPos pos, double cost) {

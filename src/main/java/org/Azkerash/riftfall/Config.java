@@ -7,7 +7,8 @@ public final class Config {
     public static final ModConfigSpec.DoubleValue BASE_ESSENCE_PER_SECOND = B.comment("Soul essence gained per second in each loaded overworld chunk. Unloaded chunks pause.").defineInRange("baseEssencePerSecond", 0.05, 0.0, 1_000_000_000.0);
     public static final ModConfigSpec.DoubleValue MATURE_CRYSTAL_BONUS = B.comment("Extra essence per second per fully mature cluster in a loaded chunk.").defineInRange("matureCrystalEssenceBonus", 0.05, 0.0, 1_000_000_000.0);
     public static final ModConfigSpec.DoubleValue RIFT_AMBIENT_INTAKE = B.comment("Essence per second a loaded rift absorbs from its root chunk into its construction bank and permanent power.").defineInRange("riftAmbientIntake", 0.1, 0.0, 1000000.0);
-    public static final ModConfigSpec.DoubleValue RIFT_POOL_DRAW = B.comment("Maximum essence transferred per second from connected loaded donor chunks while a root refills.").defineInRange("riftPoolDrawPerSecond", 10.0, 0.0, 1000000.0);
+    public static final ModConfigSpec.DoubleValue RIFT_POOL_DRAW = B.comment("Maximum essence drawn per second from EACH connected loaded donor chunk while a root refills (previously shared by the entire pool).").defineInRange("riftPoolDrawPerSecond", 10.0, 0.0, 1000000.0);
+    public static final ModConfigSpec.DoubleValue RIFT_POOL_TOTAL_DRAW = B.comment("Maximum combined donor essence transferred per second to each active or dormant root.").defineInRange("riftPoolTotalDrawPerSecond", 100.0, 0.0, 1000000.0);
     public static final ModConfigSpec.IntValue RIFT_DORMANT_SECONDS = B.defineInRange("riftDormantSeconds", 60, 1, 86400);
     public static final ModConfigSpec.IntValue RIFT_DEATH_ESSENCE = B.defineInRange("riftDeathEssence", 50, 1, 1000000);
     public static final ModConfigSpec.IntValue RIFT_UPGRADE_ESSENCE = B.defineInRange("riftUpgradeEssence", 50, 1, 1000000);
