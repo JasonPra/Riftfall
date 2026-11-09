@@ -20,6 +20,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> ESCAPE_PROGRESS =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     final GoblinSquadTactics squad=new GoblinSquadTactics(this);
+    long bucklerAttackUntil, bucklerNextAttack;
     GoblinEntity coveredAlly;
     net.minecraft.world.entity.LivingEntity retreatThreat;
     long retreatCoverUntil;
@@ -110,7 +111,6 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
             goalSelector.addGoal(1,new GoblinTactics.WarriorRetreat(this));
             goalSelector.addGoal(1,new GoblinGrapple(this));
             goalSelector.addGoal(2,new GoblinTactics.Plunge(this));
-            goalSelector.addGoal(2,new GoblinBuckler.Guard(this));
             goalSelector.addGoal(3,new GoblinTactics.Melee(this));
         }
         goalSelector.addGoal(6,new WaterAvoidingRandomStrollGoal(this,.8));
@@ -127,6 +127,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
             var target=getTarget();
             // Keep the client combat pose active while withdrawing or covering allies as well.
             setAggressive(target!=null && target.isAlive() && !isAlliedTo(target));
+            GoblinBuckler.tick(this);
         }
         if (!level().isClientSide && isShaman() && !castingGoalAdded) {
             castingGoalAdded=true; MobSpellcasting.restore(this);

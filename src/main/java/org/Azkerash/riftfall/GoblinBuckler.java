@@ -1,40 +1,39 @@
 package org.Azkerash.riftfall;
 
-import java.util.EnumSet;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.ai.goal.Goal;
 
+/** Shield use runs alongside pursuit instead of stopping the warrior to guard. */
 final class GoblinBuckler {
-    /** Brief defensive pauses, leaving the warrior's ordinary attacks intact. */
-    static final class Guard extends Goal {
-        private final GoblinEntity mob;
-        private long ready;
-        private int remaining;
-        Guard(GoblinEntity mob) { this.mob = mob; setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK)); }
-        @Override public boolean canUse() {
-            return mob.level().getGameTime() >= ready && mob.getOffhandItem().is(GoblinItems.BUCKLER.get())
-                && GoblinSquadTactics.validEnemy(mob, mob.getTarget()) && mob.onGround()
-                && mob.distanceToSqr(mob.getTarget()) < 36 && !GoblinTactics.interrupted(mob)
-                && mob.getSensing().hasLineOfSight(mob.getTarget()) && !busy();
-        }
-        private boolean busy() {
-            var patch = yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(mob, GoblinPatch.class);
-            return patch != null && patch.getEntityState().inaction();
-        }
-        @Override public void start() {
-            remaining = 18;
-            mob.getNavigation().stop(); mob.startUsingItem(InteractionHand.OFF_HAND);
-        }
-        @Override public boolean canContinueToUse() {
-            return remaining > 0 && mob.isUsingItem() && mob.getOffhandItem().is(GoblinItems.BUCKLER.get())
-                && GoblinSquadTactics.validEnemy(mob, mob.getTarget()) && !GoblinTactics.interrupted(mob);
-        }
-        @Override public void tick() {
-            remaining--; mob.getLookControl().setLookAt(mob.getTarget(), 90, 90);
-        }
-        @Override public void stop() {
-            mob.stopUsingItem(); ready = mob.level().getGameTime() + 70 + mob.getRandom().nextInt(40);
-        }
+    static boolean shouldGuard(boolean equipped, boolean threat, boolean visible, boolean grounded,
+                               boolean interrupted, boolean attacking, double distanceSquared) {
+        return equipped && threat && visible && grounded && !interrupted && !attacking && distanceSquared <= 24 * 24;
+    }
+
+    static void lowerForAttack(GoblinEntity mob, int ticks) {
+        mob.bucklerAttackUntil = mob.level().getGameTime() + ticks;
+        mob.bucklerNextAttack = mob.bucklerAttackUntil + 20;
+        if (mob.isUsingItem() && mob.getUsedItemHand() == InteractionHand.OFF_HAND) mob.stopUsingItem();
+    }
+
+    static boolean canAttack(GoblinEntity mob) {
+        return !mob.getOffhandItem().is(GoblinItems.BUCKLER.get()) || mob.level().getGameTime() >= mob.bucklerNextAttack;
+    }
+
+    static void tick(GoblinEntity mob) {
+        if (mob.isRanged()) return;
+        var target = mob.getTarget();
+        var patch = yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(mob, GoblinPatch.class);
+        boolean attacking = mob.level().getGameTime() < mob.bucklerAttackUntil || mob.grappledPlayerId() >= 0
+            || (patch != null && patch.getEntityState().inaction());
+        boolean guard = shouldGuard(mob.getOffhandItem().is(GoblinItems.BUCKLER.get()),
+            GoblinSquadTactics.validEnemy(mob, target), target != null && mob.getSensing().hasLineOfSight(target),
+            mob.onGround() && !mob.isNoAi(), GoblinTactics.interrupted(mob), attacking,
+            target == null ? Double.POSITIVE_INFINITY : mob.distanceToSqr(target));
+        if (guard) {
+            if (!mob.isUsingItem()) mob.startUsingItem(InteractionHand.OFF_HAND);
+            mob.getLookControl().setLookAt(target, 90, 90);
+        } else if (mob.isUsingItem() && mob.getUsedItemHand() == InteractionHand.OFF_HAND) mob.stopUsingItem();
+        mob.getPersistentData().putBoolean("RiftfallBucklerRaised", mob.isUsingItem() && mob.getUsedItemHand() == InteractionHand.OFF_HAND);
     }
     private GoblinBuckler() {}
 }

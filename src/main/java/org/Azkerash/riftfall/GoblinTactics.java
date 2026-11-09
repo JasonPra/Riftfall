@@ -143,10 +143,11 @@ final class GoblinTactics {
                     && goblin.squad.hasWarriorPlan() && goblin.distanceToSqr(goblin.getTarget())<28*28) || super.canContinueToUse();
         }
         @Override protected void checkAndPerformAttack(LivingEntity target) {
-            if (remaining==0 && canPerformAttack(target) && goblin.squad.mayStrike() && !interrupted(goblin)) {
+            if (remaining==0 && GoblinBuckler.canAttack(goblin) && canPerformAttack(target) && goblin.squad.mayStrike() && !interrupted(goblin)) {
                 resetAttackCooldown(); victim=target;
                 attack=SwordAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%SwordAttack.values().length;
                 remaining=attack.duration;
+                GoblinBuckler.lowerForAttack(goblin, attack.duration);
                 GoblinAnimations.play(goblin,switch (attack) {
                     case SWIPE -> GoblinAnimations.SLASH;
                     case BACKSWING -> GoblinAnimations.BACKSWING;
@@ -197,6 +198,7 @@ final class GoblinTactics {
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
             victim=mob.getTarget(); ticks=0; struck=false; ready=mob.level().getGameTime()+80;
+            GoblinBuckler.lowerForAttack(mob,32);
             mob.getNavigation().stop(); mob.setAggressive(true);
             Vec3 offset=victim.position().subtract(mob.position());
             float yaw=(float)(Math.toDegrees(Math.atan2(offset.z,offset.x))-90);

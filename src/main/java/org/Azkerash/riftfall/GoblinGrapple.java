@@ -53,6 +53,7 @@ final class GoblinGrapple extends Goal {
     }
     @Override public void start() {
         victim=(ServerPlayer)mob.getTarget(); anchor=victim.position(); latchFrom=mob.position(); began=mob.level().getGameTime(); ready=began+200;
+        GoblinBuckler.lowerForAttack(mob,20);
         oldGravity=mob.isNoGravity(); oldPhysics=mob.noPhysics; struggle.reset();
         ACTIVE.put(victim.getUUID(),this); restrain(true); mob.grappleState(victim.getId(),0);
         mob.getNavigation().stop(); mob.setNoGravity(true); mob.noPhysics=true;

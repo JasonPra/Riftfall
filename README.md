@@ -16,7 +16,7 @@ Goblins are available through spawn eggs and `/summon`. This reset adds no natur
 ## Equipment
 
 - **Bone Staff:** the shaman's casting weapon and melee club.
-- **Goblin Buckler:** a small octagonal wood-and-bone shield with 180 durability. Warriors have a one-in-three chance to spawn holding one, including when spawned from eggs. This uses normal spawn initialization, ready for future natural spawning; archers and shamans do not receive shields. Warriors equipped with one can raise it during brief defensive pauses, using an Epic Fight blocking pose.
+- **Goblin Buckler:** a small octagonal wood-and-bone shield with 180 durability. Warriors have a one-in-three chance to spawn holding one, including when spawned from eggs. This uses normal spawn initialization, ready for future natural spawning; archers and shamans do not receive shields. The buckler attaches to the forearm with rear straps. Shield-bearing warriors raise it while approaching visible enemies, using an Epic Fight blocking pose alongside movement and flanking. They lower it for sword attacks, plunges, grapples, and stuns, then raise it again between attacks.
 
 Both items are in the Combat creative tab. Goblin spawn eggs are in Spawn Eggs. Existing item and mob registry names are preserved.
 

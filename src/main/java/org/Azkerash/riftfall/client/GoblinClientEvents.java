@@ -14,6 +14,9 @@ public final class GoblinClientEvents {
         event.registerLayerDefinition(GoblinModel.SHAMAN_LAYER,()->GoblinModel.layer(true));
     }
     @SubscribeEvent public static void setup(net.neoforged.fml.event.lifecycle.FMLClientSetupEvent setup) {
+        yesman.epicfight.api.client.event.EpicFightClientEventHooks.Registry.PATCHED_ITEM.registerEvent(event ->
+            event.addItemRenderer(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"forearm_buckler"),
+                ForearmBucklerRenderer::new));
         yesman.epicfight.api.client.event.EpicFightClientEventHooks.Registry.ADD_PATCHED_ENTITY.registerEvent(event -> {
             for (var type : java.util.List.of(GoblinEntities.GOBLIN.get(), GoblinEntities.GOBLIN_SHAMAN.get(), GoblinEntities.GOBLIN_ARCHER.get()))
                 event.addPatchedEntityRenderer(type, t -> new yesman.epicfight.client.renderer.patched.entity.PHumanoidRenderer<>(
