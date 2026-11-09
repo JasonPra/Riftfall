@@ -36,8 +36,12 @@ final class GoblinGrapple extends Goal {
     static boolean isBehind(Vec3 look,Vec3 offset) {
         return look.multiply(1,0,1).normalize().dot(offset.multiply(1,0,1).normalize())<-.65;
     }
+    private boolean shieldEquipped() {
+        return mob.getMainHandItem().getItem() instanceof net.minecraft.world.item.ShieldItem
+            || mob.getOffhandItem().getItem() instanceof net.minecraft.world.item.ShieldItem;
+    }
     @Override public boolean canUse() {
-        if (!(mob.getTarget() instanceof ServerPlayer player) || player.isCreative() || player.isSpectator()
+        if (shieldEquipped() || !(mob.getTarget() instanceof ServerPlayer player) || player.isCreative() || player.isSpectator()
             || !player.isAlive() || player.isPassenger() || player.isInWaterOrBubble() || !player.onGround()
             || ACTIVE.containsKey(player.getUUID()) || !mob.onGround() || GoblinTactics.interrupted(mob)
             || mob.level().getGameTime()<ready || mob.isAlliedTo(player)) return false;
@@ -62,7 +66,7 @@ final class GoblinGrapple extends Goal {
     }
     private boolean valid() {
         return victim!=null && victim.isAlive() && !victim.hasDisconnected() && !victim.isCreative() && !victim.isSpectator()
-            && !victim.isPassenger() && mob.isAlive() && !mob.isRemoved() && !mob.isNoAi() && !GoblinTactics.interrupted(mob)
+            && !victim.isPassenger() && !shieldEquipped() && mob.isAlive() && !mob.isRemoved() && !mob.isNoAi() && !GoblinTactics.interrupted(mob)
             && mob.level()==victim.level() && mob.level().getGameTime()-began<DURATION
             && victim.position().distanceToSqr(anchor)<16 && !mob.isAlliedTo(victim) && clearBack(victim);
     }
