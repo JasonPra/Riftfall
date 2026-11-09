@@ -228,7 +228,7 @@ final class GoblinTactics {
     }
     static float staffFacing(double x,double z) { return (float)(Math.toDegrees(Math.atan2(z,x))-90); }
     enum StaffAttack {
-        SWEEP(56,42,.9,6), SMASH(64,42,.45,9);
+        SWEEP(30,15,.9,6), SMASH(38,19,.45,9);
         final int duration, impact;
         final double knockback;
         final float damage;
@@ -311,10 +311,10 @@ final class GoblinTactics {
             }
             mob.getNavigation().stop();
             // Track through the wind-up, then commit instead of steering the hit around a dodge.
-            if (ticks<40) facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
+            if (ticks<attack.impact-3) facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ());
             face();
             if (++ticks==attack.impact) mob.swing(InteractionHand.MAIN_HAND);
-            if (attack==StaffAttack.SMASH && ticks==43) GoblinWeaponAttacks.groundImpact(mob);
+            if (attack==StaffAttack.SMASH && ticks==attack.impact+1) GoblinWeaponAttacks.groundImpact(mob);
         }
         private void face() {
             mob.setYRot(facing); mob.setYBodyRot(facing); mob.setYHeadRot(facing);

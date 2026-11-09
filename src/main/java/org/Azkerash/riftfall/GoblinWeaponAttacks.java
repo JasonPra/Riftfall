@@ -47,8 +47,8 @@ final class GoblinWeaponAttacks {
     }
     static void groundImpact(GoblinEntity mob) {
         if (!(mob.level() instanceof net.minecraft.server.level.ServerLevel world)) return;
-        var from=staffHead(mob,2.0F);
-        var to=staffHead(mob,2.1F).add(0,-.14*mob.getScale(),0);
+        var from=staffHead(mob,.8F);
+        var to=staffHead(mob,.95F).add(0,-.14*mob.getScale(),0);
         var hit=world.clip(new net.minecraft.world.level.ClipContext(from,to,
             net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,mob));
         if (hit.getType()!=net.minecraft.world.phys.HitResult.Type.BLOCK) return;

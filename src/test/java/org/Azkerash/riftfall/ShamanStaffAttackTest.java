@@ -49,9 +49,9 @@ class ShamanStaffAttackTest {
         var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
         return joint(rig,new Matrix4f(),resource("assets/riftfall/animmodels/animations/biped/"+clip+".json"),time,"Tool_"+hand);
     }
-    @Test void bothAttacksTelegraphForOverASecondAndNeverIncreaseTheOldKnockback() {
+    @Test void bothAttacksUseShortWindupsAndNeverIncreaseTheOldKnockback() {
         for (var attack:GoblinTactics.StaffAttack.values()) {
-            assertTrue(attack.impact>=20);
+            assertTrue(attack.impact>=15 && attack.impact<=19);
             assertTrue(attack.duration>attack.impact+10);
             assertTrue(attack.knockback<=.9);
             String name=attack==GoblinTactics.StaffAttack.SWEEP ? "staff_sweep" : "staff_smash";
@@ -62,7 +62,7 @@ class ShamanStaffAttackTest {
         assertEquals(.9,GoblinTactics.StaffAttack.SWEEP.knockback);
     }
     @Test void overheadSmashKeepsTheSecondHandOnTheActualStaffShaft() {
-        for (float time:new float[]{.35F,.85F,2.0F,2.0875F,2.1F,2.7F}) {
+        for (float time:new float[]{.2F,.5F,.8F,.925F,.95F,1.2F}) {
             var secondaryGrip=tool("staff_smash",time,"R").transformPosition(new Vector3f(-.01F,-.021875F,.153125F));
             var palm=tool("staff_smash",time,"L").getTranslation(new Vector3f());
             assertTrue(palm.distance(secondaryGrip)<.015,"Secondary hand must grip the shaft at "+time);
@@ -70,28 +70,30 @@ class ShamanStaffAttackTest {
     }
     @Test void smashDropsTheStaffHeadAndSweepCrossesInFrontOfTheBody() {
         Vector3f top=new Vector3f(-.01F,-.021875F,-.983125F);
-        float raised=tool("staff_smash",2.0F,"R").transformPosition(new Vector3f(top)).z;
-        float impact=tool("staff_smash",2.0875F,"R").transformPosition(new Vector3f(top)).z;
-        float follow=tool("staff_smash",2.1F,"R").transformPosition(new Vector3f(top)).z;
+        float raised=tool("staff_smash",.8F,"R").transformPosition(new Vector3f(top)).z;
+        float impact=tool("staff_smash",.925F,"R").transformPosition(new Vector3f(top)).z;
+        float follow=tool("staff_smash",.95F,"R").transformPosition(new Vector3f(top)).z;
         assertTrue(raised>impact+.5 && impact>follow+.5);
         assertTrue(Math.abs(follow)<.2,"Full follow-through reaches ground level");
-        var start=tool("staff_sweep",2.0F,"R").transformPosition(new Vector3f(top));
-        var end=tool("staff_sweep",2.1F,"R").transformPosition(new Vector3f(top));
+        var start=tool("staff_sweep",.6F,"R").transformPosition(new Vector3f(top));
+        var end=tool("staff_sweep",.75F,"R").transformPosition(new Vector3f(top));
         assertTrue(start.x>.7 && end.x<-.5);
         assertTrue(start.y>0 && end.y>0);
     }
-    @Test void bothStrikesHoldThenAccelerateSharplyIntoContact() {
+    @Test void bothStrikesMoveContinuouslyThenAccelerateIntoContact() {
         for (String clip:new String[]{"staff_sweep","staff_smash"}) {
             var top=new Vector3f(-.01F,-.021875F,-.983125F);
-            var start=tool(clip,2F,"R").transformPosition(new Vector3f(top));
-            var early=tool(clip,2.025F,"R").transformPosition(new Vector3f(top));
-            var late=tool(clip,2.075F,"R").transformPosition(new Vector3f(top));
-            var end=tool(clip,2.1F,"R").transformPosition(new Vector3f(top));
+            float release=clip.equals("staff_sweep") ? .6F : .8F;
+            var start=tool(clip,release,"R").transformPosition(new Vector3f(top));
+            var early=tool(clip,release+.025F,"R").transformPosition(new Vector3f(top));
+            var late=tool(clip,release+.125F,"R").transformPosition(new Vector3f(top));
+            var end=tool(clip,release+.15F,"R").transformPosition(new Vector3f(top));
             assertTrue(late.distance(end)>start.distance(early)*4,"Accelerate into impact: "+clip);
             var channels=resource("assets/riftfall/animmodels/animations/biped/"+clip+".json").getAsJsonArray("animation");
             for (var entry:channels) {
+                if (!entry.getAsJsonObject().get("name").getAsString().equals("Chest")) continue;
                 var transforms=entry.getAsJsonObject().getAsJsonArray("transform");
-                assertEquals(transforms.get(2),transforms.get(3),"Hold tension until release");
+                assertNotEquals(transforms.get(2),transforms.get(3),"Continuous anticipation for "+clip);
             }
         }
     }
