@@ -14,8 +14,10 @@ import org.Azkerash.riftfall.behavior.*;
 import org.Azkerash.riftfall.confidence.*;
 
 /** Spawn-egg-only diagnostic actor. No goblin AI, natural spawning, Epic Fight patch or loot. */
-public final class BehaviorTestEntity extends Monster {
+public final class BehaviorTestEntity extends Monster implements ConfidenceParticipant {
     private CombatBehaviorController behavior;
+    private CombatConfidenceController confidence;
+    @Override public CombatConfidenceController confidenceController() { return confidence; }
     private long nextPath,nextAttack;
     public BehaviorTestEntity(EntityType<? extends BehaviorTestEntity> type,Level level) {
         super(type,level);setPersistenceRequired();xpReward=0;
@@ -26,7 +28,7 @@ public final class BehaviorTestEntity extends Monster {
     }
     @Override protected void registerGoals() {
         // This is the full integration: sensing controller + policy + action implementations.
-        var confidence=new CombatConfidenceController(this,BehaviorTestProfile::confidenceSettings,this::isAlliedTo,
+        confidence=new CombatConfidenceController(this,BehaviorTestProfile::confidenceSettings,this::isAlliedTo,
             ally->ally.getPersistentData().getBoolean("RiftfallBehaviorRetreating")
                 ? BehaviorTestProfile.confidenceSettings().retreatingMultiplier():1,(target,factors)->{},16,10);
         behavior=new CombatBehaviorController(this,confidence,100,(s,signals)->{});

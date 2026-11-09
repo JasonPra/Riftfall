@@ -117,3 +117,51 @@ To test, spawn four nearby testers and apply effects to the nearest one:
 ```
 
 The nameplate and `Contributions` show the changes. Damage can separately trigger the existing low-health penalty. These inputs are shared by the test engine and the current goblin confidence adapter.
+
+## Witnessing an ally's death
+
+An engine participant that sees a nearby ally killed by an enemy loses confidence temporarily. Defaults: **−8 points per witnessed death, 200 ticks (10 seconds), up to three active incidents, within 24 blocks**. The observer must be alive and AI-enabled, consider the victim an ally and the killer an enemy, and have direct line of sight to the victim at death. This is a line-of-sight check, not a forward-facing view cone. Projectile kills use the owning attacker. Environmental deaths, suicides, allied killers, and blocked/distant deaths do not add this penalty. Losing an ally's ordinary support is separate and can still happen without witnessing its death.
+
+Each incident expires independently; a later death does not extend an older incident. At the cap, the newest incident replaces the oldest. Changing strength or cap affects current memories; changing duration/radius affects new incidents. Zero max stacks disables and clears the memory; duration zero prevents new incidents. Memories are temporary per-instance state, not persisted across unload/reload.
+
+This event input is opt-in. The tester implements `ConfidenceParticipant` and returns its `CombatConfidenceController` from `confidenceController()`. Future entities using the controller can implement the same interface. Goblins retain their current implementation until their planned migration and do not yet consume witnessed deaths.
+
+## Per-species confidence tuning
+
+The server config supports `entityOverrides` inside `[combatConfidence]`. The entity ID before `|` is the **observer's species**, not the victim's. For example:
+
+```toml
+entityOverrides = [
+  "riftfall:behavior_tester|factor.self.witnessed_ally_death=-6",
+  "riftfall:behavior_tester|witnessDurationTicks=100",
+  "riftfall:behavior_tester|witnessMaxStacks=2",
+  "riftfall:behavior_tester|witnessRadius=20",
+  "riftfall:behavior_tester|factor.self.poison=-12",
+  "riftfall:behavior_tester|factor.self.wither=-15",
+  "riftfall:behavior_tester|boldPoints=30"
+]
+```
+
+Other supported keys: `normalizationPoints`, `woundedHealthFraction`, `vulnerableTargetHealthFraction`, `retreatingAllyMultiplier`, `factor.<any named factor>`, and `unit.<ally entity ID>`. For instance `unit.riftfall:goblin_shaman=15` changes how much shaman support this observer receives. Overrides preserve unmentioned values and never change another species' profile. Explicit zero weights disable the corresponding bonus/penalty. Invalid values are rejected by config validation. Config changes reload during play.
+
+Global defaults remain `factorWeights`, `unitWeights`, and the normal threshold settings, plus `witnessRadius`, `witnessDurationTicks`, and `witnessMaxStacks`. Every `CombatConfidenceController` resolves the observer's overrides automatically, including when its owner supplies a custom base profile. Existing legacy confidence users only receive overrides after moving to this controller or explicitly calling `ConfidenceConfig.settingsFor(entityId)`.
+
+## Detailed tester inspection
+
+```mcfunction
+/riftfall behavior inspect @e[type=riftfall:behavior_tester,sort=nearest,limit=1]
+```
+
+This read-only command requires operator permissions and prints only to the requester. It reports:
+
+- Chosen action, previous action, confidence, raw points, bold threshold and normalization scale.
+- Actual health/max health, held item IDs, and active effect IDs/categories/amplifiers/remaining ticks.
+- Each active confidence factor's input, configured weight, and point contribution; all configured factor/ally weights are also included, so zero or inactive weights can be checked.
+- Individual allies by UUID/type, cached distance, availability multiplier, weight and resulting support; nearby rejected candidates include reasons such as AI disabled, not allied, dead, or fighting another enemy.
+- Witnessed-death victim/killer identifiers, remaining ticks per incident, and effective radius/duration/stack limit.
+- Every situational signal; all candidate behaviors, eligibility, base score, weights, weighted terms and total score—even ineligible candidates. Only eligible candidates can win.
+- Switching margin, target-memory duration/remaining ticks, last seen coordinates and the snapshot tick.
+
+Structured equivalents live under `NeoForgeData.RiftfallBehavior`; `ConfidenceDetails`, `BehaviorEvaluations`, `Signals`, and `Contributions` can be queried separately with `/data get`. Detailed snapshots update every five ticks and on action changes; support candidates retain their ten-tick scan cache, with last/next scan ticks recorded. The compact overhead label remains a summary. Behavior eligibility predicates and species-specific action implementations remain defined by their behavior profile/code rather than these confidence overrides.
+
+For a witnessed-kill test, use an actual enemy attack (for example, kill a tester with your weapon). `/kill` has no attacking enemy and deliberately does not simulate this penalty. Check `self.witnessed_ally_death` and `WitnessedDeaths` to distinguish temporary fear from the separate loss of ordinary ally support.

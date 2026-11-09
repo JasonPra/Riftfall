@@ -15,7 +15,9 @@ public final class CombatBehaviorController {
     private final BiConsumer<CombatSituation,Map<String,Double>> extraSignals;
     private LivingEntity remembered;
     private Vec3 lastSeen;
-    private long seenAt;
+    private long seenAt,nextDiagnostics=Long.MIN_VALUE;
+    private String diagnosticAction;
+    public CombatBehaviorController(Mob mob) { this(mob,new CombatConfidenceController(mob),100,(s,signals)->{}); }
     public CombatBehaviorController(Mob mob,Supplier<ConfidenceConfig.Settings> settings) {
         this(mob,new CombatConfidenceController(mob,settings),100,(s,signals)->{});
     }
@@ -56,8 +58,21 @@ public final class CombatBehaviorController {
     }
     /** Called by the goal bridge; inspect with /data get entity ... NeoForgeData.RiftfallBehavior. */
     public void diagnostics(CombatSituation situation,BehaviorEngine.Decision decision) {
-        var data=new net.minecraft.nbt.CompoundTag();
-        data.putString("Action",decision.selected().orElse("none"));data.putDouble("Confidence",situation.confidence().value());
+        long now=mob.level().getGameTime();String action=decision.selected().orElse("none");
+        if (now<nextDiagnostics && Objects.equals(action,diagnosticAction)) return;
+        diagnosticAction=action;nextDiagnostics=now+5;
+        var data=new net.minecraft.nbt.CompoundTag();data.putLong("ServerTick",now);
+        data.put("ConfidenceDetails",confidence.diagnostics());
+        data.putInt("MemoryDurationTicks",memoryTicks);data.putLong("TargetMemoryRemainingTicks",remembered==null?0:Math.max(0,seenAt+memoryTicks-now));
+        if (lastSeen!=null) { var position=new net.minecraft.nbt.CompoundTag();position.putDouble("X",lastSeen.x);position.putDouble("Y",lastSeen.y);position.putDouble("Z",lastSeen.z);data.put("LastSeenPosition",position); }
+        var evaluations=new net.minecraft.nbt.CompoundTag();
+        decision.evaluations().forEach((id,evaluation)-> {
+            var entry=new net.minecraft.nbt.CompoundTag();entry.putBoolean("Eligible",evaluation.eligible());entry.putDouble("Base",evaluation.base());entry.putDouble("Total",evaluation.total());
+            var weights=new net.minecraft.nbt.CompoundTag();evaluation.weights().forEach(weights::putDouble);entry.put("Weights",weights);
+            var terms=new net.minecraft.nbt.CompoundTag();evaluation.terms().forEach(terms::putDouble);entry.put("WeightedTerms",terms);evaluations.put(id,entry);
+        });
+        data.put("BehaviorEvaluations",evaluations);data.putDouble("SwitchMargin",decision.switchMargin());data.putString("PreviousAction",decision.previous()==null?"none":decision.previous());
+        data.putString("Action",action);data.putDouble("Confidence",situation.confidence().value());
         data.putDouble("Points",situation.confidence().points());
         var scores=new net.minecraft.nbt.CompoundTag();decision.scores().forEach(scores::putDouble);data.put("Scores",scores);
         var factors=new net.minecraft.nbt.CompoundTag();situation.confidence().contributions().forEach(factors::putDouble);data.put("Contributions",factors);

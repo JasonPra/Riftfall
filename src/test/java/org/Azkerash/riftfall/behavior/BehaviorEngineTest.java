@@ -65,6 +65,12 @@ class BehaviorEngineTest {
         assertEquals("a",engine.select(new BehaviorContext(Map.of()),null).selected().orElseThrow());
         assertEquals("b",engine.select(new BehaviorContext(Map.of()),"b").selected().orElseThrow());
     }
+    @Test void explanationsIncludeRejectedCandidatesAndTheirInputs() {
+        var decision=BehaviorTestProfile.engine().select(combat(.8,4,false),"approach");
+        var rejected=decision.evaluations().get("retreat");
+        assertFalse(rejected.eligible());assertEquals(30,rejected.weights().get("fear"));assertEquals(6,rejected.terms().get("fear"),.0001);
+        assertEquals(21,rejected.total(),.0001);assertEquals(2,decision.switchMargin());assertEquals("approach",decision.previous());
+    }
     @Test void invalidProfilesAndInputsFailEarly() {
         var rule=new BehaviorRule("a",0,Map.of(),c->true);
         assertThrows(IllegalArgumentException.class,()->new BehaviorEngine(List.of(rule,rule),0));
