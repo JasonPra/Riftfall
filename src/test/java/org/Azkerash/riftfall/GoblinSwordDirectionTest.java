@@ -181,10 +181,10 @@ class GoblinSwordDirectionTest {
             .filter(c->c.get("name").getAsString().equals("Coord")).findFirst().orElseThrow().getAsJsonArray("transform");
         assertEquals(.28F,matrix(coord.get(coord.size()-1).getAsJsonArray()).m31(),.001F);
     }
-    @Test void everyFrenzyCutLeadsWithTheEdgeAcrossTheEntireFastStroke() {
+    @Test void outgoingFrenzyCutsKeepTheirExistingEdgeAlignment() {
         var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
         var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
-        for (float start:new float[]{.18F,.43F,.68F,.93F}) {
+        for (float start:new float[]{.18F,.68F}) {
             for (int i=1;i<16;i++) {
                 float t=start+i*.005F;
                 var direction=blade("goblin_frenzy",t);
@@ -192,6 +192,20 @@ class GoblinSwordDirectionTest {
                 travel.sub(new Vector3f(direction).mul(travel.dot(direction))).normalize();
                 var face=tool(rig,new Matrix4f(),clip,t).transformDirection(new Vector3f(1,0,0)).normalize();
                 assertTrue(Math.abs(face.dot(travel))<.08F,"Cut must not strike with its flat at "+t);
+            }
+        }
+    }
+    @Test void returningFrenzyCutsPresentTheEdgeToTheOpponentThroughoutTheStroke() {
+        var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
+        for (float start:new float[]{.37F,.87F}) {
+            for (int i=1;i<36;i++) {
+                float t=start+i*.005F;
+                var direction=blade("goblin_frenzy",t);
+                var towardOpponent=new Vector3f(0,1,0);
+                towardOpponent.sub(new Vector3f(direction).mul(towardOpponent.dot(direction))).normalize();
+                var face=tool(rig,new Matrix4f(),clip,t).transformDirection(new Vector3f(1,0,0)).normalize();
+                assertTrue(Math.abs(face.dot(towardOpponent))<.08F,"Return cut must not present the flat toward the opponent at "+t);
             }
         }
     }
