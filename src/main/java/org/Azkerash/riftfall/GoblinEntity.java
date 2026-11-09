@@ -39,6 +39,16 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public boolean isShaman() { return getType()==GoblinEntities.GOBLIN_SHAMAN.get(); }
     public boolean isArcher() { return getType()==GoblinEntities.GOBLIN_ARCHER.get(); }
     public boolean isRanged() { return isShaman() || isArcher(); }
+    @Override public net.minecraft.world.entity.SpawnGroupData finalizeSpawn(
+            net.minecraft.world.level.ServerLevelAccessor world, net.minecraft.world.DifficultyInstance difficulty,
+            net.minecraft.world.entity.MobSpawnType reason, net.minecraft.world.entity.SpawnGroupData group) {
+        var result = super.finalizeSpawn(world, difficulty, reason, group);
+        if (!isRanged() && getOffhandItem().isEmpty() && getRandom().nextInt(3) == 0) {
+            setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(GoblinItems.BUCKLER.get()));
+            setDropChance(EquipmentSlot.OFFHAND, .085F);
+        }
+        return result;
+    }
     @Override public boolean isAlliedTo(net.minecraft.world.entity.Entity other) {
         if (other instanceof GoblinEntity && getTeam()==null && other.getTeam()==null) return true;
         return super.isAlliedTo(other);
