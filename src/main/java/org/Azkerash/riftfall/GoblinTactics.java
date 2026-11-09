@@ -125,7 +125,7 @@ final class GoblinTactics {
         return height>=.5 && height<=1.75 && horizontalDistanceSqr>=1.5*1.5 && horizontalDistanceSqr<=4.5*4.5;
     }
     enum SwordAttack {
-        SWIPE(18,8), BACKSWING(18,8), FLURRY(34,6,17,28);
+        SWIPE(18,8), BACKSWING(18,8), FLURRY(34,6,17,28), TWOHAND_FLURRY(28,6,11,16,21);
         final int duration;
         private final int[] impacts;
         SwordAttack(int duration,int... impacts) { this.duration=duration; this.impacts=impacts; }
@@ -147,25 +147,24 @@ final class GoblinTactics {
                 && !interrupted(goblin) && goblin.getSensing().hasLineOfSight(target)) {
                 float yaw=staffFacing(target.getX()-goblin.getX(),target.getZ()-goblin.getZ());
                 goblin.setYRot(yaw); goblin.setYBodyRot(yaw); goblin.setYHeadRot(yaw);
-                var planned=switch (SwordAttack.values()[nextAttack]) {
+                var selected=goblin.getOffhandItem().isEmpty() ? SwordAttack.TWOHAND_FLURRY
+                    : SwordAttack.values()[nextAttack];
+                var planned=switch (selected) {
                     case SWIPE -> GoblinAnimations.SLASH;
                     case BACKSWING -> GoblinAnimations.BACKSWING;
                     case FLURRY -> GoblinAnimations.FLURRY;
+                    case TWOHAND_FLURRY -> GoblinAnimations.TWOHAND_FLURRY;
                 };
                 if (!WeaponReach.canContact(goblin,target,planned.get())) {
                     if (!goblin.squad.hasWarriorPlan()) goblin.getNavigation().moveTo(target.getX(),target.getY(),target.getZ(),1.1);
                     return;
                 }
                 resetAttackCooldown(); victim=target;
-                attack=SwordAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%SwordAttack.values().length;
+                attack=selected; nextAttack=(nextAttack+1)%3;
                 remaining=attack.duration;
                 GoblinBuckler.lowerForAttack(goblin, attack.duration);
-                GoblinAnimations.play(goblin,switch (attack) {
-                    case SWIPE -> GoblinAnimations.SLASH;
-                    case BACKSWING -> GoblinAnimations.BACKSWING;
-                    case FLURRY -> GoblinAnimations.FLURRY;
-                });
-                String counter=switch (attack) { case SWIPE -> "RiftfallSwipes"; case BACKSWING -> "RiftfallBackswings"; case FLURRY -> "RiftfallFlurries"; };
+                GoblinAnimations.play(goblin,planned);
+                String counter=switch (attack) { case SWIPE -> "RiftfallSwipes"; case BACKSWING -> "RiftfallBackswings"; case FLURRY, TWOHAND_FLURRY -> "RiftfallFlurries"; };
                 goblin.getPersistentData().putInt(counter,goblin.getPersistentData().getInt(counter)+1);
                 goblin.getPersistentData().putInt("RiftfallMeleeSwings",goblin.getPersistentData().getInt("RiftfallMeleeSwings")+1);
             }

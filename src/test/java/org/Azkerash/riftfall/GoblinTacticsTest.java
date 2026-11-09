@@ -5,6 +5,16 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GoblinTacticsTest {
+    @Test void flurryStunCoversSuccessiveCutsButEndsWithTheAnimation() {
+        var attack=GoblinTactics.SwordAttack.TWOHAND_FLURRY;
+        int last=-1;
+        for (int tick=0;tick<attack.duration;tick++) if (attack.hitsAt(tick)) {
+            if (last>=0) assertTrue((tick-last)/20F<GoblinFlurryStun.chainTime(0));
+            last=tick;
+        }
+        assertEquals(attack.duration/20F,last/20F+GoblinFlurryStun.chainTime(0),.001F);
+        assertEquals(.8F,GoblinFlurryStun.chainTime(.8F));
+    }
     @Test void plungesRequireNearbyHighGround() {
         assertTrue(GoblinTactics.canPlunge(1,3*3));
         assertFalse(GoblinTactics.canPlunge(0,3*3));

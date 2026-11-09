@@ -20,6 +20,12 @@ final class GoblinWeaponAttacks {
             InteractionHand.MAIN_HAND,Armatures.BIPED.get().toolR,null)
             .addProperty(AttackPhaseProperty.MAX_STRIKES_MODIFIER,ValueModifier.setter(1));
     }
+    static AttackAnimation.Phase flurryPhase(float start,float windup,float contact,float recovery,float end) {
+        return phase(start,windup,contact,recovery,end)
+            .addProperty(AttackPhaseProperty.STUN_TYPE,StunType.SHORT)
+            .addProperty(AttackPhaseProperty.IMPACT_MODIFIER,ValueModifier.setter(4))
+            .addProperty(AttackPhaseProperty.DAMAGE_MODIFIER,ValueModifier.multiplier(.65F));
+    }
     static AttackAnimation animation(AnimationAccessor<? extends AttackAnimation> accessor,AttackAnimation.Phase... phases) {
         var animation=new AttackAnimation(.08F,accessor,Armatures.BIPED,phases);
         animation.addProperty(AttackAnimationProperty.ATTACK_SPEED_FACTOR,0F);
@@ -86,7 +92,7 @@ final class GoblinWeaponAttacks {
         } else if (name.equals("riftfall:biped/goblin_grapple")) counter="RiftfallBackstabs";
         else if (name.equals("riftfall:biped/goblin_plunge")) counter="RiftfallPlungeHits";
         else if (name.equals("riftfall:biped/goblin_slash") || name.equals("riftfall:biped/goblin_backswing")
-            || name.equals("riftfall:biped/goblin_flurry")) counter="RiftfallMeleeHits";
+            || name.equals("riftfall:biped/goblin_flurry") || name.equals("riftfall:biped/goblin_twohand_flurry")) counter="RiftfallMeleeHits";
         else return;
         increment(mob,counter);
     }

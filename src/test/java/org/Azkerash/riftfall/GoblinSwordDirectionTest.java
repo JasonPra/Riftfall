@@ -23,6 +23,9 @@ class GoblinSwordDirectionTest {
         return new Matrix4f().set(raw).transpose();
     }
     private static Matrix4f tool(JsonObject node,Matrix4f parent,JsonObject clip,float time) {
+        return joint(node,parent,clip,time,"Tool_R");
+    }
+    private static Matrix4f joint(JsonObject node,Matrix4f parent,JsonObject clip,float time,String wanted) {
         String name=node.get("name").getAsString();
         Matrix4f local=matrix(node.getAsJsonArray("transform"));
         for (var value : clip.getAsJsonArray("animation")) {
@@ -33,9 +36,9 @@ class GoblinSwordDirectionTest {
             local=matrix(channel.getAsJsonArray("transform").get(key).getAsJsonArray()); break;
         }
         Matrix4f world=new Matrix4f(parent).mul(local);
-        if (name.equals("Tool_R")) return world;
+        if (name.equals(wanted)) return world;
         for (var child : node.getAsJsonArray("children")) {
-            var found=tool(child.getAsJsonObject(),world,clip,time); if (found!=null) return found;
+            var found=joint(child.getAsJsonObject(),world,clip,time,wanted); if (found!=null) return found;
         }
         return null;
     }
@@ -79,6 +82,20 @@ class GoblinSwordDirectionTest {
                 for (var frame:frames) assertEquals(frames.get(0),frame,"Offhand must stay tucked during "+name);
             }
         }
+    }
+    @Test void twoHandedFlurryKeepsTheEmptyHandOnTheSwordHilt() {
+        var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_twohand_flurry.json");
+        for (var time:clip.getAsJsonArray("animation").get(0).getAsJsonObject().getAsJsonArray("time")) {
+            float t=time.getAsFloat();
+            var tool=tool(rig,new Matrix4f(),clip,t);
+            var secondary=tool.transformPosition(new Vector3f(0,.08995792F,-.04705085F))
+                .sub(blade("goblin_twohand_flurry",t).mul(.075F));
+            var palm=joint(rig,new Matrix4f(),clip,t,"Tool_L").getTranslation(new Vector3f());
+            assertTrue(palm.distance(secondary)<.02F,"Grip at "+t);
+        }
+        for (float t:new float[]{.3F,.55F,.8F,1.05F})
+            assertTrue(blade("goblin_twohand_flurry",t).z<-.3F,"Each cut rakes downwards");
     }
     @Test void everyBackstabPointsDownwardIntoThePlayerFacingSide() {
         for (float time : new float[]{1,1.8F,2.6F,3.4F}) {

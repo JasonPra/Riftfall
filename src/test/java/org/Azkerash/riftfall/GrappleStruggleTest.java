@@ -31,7 +31,7 @@ class GrappleStruggleTest {
         for (var attack : GoblinTactics.SwordAttack.values()) {
             int hits=0;
             for (int tick=0;tick<=attack.duration;tick++) if (attack.hitsAt(tick)) hits++;
-            assertEquals(attack==GoblinTactics.SwordAttack.FLURRY ? 3 : 1,hits);
+            assertEquals(switch(attack) { case FLURRY -> 3; case TWOHAND_FLURRY -> 4; default -> 1; },hits);
             assertFalse(attack.hitsAt(0)); assertFalse(attack.hitsAt(attack.duration));
         }
     }
