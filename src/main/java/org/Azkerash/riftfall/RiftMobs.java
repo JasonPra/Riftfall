@@ -76,7 +76,11 @@ final class RiftMobs {
             hostile(mob);
             RiftProgression.equip(mob,level);
             RiftSpellcasting.prepare(mob, level);
-            if (world.addFreshEntity(mob)) return new Spawn(mob, threat(type)*10);
+            int cost = threat(type)*10;
+            boolean buckler = mob instanceof GoblinEntity goblin && !goblin.isRanged()
+                && budget >= cost + GoblinBuckler.COST && world.random.nextInt(3) == 0;
+            if (buckler) GoblinBuckler.equip(mob);
+            if (world.addFreshEntity(mob)) return new Spawn(mob, cost + (buckler ? GoblinBuckler.COST : 0));
         }
         return null;
     }

@@ -53,6 +53,10 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         level().addFreshEntity(arrow);
         getPersistentData().putInt("RiftfallArrowsShot",getPersistentData().getInt("RiftfallArrowsShot")+1);
     }
+    @Override protected void hurtCurrentlyUsedShield(float damage) {
+        if (damage >= 3 && getUseItem().is(GoblinItems.BUCKLER.get()))
+            getUseItem().hurtAndBreak(1 + (int) damage, this, EquipmentSlot.OFFHAND);
+    }
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH,20).add(Attributes.ATTACK_DAMAGE,3)
             .add(Attributes.MOVEMENT_SPEED,.23).add(Attributes.FOLLOW_RANGE,28).add(Attributes.SCALE,.75);
@@ -95,6 +99,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
             goalSelector.addGoal(1,new GoblinTactics.WarriorRetreat(this));
             goalSelector.addGoal(1,new GoblinGrapple(this));
             goalSelector.addGoal(2,new GoblinTactics.Plunge(this));
+            goalSelector.addGoal(2,new GoblinBuckler.Guard(this));
             goalSelector.addGoal(3,new GoblinTactics.Melee(this));
         }
         goalSelector.addGoal(6,new WaterAvoidingRandomStrollGoal(this,.8));

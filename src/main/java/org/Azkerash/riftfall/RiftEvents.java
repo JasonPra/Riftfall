@@ -70,7 +70,7 @@ public final class RiftEvents {
             }
             r.occupants.removeIf(id -> {
                 ServerPlayer p = server.getPlayerList().getPlayer(id);
-                return p != null && (!p.isAlive() || p.level().dimension() != ARENA || !r.contains(p.getX(), p.getZ()));
+                return p == null || !p.isAlive() || p.isSpectator() || p.level().dimension() != ARENA || !r.contains(p.getX(), p.getZ());
             });
             if (r.built) for (ServerPlayer p : arena.players())
                 if (p.isAlive() && !p.isSpectator() && r.contains(p.getX(), p.getZ())) r.occupants.add(p.getUUID());
@@ -84,27 +84,7 @@ public final class RiftEvents {
                     arena.getScoreboard().removePlayerFromTeam(id.toString());
                     return true;
                 });
-            // Refit failed or abandoned encounters only when every visitor has left.
-            // This lets new power change the next attempt without rebuilding around players.
-            if (r.built && !r.cleared && r.occupants.isEmpty() && r.level() > r.encounterLevel
-                && r.energy >= RiftProgression.minimumCost(Config.ENEMIES.get(),r.level())) {
-                r.refitting=true;
-                var bodies = new java.util.HashSet<net.minecraft.world.entity.Mob>(r.spawned.values());
-                bodies.addAll(arena.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
-                    new net.minecraft.world.phys.AABB(r.arena()).inflate(r.radius,0,r.radius).expandTowards(0,7,0),
-                    mob -> mob.getPersistentData().contains("RiftfallOwner") && mob.getPersistentData().getInt("RiftfallOwner")==r.id));
-                for (UUID id : java.util.Set.copyOf(r.enemies)) {
-                    var mob = RiftMobs.find(arena,r,id);
-                    if (mob != null) bodies.add(mob);
-                    else r.retired.add(id);
-                }
-                for (var mob : bodies) { arena.getScoreboard().removePlayerFromTeam(mob.getStringUUID()); mob.discard(); }
-                RiftBosses.clearBar(r); r.boss=null;
-                r.enemies.clear(); r.spawned.clear(); r.built=false; r.refitting=false;
-                forceArena(arena,r,false);
-                removePortal(arena,r,true);
-                announce(server,"The unoccupied rift at " + coordinates(r.pos) + " is reforging its next encounter at level " + r.level() + ".");
-            }
+            RiftReplenishment.tick(arena, r);
             if (r.built && !r.cleared) r.emptyEnemyTicks = r.enemies.isEmpty() ? r.emptyEnemyTicks+1 : 0;
             // Death animations can spawn offspring a second later (notably slimes).
             if (r.built && !r.cleared && r.emptyEnemyTicks >= 40) {
@@ -222,6 +202,7 @@ public final class RiftEvents {
         r.energy += Math.max(0, SoulEssenceEvents.availableEssence(server.overworld(), r.pos));
         SoulEssenceEvents.consume(server.overworld(), r.pos);
         r.dormant = false; r.cleared = false; r.built = false; r.cycle++;
+        r.replenishTicks=0; r.enemyCapacity=-1;
         r.remaining = Config.BREAK_SECONDS.get() * 20; r.waveTicks = 0;
         RiftBosses.clearBar(r); r.boss = null;
         r.enemies.clear(); r.spawned.clear(); r.occupants.clear();

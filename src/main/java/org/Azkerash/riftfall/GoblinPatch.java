@@ -14,6 +14,7 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         // attach to the root joint, behind the body, and ignore the casting arms.
         super.initAnimator(animator);
         commonAggresiveMobAnimatorInit(animator);
+        animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.BLOCK,yesman.epicfight.gameasset.Animations.BIPED_BLOCK);
         if (original.isArcher()) {
             animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.AIM,yesman.epicfight.gameasset.Animations.BIPED_BOW_AIM);
             animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.SHOT,yesman.epicfight.gameasset.Animations.BIPED_BOW_SHOT);
@@ -32,5 +33,8 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
             GoblinCombatTremor.apply(pose,(original.tickCount+partialTick)/20F,original.getId(),action);
     }
     @Override public void updateMotion(boolean considerInaction) { if (original.isArcher()) commonAggressiveRangedMobUpdateMotion(considerInaction);
-        else commonAggressiveMobUpdateMotion(considerInaction); }
+        else commonAggressiveMobUpdateMotion(considerInaction);
+        if (original.isAlive() && original.isBlocking() && !getEntityState().inaction())
+            currentCompositeMotion = yesman.epicfight.api.animation.LivingMotions.BLOCK;
+    }
 }

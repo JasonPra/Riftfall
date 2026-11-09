@@ -54,6 +54,8 @@ public final class RiftData extends SavedData {
             r.energy = t.contains("energy") ? t.getDouble("energy") : 600;
             r.refilling = t.getBoolean("refilling");
             r.cycle = t.getInt("cycle");
+            r.replenishTicks = Math.max(0, Math.min(RiftReplenishment.INTERVAL, t.getInt("replenishTicks")));
+            r.enemyCapacity = t.contains("enemyCapacity") ? Math.max(0, t.getInt("enemyCapacity")) : -1;
             r.encounterLevel = Math.max(1, t.getInt("encounterLevel"));
             r.radius = Math.max(10, Math.min(26, t.getInt("radius")));
             readIds(t.getList("enemies", Tag.TAG_COMPOUND), r.enemies);
@@ -86,6 +88,7 @@ public final class RiftData extends SavedData {
             t.putInt("waveTicks", r.waveTicks);
             t.putBoolean("cleared", r.cleared); t.putBoolean("dormant", r.dormant);
             t.putInt("dormantTicks", r.dormantTicks); t.putDouble("essence", r.essence); t.putDouble("energy", r.energy); t.putBoolean("refilling", r.refilling);
+            t.putInt("replenishTicks", r.replenishTicks); t.putInt("enemyCapacity", r.enemyCapacity);
             t.putInt("cycle", r.cycle); t.putInt("encounterLevel", r.encounterLevel); t.putInt("radius", r.radius);
             t.putFloat("exteriorYaw", r.exteriorYaw);
             t.putString("sourceBiome", r.sourceBiome); t.putString("theme", r.theme);
@@ -120,6 +123,8 @@ public final class RiftData extends SavedData {
         double energy;
         boolean refilling;
         int cycle;
+        int replenishTicks;
+        int enemyCapacity = -1;
         int encounterLevel = 1;
         int entityGraceTicks = 200;
         int radius = 10;

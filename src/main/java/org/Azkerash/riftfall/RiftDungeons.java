@@ -40,6 +40,7 @@ final class RiftDungeons {
                 break;
             }
         }
+        r.enemyCapacity = r.enemies.size(); r.replenishTicks = 0;
         if (bossRoom) RiftBosses.spawn(world,r);
         if (r.enemies.isEmpty()) {
             r.energy += RiftProgression.fixedCost(Config.ENEMIES.get(),level);
