@@ -56,7 +56,7 @@ final class GoblinTactics {
         WarriorRetreat(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
             var target=mob.getTarget();
-            if (target==null || !target.isAlive() || mob.getHealth()>mob.getMaxHealth()*GoblinSquadTactics.retreatHealth(mob.squad.courage())
+            if (target==null || !target.isAlive() || mob.getHealth()>mob.getMaxHealth()*GoblinSquadTactics.retreatHealth(mob.behavior.confidence())
                 || mob.level().getGameTime()<ready || mob.distanceToSqr(target)>7*7) return false;
             destination=LandRandomPos.getPosAway(mob,10,2,target.position());
             return destination!=null && destination.distanceToSqr(target.position())>mob.distanceToSqr(target);
@@ -136,6 +136,7 @@ final class GoblinTactics {
         final GoblinEntity goblin;
         LivingEntity victim;
         int remaining,nextAttack;
+        boolean closing;
         SwordAttack attack;
         Melee(GoblinEntity mob) { super(mob,1.1,false); goblin=mob; }
         @Override public boolean canContinueToUse() {
@@ -158,7 +159,11 @@ final class GoblinTactics {
                     case SHIELD_OVERHEAD -> GoblinAnimations.SHIELD_OVERHEAD;
                 };
                 if (!WeaponReach.canContact(goblin,target,planned.get())) {
-                    if (!goblin.squad.hasWarriorPlan()) goblin.getNavigation().moveTo(target.getX(),target.getY(),target.getZ(),1.1);
+                    // Once in the correct formation sector, close until the actual equipped collider can contact.
+                    // A block-centered ring slot may otherwise stop outside shortsword reach forever.
+                    closing=true;
+                    var path=goblin.getNavigation().createPath(target.blockPosition(),0);
+                    if (path!=null) goblin.getNavigation().moveTo(path,1.1);
                     return;
                 }
                 resetAttackCooldown(); victim=target;
@@ -172,9 +177,11 @@ final class GoblinTactics {
             }
         }
         @Override public void tick() {
+            closing=false;
+            if (remaining<=0 && !interrupted(goblin) && goblin.squad.hasWarriorPlan()) goblin.squad.moveWarrior();
             super.tick();
             if (remaining<=0) {
-                if (!interrupted(goblin)) goblin.squad.moveWarrior();
+                if (!interrupted(goblin) && !closing) goblin.squad.moveWarrior();
                 return;
             }
             goblin.getNavigation().stop();

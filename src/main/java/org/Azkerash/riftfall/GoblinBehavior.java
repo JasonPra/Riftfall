@@ -1,0 +1,118 @@
+package org.Azkerash.riftfall;
+
+import java.util.*;
+import java.util.function.BooleanSupplier;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.player.Player;
+import org.Azkerash.riftfall.behavior.*;
+import org.Azkerash.riftfall.confidence.*;
+
+/** Per-goblin engine integration. Only the shared weighted goal schedules combat actions. */
+final class GoblinBehavior {
+    final GoblinEntity mob;
+    final CombatConfidenceController confidence;
+    final CombatBehaviorController awareness;
+    private final Map<String,GoalBehaviorAction> executors=new LinkedHashMap<>();
+    private final Map<String,BooleanSupplier> commitments=new HashMap<>();
+    private final LookAtPlayerGoal look;
+    private boolean looking;
+    private CombatSituation situation;
+    private long nextSearchPath;
+    GoblinBehavior(GoblinEntity mob) {
+        this.mob=mob;
+        confidence=new CombatConfidenceController(mob,ConfidenceConfig::settings,mob::isAlliedTo,
+            ally->ally.getPersistentData().getBoolean("RiftfallRetreating")?settings().retreatingMultiplier():1,
+            (target,factors)->{},16,10);
+        awareness=new CombatBehaviorController(mob,confidence,100,this::sense);
+        look=new LookAtPlayerGoal(mob,Player.class,8);
+        if (!mob.isRanged()) {
+            add("warrior_retreat",new GoblinTactics.WarriorRetreat(mob),()->false);
+            var grapple=new GoblinGrapple(mob);add("grapple",grapple,()->true);
+            var plunge=new GoblinTactics.Plunge(mob);add("plunge",plunge,()->true);
+            var melee=new GoblinTactics.Melee(mob);add("melee",melee,()->melee.remaining>0);
+        } else {
+            add("ranged_retreat",new GoblinTactics.Retreat(mob),()->false);
+            add("position",new GoblinSquadTactics.Position(mob),()->false);
+            if (mob.isArcher()) add("bow",new GoblinTactics.Bow(mob),()->false);
+            if (mob.isShaman()) {
+                var staff=new GoblinTactics.StaffClub(mob);add("staff",staff,()->staff.windingUp);
+                add("heal",new GoblinTactics.Heal(mob),()->true);
+                add("cast",MobSpellcasting.castingAction(mob),()->true);
+            }
+        }
+        add("wander",new WaterAvoidingRandomStrollGoal(mob,.8),()->false);
+    }
+    private ConfidenceConfig.Settings settings() { return confidence.settings(); }
+    private void add(String id,Goal executor,BooleanSupplier committed) {
+        executors.put(id,new GoalBehaviorAction(executor));commitments.put(id,committed);
+    }
+    private void sense(CombatSituation snapshot,Map<String,Double> signals) {
+        situation=snapshot;
+        if (!snapshot.targetVisible()) {
+            mob.getPersistentData().putBoolean("RiftfallFlanking",false);
+            mob.getPersistentData().putBoolean("RiftfallScreening",false);
+        }
+        boolean interrupted=GoblinTactics.interrupted(mob);
+        signals.put("self.interrupted",interrupted?1D:0D);
+        signals.put("cover.safe",GoblinTactics.coverSafe(mob)?1D:0D);
+        signals.put("target.exposed",snapshot.targetVisible() && GoblinTactics.exposedToStaff(snapshot.target())?1D:0D);
+        Map<String,Boolean> prepared=new HashMap<>();String committed=null;
+        if (!interrupted) for (var entry:executors.entrySet()) {
+            if (entry.getValue().running() && commitments.get(entry.getKey()).getAsBoolean()) {
+                boolean continuing=entry.getValue().prepare();prepared.put(entry.getKey(),continuing);
+                if (continuing) { committed=entry.getKey();break; }
+            }
+        }
+        String committedAction=committed;
+        executors.forEach((id,action)-> {
+            boolean combat=!id.equals("wander");
+            // Hidden targets cannot start new attacks or track through walls. Committed swings may finish naturally.
+            boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal")):
+                !snapshot.context().active("target.present");
+            // Do not pathfind or advance idle ability cooldowns while another animation owns the action slot.
+            boolean ready=!interrupted && allowed && (committedAction==null || committedAction.equals(id))
+                && prepared.computeIfAbsent(id,key->action.prepare());
+            signals.put("ready."+id,ready?1D:0D);
+            signals.put("committed."+id,ready && action.running() && commitments.get(id).getAsBoolean()?1D:0D);
+        });
+        var result=snapshot.confidence();var data=mob.getPersistentData();
+        data.putDouble("RiftfallConfidence",result.value());data.putDouble("RiftfallConfidencePoints",result.points());
+        data.putBoolean("RiftfallConfident",result.atLeast(settings().boldPoints()));
+        var breakdown=new net.minecraft.nbt.CompoundTag();result.contributions().forEach(breakdown::putDouble);data.put("RiftfallConfidenceBreakdown",breakdown);
+    }
+    WeightedBehaviorGoal goal() {
+        Map<String,BehaviorAction> actions=new LinkedHashMap<>(executors);
+        // Every policy ID has an implementation, even for roles where it can never become ready.
+        for (String id:GoblinBehaviorProfile.engine().behaviorIds()) actions.putIfAbsent(id,s->{});
+        actions.put("idle",new BehaviorAction() {
+            @Override public void tick(CombatSituation s) { mob.getNavigation().stop();look(); }
+            @Override public void stop() { stopLook(); }
+        });
+        actions.put("interrupted",s->mob.getNavigation().stop());
+        actions.put("search",new BehaviorAction() {
+            @Override public void start(CombatSituation s) { nextSearchPath=0; }
+            @Override public void tick(CombatSituation s) {
+                if (s.lastSeenPosition()==null || mob.tickCount<nextSearchPath) return;
+                nextSearchPath=mob.tickCount+10;var pos=s.lastSeenPosition();
+                if (mob.position().distanceToSqr(pos)<1) mob.getNavigation().stop();
+                else mob.getNavigation().moveTo(pos.x,pos.y,pos.z,1);
+            }
+            @Override public void stop() { mob.getNavigation().stop(); }
+        });
+        var wander=executors.get("wander");
+        actions.put("wander",new BehaviorAction() {
+            @Override public void start(CombatSituation s) { wander.start(s); }
+            @Override public void tick(CombatSituation s) { wander.tick(s);look(); }
+            @Override public void stop() { wander.stop();stopLook(); }
+        });
+        return new WeightedBehaviorGoal(awareness,GoblinBehaviorProfile.engine(),actions);
+    }
+    private void look() {
+        if (looking && !look.canContinueToUse()) stopLook();
+        if (!looking && look.canUse()) { look.start();looking=true; }
+        if (looking) look.tick();
+    }
+    private void stopLook() { if (looking) look.stop();looking=false; }
+    double confidence() { return situation==null?0:situation.confidence().value(); }
+    boolean bold() { return situation!=null && situation.confidence().atLeast(settings().boldPoints()); }
+}

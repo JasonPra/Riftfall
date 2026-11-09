@@ -14,7 +14,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** Living humanoids: the shaman is a separate entity type, never an undead caster. */
-public final class GoblinEntity extends Monster implements net.minecraft.world.entity.monster.RangedAttackMob {
+public final class GoblinEntity extends Monster implements net.minecraft.world.entity.monster.RangedAttackMob, org.Azkerash.riftfall.confidence.ConfidenceParticipant {
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> GRAPPLED_PLAYER =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> ESCAPE_PROGRESS =
@@ -27,7 +27,8 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     GoblinEntity coveredAlly;
     net.minecraft.world.entity.LivingEntity retreatThreat;
     long retreatCoverUntil;
-    private boolean castingGoalAdded;
+    GoblinBehavior behavior;
+    @Override public org.Azkerash.riftfall.confidence.CombatConfidenceController confidenceController() { return behavior.confidence; }
     @Override protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder); builder.define(GRAPPLED_PLAYER,-1); builder.define(ESCAPE_PROGRESS,0); builder.define(CONFIDENCE,50);
     }
@@ -98,32 +99,18 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         // Update the old default without overwriting deliberately customized speeds.
         var speed=getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed!=null && Math.abs(speed.getBaseValue()-.28)<.00001) speed.setBaseValue(.23);
-        getPersistentData().remove("RiftfallRetreating");
-        getPersistentData().remove("RiftfallCoveringRetreat");
+        for (String key:java.util.List.of("RiftfallRetreating","RiftfallCoveringRetreat","RiftfallPanicked",
+                "RiftfallFormation","RiftfallHighGround","RiftfallFlanking","RiftfallScreening","RiftfallCasting",
+                "RiftfallStaffAttack","RiftfallStaffApproaching","RiftfallBehavior")) getPersistentData().remove(key);
         var scale=getAttribute(Attributes.SCALE);
         if (scale!=null && (Math.abs(scale.getBaseValue()-.56)<.00001 || Math.abs(scale.getBaseValue()-.72)<.00001))
             scale.setBaseValue(.75);
     }
     @Override protected void registerGoals() {
         goalSelector.addGoal(0,new FloatGoal(this));
-        if (isShaman()) {
-            goalSelector.addGoal(1,new GoblinTactics.StaffClub(this));
-            goalSelector.addGoal(2,new GoblinTactics.Heal(this));
-        }
-        if (isRanged()) {
-            targetSelector.addGoal(0,new GoblinTactics.CoverRetreat(this));
-            goalSelector.addGoal(3,new GoblinTactics.Retreat(this));
-            goalSelector.addGoal(4,new GoblinSquadTactics.Position(this));
-        }
-        if (isArcher()) goalSelector.addGoal(5,new GoblinTactics.Bow(this));
-        if (!isRanged()) {
-            goalSelector.addGoal(1,new GoblinTactics.WarriorRetreat(this));
-            goalSelector.addGoal(1,new GoblinGrapple(this));
-            goalSelector.addGoal(2,new GoblinTactics.Plunge(this));
-            goalSelector.addGoal(3,new GoblinTactics.Melee(this));
-        }
-        goalSelector.addGoal(6,new WaterAvoidingRandomStrollGoal(this,.8));
-        goalSelector.addGoal(7,new LookAtPlayerGoal(this,Player.class,8));
+        behavior=new GoblinBehavior(this);
+        goalSelector.addGoal(1,behavior.goal());
+        if (isRanged()) targetSelector.addGoal(0,new GoblinTactics.CoverRetreat(this));
         targetSelector.addGoal(1,new HurtByTargetGoal(this));
         targetSelector.addGoal(2,new NearestAttackableTargetGoal<>(this,Player.class,true));
         targetSelector.addGoal(3,new GoblinSquadTactics.Assist(this));
@@ -137,16 +124,13 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
             visualConfidence+=(entityData.get(CONFIDENCE)/100F-visualConfidence)*.15F;
         }
         if (!level().isClientSide) {
-            // Reuse the server's tactical confidence; send only changed percentages.
+            // Reuse the shared engine's confidence; send only changed percentages.
             // The client smooths these values rather than scanning nearby mobs per rendered pose.
-            if (tickCount%10==0) entityData.set(CONFIDENCE,(int)Math.round(squad.courage()*100));
+            if (tickCount%10==0) entityData.set(CONFIDENCE,(int)Math.round(behavior.confidence()*100));
             var target=getTarget();
             // Keep the client combat pose active while withdrawing or covering allies as well.
             setAggressive(target!=null && target.isAlive() && !isAlliedTo(target));
             GoblinBuckler.tick(this);
-        }
-        if (!level().isClientSide && isShaman() && !castingGoalAdded) {
-            castingGoalAdded=true; MobSpellcasting.restore(this);
         }
     }
 }

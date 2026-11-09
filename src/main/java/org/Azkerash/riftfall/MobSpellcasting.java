@@ -28,11 +28,12 @@ final class MobSpellcasting {
             restore(mob);
         }
     }
+    static Goal castingAction(Mob mob) { return new CastingGoal(mob); }
     static void restore(Mob mob) {
-        if (!intelligentLiving(mob)) return;
+        if (mob instanceof GoblinEntity || !intelligentLiving(mob)) return;
         if (!(mob instanceof GoblinEntity) && !mob.getPersistentData().getBoolean("RiftfallSpellcaster")) return;
         if (mob.goalSelector.getAvailableGoals().stream().anyMatch(g->g.getGoal() instanceof CastingGoal)) return;
-        mob.goalSelector.addGoal(mob instanceof GoblinEntity ? 2 : 1,new CastingGoal(mob));
+        mob.goalSelector.addGoal(1,new CastingGoal(mob));
     }
     private static final class CastingGoal extends Goal {
         final Mob mob;

@@ -1,6 +1,6 @@
 # Weighted combat behavior engine
 
-The engine is separate from goblins. Existing goblin confidence and tactics have not been migrated. `riftfall:behavior_tester` is the first independent consumer. It uses a vanilla humanoid/zombie-texture placeholder, but is a living diagnostic mob with no natural spawn rules, special loot, or Epic Fight patch. Its unarmed attack is a basic vanilla punch; this prototype is for decisions and action execution, not weapon animation or collider testing.
+The engine is separate from goblins. Warriors, archers, and shamans now use its shared confidence, awareness, action selection, and diagnostics. `riftfall:behavior_tester` is the first independent consumer. It uses a vanilla humanoid/zombie-texture placeholder, but is a living diagnostic mob with no natural spawn rules, special loot, or Epic Fight patch. Its unarmed attack is a basic vanilla punch; this prototype is for decisions and action execution, not weapon animation or collider testing.
 
 ## Try it in game
 
@@ -100,7 +100,7 @@ The demo policy is defined in `BehaviorTestProfile`, not hardcoded into the engi
 
 Action callbacks own pathfinding and combat. Override `start`, `tick`, and `stop` for stateful actions; stop should clean up navigation/flags that the action owns. The goal claims MOVE, LOOK and JUMP, so higher-priority goals such as floating can interrupt it. Target acquisition remains a separate responsibility. Registered rule IDs must have matching action implementations; incomplete integrations fail at construction.
 
-This is an initial combat behavior engine. Formation allocation, weapon colliders, spell selection, and goblin migration are separate extensions, not behavior implicitly supplied by the engine.
+This is an initial combat behavior engine. Formation allocation, weapon colliders, and spell execution remain species/action implementations, not behavior implicitly supplied by the engine.
 
 ## Harmful effects on the actor
 
@@ -124,7 +124,7 @@ An engine participant that sees a nearby ally killed by an enemy loses confidenc
 
 Each incident expires independently; a later death does not extend an older incident. At the cap, the newest incident replaces the oldest. Changing strength or cap affects current memories; changing duration/radius affects new incidents. Zero max stacks disables and clears the memory; duration zero prevents new incidents. Memories are temporary per-instance state, not persisted across unload/reload.
 
-This event input is opt-in. The tester implements `ConfidenceParticipant` and returns its `CombatConfidenceController` from `confidenceController()`. Future entities using the controller can implement the same interface. Goblins retain their current implementation until their planned migration and do not yet consume witnessed deaths.
+This event input is opt-in. The tester implements `ConfidenceParticipant` and returns its `CombatConfidenceController` from `confidenceController()`. Future entities using the controller can implement the same interface. All three goblin roles also implement this hook and consume witnessed deaths.
 
 ## Per-species confidence tuning
 
@@ -144,7 +144,7 @@ entityOverrides = [
 
 Other supported keys: `normalizationPoints`, `woundedHealthFraction`, `vulnerableTargetHealthFraction`, `retreatingAllyMultiplier`, `factor.<any named factor>`, and `unit.<ally entity ID>`. For instance `unit.riftfall:goblin_shaman=15` changes how much shaman support this observer receives. Overrides preserve unmentioned values and never change another species' profile. Explicit zero weights disable the corresponding bonus/penalty. Invalid values are rejected by config validation. Config changes reload during play.
 
-Global defaults remain `factorWeights`, `unitWeights`, and the normal threshold settings, plus `witnessRadius`, `witnessDurationTicks`, and `witnessMaxStacks`. Every `CombatConfidenceController` resolves the observer's overrides automatically, including when its owner supplies a custom base profile. Existing legacy confidence users only receive overrides after moving to this controller or explicitly calling `ConfidenceConfig.settingsFor(entityId)`.
+Global defaults remain `factorWeights`, `unitWeights`, and the normal threshold settings, plus `witnessRadius`, `witnessDurationTicks`, and `witnessMaxStacks`. Every `CombatConfidenceController` resolves the observer's overrides automatically, including when its owner supplies a custom base profile. Custom confidence users that bypass the controller must explicitly call `ConfidenceConfig.settingsFor(entityId)` to resolve these overrides.
 
 ## Detailed tester inspection
 
@@ -165,3 +165,26 @@ This read-only command requires operator permissions and prints only to the requ
 Structured equivalents live under `NeoForgeData.RiftfallBehavior`; `ConfidenceDetails`, `BehaviorEvaluations`, `Signals`, and `Contributions` can be queried separately with `/data get`. Detailed snapshots update every five ticks and on action changes; support candidates retain their ten-tick scan cache, with last/next scan ticks recorded. The compact overhead label remains a summary. Behavior eligibility predicates and species-specific action implementations remain defined by their behavior profile/code rather than these confidence overrides.
 
 For a witnessed-kill test, use an actual enemy attack (for example, kill a tester with your weapon). `/kill` has no attacking enemy and deliberately does not simulate this penalty. Check `self.witnessed_ally_death` and `WitnessedDeaths` to distinguish temporary fear from the separate loss of ordinary ally support.
+
+
+## Goblin migration
+
+All goblin roles register one `WeightedBehaviorGoal` for action selection, alongside the higher-priority vanilla floating goal. The previous parallel combat-goal priority scheduler and the confidence tally in `GoblinSquadTactics` are removed. Ordinary target acquisition, ally assistance, and selecting an enemy threatening a retreating warrior remain target goals; they do not schedule movement or attacks.
+
+`GoblinBehavior` supplies per-entity integration and situational readiness signals. `GoblinBehaviorProfile` defines utility rules. Existing movement/attack executors are wrapped by reusable `GoalBehaviorAction`; they are **not** independently registered in a goal selector. The weighted engine starts, ticks, and stops the selected executor. Swing phases, spell charge/release timing, grapple escape handling, and cooldowns remain local execution details so the established movesets are preserved.
+
+Warriors retain swipes/backswings/flurries, shield restrictions on grappling, high-ground plunges, surrounding/screening, low-health retreat and buckler behavior. Archers retain imperfect panic retreat, high-ground/rear positioning, friendly-fire avoidance and covering withdrawing warriors. Shamans retain both staff moves, healing allies, and offensive spellcasting. Committed attack/casting phases finish unless interrupted or invalidated, rather than switching actions mid-animation. While committed, the integration skips preparing unrelated pathfinding-heavy actions.
+
+`GoblinSquadTactics` now only allocates physical formation positions and implements associated movement helpers; it does not calculate confidence. Its confidence accessors read the shared controller's current snapshot. Formation-aligned warriors close past coarse block-centered path arrival until their actual equipped Epic Fight collider can contact, avoiding the previous short-weapon stall. No animation assets, weapon colliders, damage definitions or grapple escape rules are replaced by the migration.
+
+Hidden enemies cannot start new attacks or drive live-coordinate pursuit: goblins use the controller's last-seen-position search and five-second memory. Already committed attacks may complete their current motion. The shared confidence controls existing fear trembling, retreat thresholds, and organized tactics, including self-status penalties, visible-target vulnerability, witnessed losses and per-species config overrides.
+
+Inspect each role with:
+
+```mcfunction
+/riftfall behavior inspect @e[type=riftfall:goblin,sort=nearest,limit=1]
+/riftfall behavior inspect @e[type=riftfall:goblin_archer,sort=nearest,limit=1]
+/riftfall behavior inspect @e[type=riftfall:goblin_shaman,sort=nearest,limit=1]
+```
+
+Additional signals include `ready.<action>`, `committed.<action>`, `self.interrupted`, `cover.safe`, and `target.exposed`. The diagnostic candidate evaluations show which goblin action was eligible and how its utility was calculated. The tester remains available as an independent consumer for isolating engine changes from goblin-specific execution.

@@ -67,4 +67,4 @@ Java **21** is required.
 
 Tests cover goblin combat geometry, squad positioning and confidence, grapple escape, combat tremor, spell eligibility, and Enderman block-hiding transitions. Existing combat previews are in [docs/previews](docs/previews).
 
-The independent [weighted behavior engine and test entity](docs/behavior-engine.md) demonstrate reusable confidence sensing, situational awareness, and utility-based action selection. Existing goblin tactics have not been migrated yet.
+The independent [weighted behavior engine and test entity](docs/behavior-engine.md) demonstrate reusable confidence sensing, situational awareness, and utility-based action selection. Warriors, archers and shamans now use this engine while retaining their established movesets and tactical actions.

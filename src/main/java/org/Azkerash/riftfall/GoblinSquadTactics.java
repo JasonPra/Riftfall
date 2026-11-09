@@ -4,13 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.Mob;
-import org.Azkerash.riftfall.confidence.ConfidenceConfig;
-import org.Azkerash.riftfall.confidence.ConfidenceEngine;
-import org.Azkerash.riftfall.confidence.CombatConfidence;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,13 +16,12 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-/** Per-goblin tactical cache. Allies must share a faction and an actual enemy. No global entity references. */
+/** Goblin physical formation cache and movement executors. Morale and action selection belong to the shared engine. */
 final class GoblinSquadTactics {
     final GoblinEntity mob;
     private LivingEntity enemy,observedTarget;
     private long nextScan,nextWarriorPlan;
     private List<GoblinEntity> warriors=List.of(),archers=List.of();
-    private Map<String,Double> alliedUnits=Map.of();
     private Plan warriorPlan;
     private UUID ringEnemy;
     private double ringBearing;
@@ -54,44 +46,20 @@ final class GoblinSquadTactics {
         if (target==observedTarget && now<nextScan) return;
         if (target!=observedTarget) { warriorPlan=null;nextWarriorPlan=0; }
         observedTarget=target;enemy=validEnemy(mob,target)?target:null;nextScan=now+10;
-        var settings=ConfidenceConfig.settings();
-        // Confidence can include other allied mob types configured in the shared profile.
-        // Physical formation roles below remain goblin-specific; the scoring engine does not.
-        var members=mob.level().getEntitiesOfClass(LivingEntity.class,mob.getBoundingBox().inflate(16,4,16),
-            g->g!=mob && g.isAlive() && !g.isSpectator() && !(g instanceof Mob ally && ally.isNoAi())
-                && mob.isAlliedTo(g) && Math.abs(g.getY()-mob.getY())<=4
-                && (enemy==null || !(g instanceof Mob ally) || ally.getTarget()==null || ally.getTarget()==enemy));
-        Map<String,Double> units=new HashMap<>();
-        var goblins=new ArrayList<GoblinEntity>();goblins.add(mob);
-        for (var member:members) {
-            String id=BuiltInRegistries.ENTITY_TYPE.getKey(member.getType()).toString();
-            double contribution=member.getPersistentData().getBoolean("RiftfallRetreating")?settings.retreatingMultiplier():1;
-            units.merge(id,contribution,Double::sum);
-            if (member instanceof GoblinEntity goblin) goblins.add(goblin);
-        }
-        alliedUnits=Map.copyOf(units);
+        // This cache allocates physical formation slots only. Confidence and sensing belong to the shared engine.
+        var goblins=mob.level().getEntitiesOfClass(GoblinEntity.class,mob.getBoundingBox().inflate(16,4,16),
+            g->g.isAlive() && !g.isNoAi() && mob.isAlliedTo(g) && Math.abs(g.getY()-mob.getY())<=4
+                && (enemy==null || g.getTarget()==null || g.getTarget()==enemy));
+        if (!goblins.contains(mob)) goblins.add(mob);
         goblins.sort(Comparator.comparing(GoblinEntity::getUUID));
         warriors=goblins.stream().filter(g->!g.isRanged() && !g.getPersistentData().getBoolean("RiftfallRetreating")).toList();
         archers=goblins.stream().filter(GoblinEntity::isArcher).toList();
-        var result=score();var data=mob.getPersistentData();
-        data.putInt("RiftfallWarriorSupport",warriors.size());
-        data.putDouble("RiftfallConfidence",result.value());
-        data.putDouble("RiftfallConfidencePoints",result.points());
-        data.putBoolean("RiftfallConfident",result.atLeast(settings.boldPoints()));
-        var breakdown=new net.minecraft.nbt.CompoundTag();
-        result.contributions().forEach(breakdown::putDouble);
-        data.put("RiftfallConfidenceBreakdown",breakdown);
+        mob.getPersistentData().putInt("RiftfallWarriorSupport",warriors.size());
     }
-    private ConfidenceEngine.Result score() {
-        var settings=ConfidenceConfig.settings();
-        return ConfidenceEngine.evaluate(settings.profile(),alliedUnits,
-            CombatConfidence.factors(mob,enemy,settings.woundedFraction(),settings.vulnerableFraction()));
-    }
-    double confidence() { return score().value(); }
-    double courage() { scan();return confidence(); }
-    boolean bold() { scan();return score().atLeast(ConfidenceConfig.settings().boldPoints()); }
+    double confidence() { return mob.behavior.confidence(); }
+    boolean bold() { return mob.behavior.bold(); }
     // A ring still needs actual melee bodies; weighted morale determines whether they attempt it.
-    private boolean canFlank() { return warriors.size()>=2 && score().atLeast(ConfidenceConfig.settings().boldPoints()); }
+    private boolean canFlank() { return warriors.size()>=2 && bold(); }
     double panicRange() { scan();return fleeDistance(confidence()); }
     boolean hasWarriorPlan() { scan();return !warriors.isEmpty() && (canFlank() || !archers.isEmpty()); }
     static boolean inFrontOfArcher(Vec3 enemy,Vec3 guard,Vec3 archer) {
@@ -247,11 +215,11 @@ final class GoblinSquadTactics {
         @Override public boolean canUse() {
             if (mob.level().getGameTime()<ready || !validEnemy(mob,mob.getTarget()) || mob.isUsingItem()
                 || mob.getPersistentData().getBoolean("RiftfallCasting") || GoblinTactics.coverSafe(mob)) return false;
-            ready=mob.level().getGameTime()+30;plan=mob.squad.firingPosition();
+            plan=mob.squad.firingPosition();
             return plan!=null && (mob.distanceToSqr(plan.position)>2.25 || !mob.squad.clearShot());
         }
         @Override public void start() {
-            ticks=0;mob.getNavigation().moveTo(plan.path,1.0);
+            ticks=0;ready=mob.level().getGameTime()+30;mob.getNavigation().moveTo(plan.path,1.0);
             mob.getPersistentData().putBoolean("RiftfallFormation",true);
             mob.getPersistentData().putBoolean("RiftfallHighGround",plan.position.y>mob.getTarget().getY()+.5);
         }
@@ -285,10 +253,9 @@ final class GoblinSquadTactics {
             }
             if (plan==null) { ready=now+10;return false; }
             duration=organized?35:18+mob.getRandom().nextInt(13);
-            mob.getPersistentData().putBoolean("RiftfallPanicked",!organized);
             return true;
         }
-        @Override public void start() { ticks=0;mob.getPersistentData().putBoolean("RiftfallRetreating",true);mob.getNavigation().moveTo(plan.path,1.0); }
+        @Override public void start() { ticks=0;mob.getPersistentData().putBoolean("RiftfallPanicked",!organized);mob.getPersistentData().putBoolean("RiftfallRetreating",true);mob.getNavigation().moveTo(plan.path,1.0); }
         @Override public boolean canContinueToUse() {
             return ticks<duration && validEnemy(mob,mob.getTarget()) && mob.squad.bold()==organized && !mob.getNavigation().isDone()
                 && !GoblinTactics.coverSafe(mob) && mob.distanceToSqr(plan.position)>1
