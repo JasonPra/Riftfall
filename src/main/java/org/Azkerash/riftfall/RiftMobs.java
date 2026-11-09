@@ -115,15 +115,6 @@ final class RiftMobs {
         for (var id : java.util.Set.copyOf(r.enemies)) {
             Mob mob = find(world,r,id);
             if (mob == null) continue;
-            if (id.equals(r.boss) && !RiftBosses.inRoom(r, mob.getX(), mob.getZ())) mob.moveTo(RiftBosses.position(r).getX()+.5,81,RiftBosses.position(r).getZ()+.5,mob.getYRot(),0);
-            if (r.boss != null && !id.equals(r.boss) && RiftBosses.inRoom(r,mob.getX(),mob.getZ())
-                && !mob.getPersistentData().getBoolean("RiftfallBossMinion")) mob.moveTo(r.arena().getX()+.5,81,2.5,mob.getYRot(),0);
-            double margin = Math.max(1,mob.getBbWidth()/2+.2);
-            if (Math.abs(mob.getX()-(r.arena().getX()+.5))>r.radius-margin || Math.abs(mob.getZ()-.5)>r.radius-margin
-                || mob.getY()<81 || mob.getY()+mob.getBbHeight()>87) {
-                mob.moveTo(r.arena().getX()+.5,81,.5,mob.getYRot(),0);
-                mob.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
-            }
             var target = world.players().stream().filter(p -> p.isAlive() && !p.isCreative() && !p.isSpectator() && r.contains(p.getX(),p.getZ()))
                 .min(java.util.Comparator.comparingDouble(p -> p.distanceToSqr(mob))).orElse(null);
             if (target != null) {
