@@ -59,6 +59,16 @@ class GoblinSwordDirectionTest {
                 new Object[]{"goblin_flurry",.3F},new Object[]{"goblin_flurry",.85F},new Object[]{"goblin_flurry",1.4F}))
             assertTrue(blade((String)sample[0],(Float)sample[1]).y>0,"Cuts must sweep across the front, not behind the back");
     }
+    @Test void cutsLeadWithTheEdgeRatherThanTheBroadFace() {
+        var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+        for (var sample : java.util.List.of(new Object[]{"goblin_slash",.4F},new Object[]{"goblin_backswing",.4F},
+                new Object[]{"goblin_flurry",.3F},new Object[]{"goblin_flurry",.85F},new Object[]{"goblin_flurry",1.4F})) {
+            var clip=resource("assets/riftfall/animmodels/animations/biped/"+sample[0]+".json");
+            // A vanilla sword's broad-face normal becomes the tool's X axis after its item transforms.
+            var face=tool(rig,new Matrix4f(),clip,(Float)sample[1]).transformDirection(new Vector3f(1,0,0)).normalize();
+            assertTrue(Math.abs(face.z)>.95F,"The broad face must face up/down during a lateral cut, not into its sweep");
+        }
+    }
     @Test void everyBackstabPointsDownwardIntoThePlayerFacingSide() {
         for (float time : new float[]{1,1.8F,2.6F,3.4F}) {
             var direction=blade("goblin_grapple",time);

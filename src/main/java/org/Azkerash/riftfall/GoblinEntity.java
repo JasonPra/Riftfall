@@ -102,6 +102,11 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     }
     @Override public void tick() {
         super.tick();
+        if (!level().isClientSide) {
+            var target=getTarget();
+            // Keep the client combat pose active while withdrawing or covering allies as well.
+            setAggressive(target!=null && target.isAlive() && !isAlliedTo(target));
+        }
         if (!level().isClientSide && isShaman() && !castingGoalAdded) {
             castingGoalAdded=true; RiftSpellcasting.restore(this);
         }

@@ -23,6 +23,14 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         float scale=original.getScale();
         return super.getModelMatrix(partialTick).scale(scale,scale,scale);
     }
+    @Override public void poseTick(yesman.epicfight.api.animation.types.DynamicAnimation animation,
+            yesman.epicfight.api.animation.Pose pose,float elapsedTime,float partialTick) {
+        super.poseTick(animation,pose,elapsedTime,partialTick);
+        if (!original.isAlive() || original.isNoAi() || isStunned()) return;
+        boolean action=animation instanceof yesman.epicfight.api.animation.types.ActionAnimation;
+        if (original.isAggressive() || action)
+            GoblinCombatTremor.apply(pose,(original.tickCount+partialTick)/20F,original.getId(),action);
+    }
     @Override public void updateMotion(boolean considerInaction) { if (original.isArcher()) commonAggressiveRangedMobUpdateMotion(considerInaction);
         else commonAggressiveMobUpdateMotion(considerInaction); }
 }
