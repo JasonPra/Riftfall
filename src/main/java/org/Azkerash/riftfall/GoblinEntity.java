@@ -36,8 +36,8 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:Items.STONE_SWORD));
         setDropChance(EquipmentSlot.MAINHAND,0);
     }
-    public boolean isShaman() { return getType()==RiftEntities.GOBLIN_SHAMAN.get(); }
-    public boolean isArcher() { return getType()==RiftEntities.GOBLIN_ARCHER.get(); }
+    public boolean isShaman() { return getType()==GoblinEntities.GOBLIN_SHAMAN.get(); }
+    public boolean isArcher() { return getType()==GoblinEntities.GOBLIN_ARCHER.get(); }
     public boolean isRanged() { return isShaman() || isArcher(); }
     @Override public boolean isAlliedTo(net.minecraft.world.entity.Entity other) {
         if (other instanceof GoblinEntity && getTeam()==null && other.getTeam()==null) return true;
@@ -58,7 +58,8 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
             getUseItem().hurtAndBreak(1 + (int) damage, this, EquipmentSlot.OFFHAND);
     }
     public static AttributeSupplier.Builder attributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH,20).add(Attributes.ATTACK_DAMAGE,3)
+        return Monster.createMonsterAttributes().add(yesman.epicfight.registry.entries.EpicFightAttributes.IMPACT,.5)
+            .add(yesman.epicfight.registry.entries.EpicFightAttributes.STUN_ARMOR,0).add(Attributes.MAX_HEALTH,20).add(Attributes.ATTACK_DAMAGE,3)
             .add(Attributes.MOVEMENT_SPEED,.23).add(Attributes.FOLLOW_RANGE,28).add(Attributes.SCALE,.75);
     }
     @Override public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
@@ -118,7 +119,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
             setAggressive(target!=null && target.isAlive() && !isAlliedTo(target));
         }
         if (!level().isClientSide && isShaman() && !castingGoalAdded) {
-            castingGoalAdded=true; RiftSpellcasting.restore(this);
+            castingGoalAdded=true; MobSpellcasting.restore(this);
         }
     }
 }

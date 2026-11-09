@@ -8,7 +8,7 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
-/** Overworld and dungeon undead recognize goblins as prey; goblins can retaliate and hunt them too. */
+/** Zombies and skeletons recognize goblins as prey; goblins can retaliate and hunt them too. */
 final class GoblinHostility {
     static boolean undeadHunter(LivingEntity entity) { return entity instanceof Zombie || entity instanceof AbstractSkeleton; }
     @SubscribeEvent public static void joined(EntityJoinLevelEvent event) {

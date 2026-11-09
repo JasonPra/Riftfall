@@ -56,7 +56,7 @@ final class GoblinGrapple extends Goal {
         oldGravity=mob.isNoGravity(); oldPhysics=mob.noPhysics; struggle.reset();
         ACTIVE.put(victim.getUUID(),this); restrain(true); mob.grappleState(victim.getId(),0);
         mob.getNavigation().stop(); mob.setNoGravity(true); mob.noPhysics=true;
-        RiftCastingAnimations.play(mob,RiftCastingAnimations.GRAPPLE);
+        GoblinAnimations.play(mob,GoblinAnimations.GRAPPLE);
         mob.getPersistentData().putInt("RiftfallGrapples",mob.getPersistentData().getInt("RiftfallGrapples")+1);
     }
     private boolean valid() {
@@ -89,7 +89,7 @@ final class GoblinGrapple extends Goal {
             mob.setDeltaMovement(away.x,.2,away.z); mob.hasImpulse=true;
             mob.getPersistentData().putInt("RiftfallGrappleEscapes",mob.getPersistentData().getInt("RiftfallGrappleEscapes")+1);
         }
-        if (mob.isAlive() && !GoblinTactics.interrupted(mob)) RiftCastingAnimations.play(mob,RiftCastingAnimations.GRAPPLE_RELEASE);
+        if (mob.isAlive() && !GoblinTactics.interrupted(mob)) GoblinAnimations.play(mob,GoblinAnimations.GRAPPLE_RELEASE);
         victim=null;
     }
     @Override public void stop() { release(false); }

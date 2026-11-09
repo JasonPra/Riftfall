@@ -9,7 +9,7 @@ import yesman.epicfight.gameasset.Armatures;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-public final class RiftCastingAnimations {
+public final class GoblinAnimations {
     public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, CLUB, SLASH, BACKSWING, FLURRY, PLUNGE, GRAPPLE, GRAPPLE_RELEASE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
@@ -38,5 +38,5 @@ public final class RiftCastingAnimations {
         var patch=EpicFightCapabilities.getEntityPatch(mob,LivingEntityPatch.class);
         if (patch!=null && animation!=null && !patch.isStunned()) patch.playAnimationSynchronized(animation,0);
     }
-    private RiftCastingAnimations() {}
+    private GoblinAnimations() {}
 }

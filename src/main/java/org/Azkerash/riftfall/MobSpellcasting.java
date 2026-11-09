@@ -13,20 +13,13 @@ import net.minecraft.server.level.ServerLevel;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-final class RiftSpellcasting {
+final class MobSpellcasting {
     static boolean canLearn(String id,boolean undead) {
         return !undead && (id.equals("minecraft:pillager") || id.equals("riftfall:goblin_shaman"));
     }
     static boolean intelligentLiving(Mob mob) {
         return canLearn(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString(),
             mob.getType().is(EntityTypeTags.UNDEAD));
-    }
-    static void prepare(Mob mob,int level) {
-        if (intelligentLiving(mob) && (mob instanceof GoblinEntity || level>=3 && mob.getRandom().nextFloat()<.25F)) {
-            mob.getPersistentData().putBoolean("RiftfallSpellcaster",true);
-            mob.getPersistentData().putInt("RiftfallSpellLevel",Math.min(3,1+level/4));
-            restore(mob);
-        }
     }
     @net.neoforged.bus.api.SubscribeEvent
     public static void joined(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
@@ -66,7 +59,7 @@ final class RiftSpellcasting {
             spell = mob instanceof GoblinEntity ? SpellRegistry.MAGIC_ARROW_SPELL.get() : SpellRegistry.FIREBOLT_SPELL.get();
             mob.getNavigation().stop(); mob.getPersistentData().putBoolean("RiftfallCasting",true);
             spell.playSound(spell.getCastStartSound(),mob);
-            RiftCastingAnimations.play(mob,RiftCastingAnimations.CHARGE);
+            GoblinAnimations.play(mob,GoblinAnimations.CHARGE);
         }
         @Override public void tick() {
             mob.getNavigation().stop();
@@ -85,16 +78,16 @@ final class RiftSpellcasting {
                     released=true;
                     mob.getPersistentData().putInt("RiftfallSpellsCast",mob.getPersistentData().getInt("RiftfallSpellsCast")+1);
                 }
-                RiftCastingAnimations.play(mob,RiftCastingAnimations.RELEASE);
+                GoblinAnimations.play(mob,GoblinAnimations.RELEASE);
             }
-            if (time==26) RiftCastingAnimations.play(mob,RiftCastingAnimations.RECOVER);
+            if (time==26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
         }
         @Override public void stop() {
             mob.getPersistentData().putBoolean("RiftfallCasting",false);
             cooldown=released?100:60;
-            if (time<26) RiftCastingAnimations.play(mob,RiftCastingAnimations.RECOVER);
+            if (time<26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
             data.resetCastingState();
         }
     }
-    private RiftSpellcasting() {}
+    private MobSpellcasting() {}
 }

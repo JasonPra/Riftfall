@@ -2,18 +2,9 @@ package org.Azkerash.riftfall;
 
 import java.util.EnumSet;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.item.ItemStack;
 
 final class GoblinBuckler {
-    static final int COST = 5;
-    static void equip(Mob mob) {
-        mob.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(GoblinItems.BUCKLER.get()));
-        mob.setDropChance(EquipmentSlot.OFFHAND, .085F);
-    }
-
     /** Brief defensive pauses, leaving the warrior's ordinary attacks intact. */
     static final class Guard extends Goal {
         private final GoblinEntity mob;

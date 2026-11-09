@@ -147,10 +147,10 @@ final class GoblinTactics {
                 resetAttackCooldown(); victim=target;
                 attack=SwordAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%SwordAttack.values().length;
                 remaining=attack.duration;
-                RiftCastingAnimations.play(goblin,switch (attack) {
-                    case SWIPE -> RiftCastingAnimations.SLASH;
-                    case BACKSWING -> RiftCastingAnimations.BACKSWING;
-                    case FLURRY -> RiftCastingAnimations.FLURRY;
+                GoblinAnimations.play(goblin,switch (attack) {
+                    case SWIPE -> GoblinAnimations.SLASH;
+                    case BACKSWING -> GoblinAnimations.BACKSWING;
+                    case FLURRY -> GoblinAnimations.FLURRY;
                 });
                 String counter=switch (attack) { case SWIPE -> "RiftfallSwipes"; case BACKSWING -> "RiftfallBackswings"; case FLURRY -> "RiftfallFlurries"; };
                 goblin.getPersistentData().putInt(counter,goblin.getPersistentData().getInt(counter)+1);
@@ -201,7 +201,7 @@ final class GoblinTactics {
             Vec3 offset=victim.position().subtract(mob.position());
             float yaw=(float)(Math.toDegrees(Math.atan2(offset.z,offset.x))-90);
             mob.setYRot(yaw); mob.setYBodyRot(yaw); mob.setYHeadRot(yaw);
-            RiftCastingAnimations.play(mob,RiftCastingAnimations.PLUNGE);
+            GoblinAnimations.play(mob,GoblinAnimations.PLUNGE);
             launch=offset.multiply(.13,0,.13);
             mob.getPersistentData().putInt("RiftfallPlunges",mob.getPersistentData().getInt("RiftfallPlunges")+1);
         }
@@ -234,7 +234,7 @@ final class GoblinTactics {
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
             ticks=0; ready=mob.level().getGameTime()+45; mob.getNavigation().stop();
-            RiftCastingAnimations.play(mob,RiftCastingAnimations.CLUB);
+            GoblinAnimations.play(mob,GoblinAnimations.CLUB);
         }
         @Override public void tick() {
             LivingEntity target=mob.getTarget(); if (target==null) return;
@@ -271,7 +271,7 @@ final class GoblinTactics {
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
             ticks=0; mob.getNavigation().stop(); mob.getPersistentData().putBoolean("RiftfallCasting",true);
-            RiftCastingAnimations.play(mob,RiftCastingAnimations.CHARGE);
+            GoblinAnimations.play(mob,GoblinAnimations.CHARGE);
             var spell=SpellRegistry.HEALING_CIRCLE_SPELL.get(); spell.playSound(spell.getCastStartSound(),mob);
         }
         @Override public void tick() {
@@ -285,14 +285,14 @@ final class GoblinTactics {
                 spell.onServerCastComplete(mob.level(),1,mob,data,false);
                 mob.getPersistentData().putLong("RiftfallNextHeal",mob.level().getGameTime()+400);
                 mob.getPersistentData().putInt("RiftfallHealsCast",mob.getPersistentData().getInt("RiftfallHealsCast")+1);
-                RiftCastingAnimations.play(mob,RiftCastingAnimations.RELEASE);
+                GoblinAnimations.play(mob,GoblinAnimations.RELEASE);
             }
-            if (ticks==26) RiftCastingAnimations.play(mob,RiftCastingAnimations.RECOVER);
+            if (ticks==26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
         }
         @Override public void stop() {
             mob.getPersistentData().putBoolean("RiftfallCasting",false); data.resetCastingState();
             if (ticks<20) mob.getPersistentData().putLong("RiftfallNextHeal",mob.level().getGameTime()+80);
-            if (ticks<26) RiftCastingAnimations.play(mob,RiftCastingAnimations.RECOVER);
+            if (ticks<26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
         }
     }
     @net.neoforged.bus.api.SubscribeEvent
