@@ -5,28 +5,18 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GoblinSquadTacticsTest {
-    @Test void fourWarriorsCoordinateWhileSmallerGroupsDoNot() {
-        for (int n=0;n<4;n++) assertFalse(GoblinSquadTactics.coordinated(n));
-        assertTrue(GoblinSquadTactics.coordinated(4));
-        assertTrue(GoblinSquadTactics.coordinated(8));
-    }
-    @Test void numbersAndVulnerablePreyIncreaseCourageButWoundsReduceIt() {
-        double alone=GoblinSquadTactics.confidence(0,0,1,false);
-        double supported=GoblinSquadTactics.confidence(4,0,1,false);
-        assertTrue(supported>alone);
-        assertTrue(GoblinSquadTactics.confidence(0,0,1,true)>alone);
-        assertTrue(GoblinSquadTactics.confidence(4,0,.2,false)<supported);
-        assertTrue(GoblinSquadTactics.fleeDistance(supported,true)<GoblinSquadTactics.fleeDistance(alone,false));
-        assertTrue(GoblinSquadTactics.retreatHealth(supported)<GoblinSquadTactics.retreatHealth(alone));
-        assertTrue(GoblinSquadTactics.confidence(100,100,1,true)<=1);
-        assertTrue(GoblinSquadTactics.confidence(0,0,.1,false)>=0);
-    }
-    @Test void poisonWitherAndLowHealthMakeLivingPreyVulnerable() {
-        assertTrue(GoblinSquadTactics.weakTarget(6,20,false,false));
-        assertFalse(GoblinSquadTactics.weakTarget(7,20,false,false));
-        assertTrue(GoblinSquadTactics.weakTarget(20,20,true,false));
-        assertTrue(GoblinSquadTactics.weakTarget(20,20,false,true));
-        assertFalse(GoblinSquadTactics.weakTarget(0,20,true,true));
+    @Test void weightedSupportControlsCourageAndRetreatInsteadOfWarriorCount() {
+        var settings=org.Azkerash.riftfall.confidence.ConfidenceConfig.defaults();
+        var inputs=java.util.Map.of("base",1D,"equipment.bow",1D);
+        var alone=org.Azkerash.riftfall.confidence.ConfidenceEngine.evaluate(settings.profile(),java.util.Map.of(),inputs);
+        var warriors=org.Azkerash.riftfall.confidence.ConfidenceEngine.evaluate(settings.profile(),java.util.Map.of("riftfall:goblin",4D),inputs);
+        var leaders=org.Azkerash.riftfall.confidence.ConfidenceEngine.evaluate(settings.profile(),java.util.Map.of("riftfall:goblin_shaman",2D),inputs);
+        var mixed=org.Azkerash.riftfall.confidence.ConfidenceEngine.evaluate(settings.profile(),java.util.Map.of("riftfall:goblin_shaman",1D,"riftfall:goblin",2D),inputs);
+        assertFalse(alone.atLeast(settings.boldPoints()));
+        assertTrue(warriors.atLeast(settings.boldPoints()));
+        assertEquals(warriors.points(),leaders.points());assertEquals(warriors.points(),mixed.points());
+        assertTrue(GoblinSquadTactics.fleeDistance(warriors.value())<GoblinSquadTactics.fleeDistance(alone.value()));
+        assertTrue(GoblinSquadTactics.retreatHealth(warriors.value())<GoblinSquadTactics.retreatHealth(alone.value()));
     }
     @Test void screenAndRearSlotsSandwichTheWarriorBetweenEnemyAndArcher() {
         Vec3 enemy=new Vec3(0,80,0),archer=new Vec3(10,80,0);

@@ -8,7 +8,11 @@ import net.neoforged.neoforge.common.NeoForge;
 public class Riftfall {
     public static final String MODID = "riftfall";
 
-    public Riftfall(IEventBus bus) {
+    public Riftfall(IEventBus bus,net.neoforged.fml.ModContainer container) {
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,
+            org.Azkerash.riftfall.confidence.ConfidenceConfig.SPEC);
+        bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Loading event)->org.Azkerash.riftfall.confidence.ConfidenceConfig.loaded(event));
+        bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Reloading event)->org.Azkerash.riftfall.confidence.ConfidenceConfig.loaded(event));
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(GoblinSwordCombat::presets);

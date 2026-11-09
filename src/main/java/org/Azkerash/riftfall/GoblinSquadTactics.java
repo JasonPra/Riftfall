@@ -4,10 +4,16 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.Mob;
+import org.Azkerash.riftfall.confidence.ConfidenceConfig;
+import org.Azkerash.riftfall.confidence.ConfidenceEngine;
+import org.Azkerash.riftfall.confidence.CombatConfidence;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
@@ -20,10 +26,10 @@ import net.minecraft.world.phys.Vec3;
 /** Per-goblin tactical cache. Allies must share a faction and an actual enemy. No global entity references. */
 final class GoblinSquadTactics {
     final GoblinEntity mob;
-    private LivingEntity enemy;
+    private LivingEntity enemy,observedTarget;
     private long nextScan,nextWarriorPlan;
     private List<GoblinEntity> warriors=List.of(),archers=List.of();
-    private int allies;
+    private Map<String,Double> alliedUnits=Map.of();
     private Plan warriorPlan;
     private UUID ringEnemy;
     private double ringBearing;
@@ -32,18 +38,8 @@ final class GoblinSquadTactics {
         return target!=null && target.isAlive() && target.level()==mob.level() && !target.isSpectator()
             && !(target instanceof Player player && player.isCreative()) && !mob.isAlliedTo(target) && mob.canAttack(target);
     }
-    static boolean weakTarget(float health,float maximum,boolean poison,boolean wither) {
-        return health>0 && (health<=maximum*.3F || poison || wither);
-    }
-    static boolean weak(LivingEntity enemy) {
-        return weakTarget(enemy.getHealth(),enemy.getMaxHealth(),enemy.hasEffect(MobEffects.POISON),enemy.hasEffect(MobEffects.WITHER));
-    }
-    static double confidence(int warriors,int otherAllies,double health,boolean weakEnemy) {
-        return Math.clamp(.12+.14*Math.min(6,warriors)+.035*Math.min(6,otherAllies)+(weakEnemy?.3:0)-(health<.35?.22:0),0,1);
-    }
-    static double fleeDistance(double confidence,boolean screened) { return Math.max(2.5,6.5-3*confidence-(screened?1:0)); }
+    static double fleeDistance(double confidence) { return Math.max(2.5,6.5-4*confidence); }
     static double retreatHealth(double confidence) { return .45-.25*confidence; }
-    static boolean coordinated(int warriors) { return warriors>=4; }
     static Vec3 ringSlot(Vec3 enemy,int index,int count,double bearing,double radius) {
         double angle=bearing+Math.PI*2*index/count;
         return enemy.add(Math.cos(angle)*radius,0,Math.sin(angle)*radius);
@@ -55,29 +51,49 @@ final class GoblinSquadTactics {
     }
     private void scan() {
         var target=mob.getTarget();long now=mob.level().getGameTime();
-        if (target==enemy && now<nextScan) return;
-        if (target!=enemy) { warriorPlan=null;nextWarriorPlan=0; }
-        enemy=target;nextScan=now+10;
-        if (!validEnemy(mob,enemy)) { warriors=List.of();archers=List.of();allies=0;return; }
-        var members=mob.level().getEntitiesOfClass(GoblinEntity.class,mob.getBoundingBox().inflate(16,4,16),
-            g->g.isAlive() && !g.isNoAi() && mob.isAlliedTo(g) && Math.abs(g.getY()-mob.getY())<=4
-                && (g.getTarget()==null || g.getTarget()==enemy));
-        if (!members.contains(mob)) members.add(mob);
-        members.sort(Comparator.comparing(GoblinEntity::getUUID));
-        warriors=members.stream().filter(g->!g.isRanged() && !g.getPersistentData().getBoolean("RiftfallRetreating")).toList();
-        archers=members.stream().filter(GoblinEntity::isArcher).toList();allies=members.size()-1;
-        mob.getPersistentData().putInt("RiftfallWarriorSupport",warriors.size());
-        mob.getPersistentData().putDouble("RiftfallConfidence",confidence());
+        if (target==observedTarget && now<nextScan) return;
+        if (target!=observedTarget) { warriorPlan=null;nextWarriorPlan=0; }
+        observedTarget=target;enemy=validEnemy(mob,target)?target:null;nextScan=now+10;
+        var settings=ConfidenceConfig.settings();
+        // Confidence can include other allied mob types configured in the shared profile.
+        // Physical formation roles below remain goblin-specific; the scoring engine does not.
+        var members=mob.level().getEntitiesOfClass(LivingEntity.class,mob.getBoundingBox().inflate(16,4,16),
+            g->g!=mob && g.isAlive() && !g.isSpectator() && !(g instanceof Mob ally && ally.isNoAi())
+                && mob.isAlliedTo(g) && Math.abs(g.getY()-mob.getY())<=4
+                && (enemy==null || !(g instanceof Mob ally) || ally.getTarget()==null || ally.getTarget()==enemy));
+        Map<String,Double> units=new HashMap<>();
+        var goblins=new ArrayList<GoblinEntity>();goblins.add(mob);
+        for (var member:members) {
+            String id=BuiltInRegistries.ENTITY_TYPE.getKey(member.getType()).toString();
+            double contribution=member.getPersistentData().getBoolean("RiftfallRetreating")?settings.retreatingMultiplier():1;
+            units.merge(id,contribution,Double::sum);
+            if (member instanceof GoblinEntity goblin) goblins.add(goblin);
+        }
+        alliedUnits=Map.copyOf(units);
+        goblins.sort(Comparator.comparing(GoblinEntity::getUUID));
+        warriors=goblins.stream().filter(g->!g.isRanged() && !g.getPersistentData().getBoolean("RiftfallRetreating")).toList();
+        archers=goblins.stream().filter(GoblinEntity::isArcher).toList();
+        var result=score();var data=mob.getPersistentData();
+        data.putInt("RiftfallWarriorSupport",warriors.size());
+        data.putDouble("RiftfallConfidence",result.value());
+        data.putDouble("RiftfallConfidencePoints",result.points());
+        data.putBoolean("RiftfallConfident",result.atLeast(settings.boldPoints()));
+        var breakdown=new net.minecraft.nbt.CompoundTag();
+        result.contributions().forEach(breakdown::putDouble);
+        data.put("RiftfallConfidenceBreakdown",breakdown);
     }
-    int support() { scan();return warriors.size(); }
-    double confidence() {
-        // scan() owns refreshing the lists; do not recursively refresh from its diagnostic update.
-        return confidence(warriors.size(),Math.max(0,allies-warriors.size()+(mob.isRanged()?0:1)),
-            mob.getHealth()/mob.getMaxHealth(),enemy!=null && weak(enemy));
+    private ConfidenceEngine.Result score() {
+        var settings=ConfidenceConfig.settings();
+        return ConfidenceEngine.evaluate(settings.profile(),alliedUnits,
+            CombatConfidence.factors(mob,enemy,settings.woundedFraction(),settings.vulnerableFraction()));
     }
+    double confidence() { return score().value(); }
     double courage() { scan();return confidence(); }
-    double panicRange() { scan();return fleeDistance(confidence(),coordinated(warriors.size())); }
-    boolean hasWarriorPlan() { scan();return coordinated(warriors.size()) || !archers.isEmpty(); }
+    boolean bold() { scan();return score().atLeast(ConfidenceConfig.settings().boldPoints()); }
+    // A ring still needs actual melee bodies; weighted morale determines whether they attempt it.
+    private boolean canFlank() { return warriors.size()>=2 && score().atLeast(ConfidenceConfig.settings().boldPoints()); }
+    double panicRange() { scan();return fleeDistance(confidence()); }
+    boolean hasWarriorPlan() { scan();return !warriors.isEmpty() && (canFlank() || !archers.isEmpty()); }
     static boolean inFrontOfArcher(Vec3 enemy,Vec3 guard,Vec3 archer) {
         Vec3 axis=archer.subtract(enemy).multiply(1,0,1),offset=guard.subtract(enemy).multiply(1,0,1);
         double projection=offset.dot(axis);
@@ -86,7 +102,7 @@ final class GoblinSquadTactics {
     boolean mayStrike() {
         scan(); if (warriorPlan==null || !validEnemy(mob,enemy)) return true;
         int index=warriors.indexOf(mob); if (index<0) return true;
-        boolean pack=coordinated(warriors.size());
+        boolean pack=canFlank();
         int guards=Math.min(archers.size(),pack?Math.max(1,warriors.size()/3):warriors.size());
         if (index<guards) {
             var archer=archers.get(index%archers.size());
@@ -125,7 +141,7 @@ final class GoblinSquadTactics {
         long now=mob.level().getGameTime();
         if (now>=nextWarriorPlan) {
             nextWarriorPlan=now+12;int index=warriors.indexOf(mob);if (index<0) return;
-            boolean pack=coordinated(warriors.size());
+            boolean pack=canFlank();
             int guards=Math.min(archers.size(),pack?Math.max(1,warriors.size()/3):warriors.size());
             Vec3 destination;
             if (!archers.isEmpty() && index<guards) {
@@ -198,7 +214,7 @@ final class GoblinSquadTactics {
         }
         var defender=warriors.stream().min(Comparator.comparingDouble(g->g.distanceToSqr(mob))).orElseThrow();
         int lane=archers.indexOf(mob);double side=lane<0?0:(lane%2==0?1:-1)*(1.8+lane*.3);
-        return rearSlot(enemy.position(),defender.position(),weak(enemy)?3:4,side);
+        return rearSlot(enemy.position(),defender.position(),4-confidence(),side);
     }
     Plan firingPosition() {
         scan(); if (!validEnemy(mob,enemy)) return null;
@@ -254,7 +270,7 @@ final class GoblinSquadTactics {
             var enemy=mob.getTarget();long now=mob.level().getGameTime();
             if (!validEnemy(mob,enemy) || GoblinTactics.coverSafe(mob) || now<ready
                 || mob.distanceToSqr(enemy)>Math.pow(mob.squad.panicRange(),2)) return false;
-            organized=coordinated(mob.squad.support());
+            organized=mob.squad.bold();
             plan=organized?mob.squad.firingPosition():null;
             if (plan==null || plan.position.distanceToSqr(enemy.position())<mob.distanceToSqr(enemy)) {
                 plan=null;
@@ -274,7 +290,7 @@ final class GoblinSquadTactics {
         }
         @Override public void start() { ticks=0;mob.getPersistentData().putBoolean("RiftfallRetreating",true);mob.getNavigation().moveTo(plan.path,1.0); }
         @Override public boolean canContinueToUse() {
-            return ticks<duration && validEnemy(mob,mob.getTarget()) && coordinated(mob.squad.support())==organized && !mob.getNavigation().isDone()
+            return ticks<duration && validEnemy(mob,mob.getTarget()) && mob.squad.bold()==organized && !mob.getNavigation().isDone()
                 && !GoblinTactics.coverSafe(mob) && mob.distanceToSqr(plan.position)>1
                 && mob.distanceToSqr(mob.getTarget())<Math.pow(mob.squad.panicRange()+2,2);
         }
