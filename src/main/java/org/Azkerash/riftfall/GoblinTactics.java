@@ -125,7 +125,7 @@ final class GoblinTactics {
         return height>=.5 && height<=1.75 && horizontalDistanceSqr>=1.5*1.5 && horizontalDistanceSqr<=4.5*4.5;
     }
     enum SwordAttack {
-        SWIPE(18,8), BACKSWING(18,8), FLURRY(34,6,17,28), TWOHAND_FLURRY(28,6,11,16,21), SHIELD_OVERHEAD(24,11);
+        SWIPE(18,8), BACKSWING(18,8), FLURRY(34,6,17,28), FRENZY(28,6,11,16,21), SHIELD_OVERHEAD(24,11);
         final int duration;
         private final int[] impacts;
         SwordAttack(int duration,int... impacts) { this.duration=duration; this.impacts=impacts; }
@@ -152,7 +152,7 @@ final class GoblinTactics {
                     case SWIPE -> GoblinAnimations.SLASH;
                     case BACKSWING -> GoblinAnimations.BACKSWING;
                     case FLURRY -> GoblinAnimations.FLURRY;
-                    case TWOHAND_FLURRY -> GoblinAnimations.TWOHAND_FLURRY;
+                    case FRENZY -> GoblinAnimations.FRENZY;
                     case SHIELD_OVERHEAD -> GoblinAnimations.SHIELD_OVERHEAD;
                 };
                 if (!WeaponReach.canContact(goblin,target,planned.get())) {
@@ -164,7 +164,7 @@ final class GoblinTactics {
                 remaining=attack.duration;
                 GoblinBuckler.lowerForAttack(goblin, attack.duration);
                 GoblinAnimations.play(goblin,planned);
-                String counter=switch (attack) { case SWIPE -> "RiftfallSwipes"; case BACKSWING -> "RiftfallBackswings"; case FLURRY, TWOHAND_FLURRY -> "RiftfallFlurries"; case SHIELD_OVERHEAD -> "RiftfallShieldOverheads"; };
+                String counter=switch (attack) { case SWIPE -> "RiftfallSwipes"; case BACKSWING -> "RiftfallBackswings"; case FLURRY, FRENZY -> "RiftfallFlurries"; case SHIELD_OVERHEAD -> "RiftfallShieldOverheads"; };
                 goblin.getPersistentData().putInt(counter,goblin.getPersistentData().getInt(counter)+1);
                 goblin.getPersistentData().putInt("RiftfallMeleeSwings",goblin.getPersistentData().getInt("RiftfallMeleeSwings")+1);
             }

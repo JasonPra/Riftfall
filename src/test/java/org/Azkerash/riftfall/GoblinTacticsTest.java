@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class GoblinTacticsTest {
     @Test void flurryStunCoversSuccessiveCutsButEndsWithTheAnimation() {
-        var attack=GoblinTactics.SwordAttack.TWOHAND_FLURRY;
+        var attack=GoblinTactics.SwordAttack.FRENZY;
         int last=-1;
         for (int tick=0;tick<attack.duration;tick++) if (attack.hitsAt(tick)) {
             if (last>=0) assertTrue((tick-last)/20F<GoblinFlurryStun.chainTime(0));
@@ -17,9 +17,9 @@ class GoblinTacticsTest {
     }
     @Test void goblinSwordAndOffhandChooseTheMovesetWithoutAffectingOtherWeapons() {
         for (int combo=0;combo<3;combo++) {
-            assertEquals(GoblinTactics.SwordAttack.TWOHAND_FLURRY,GoblinSwordCombat.select(true,true,false,combo));
-            assertNotEquals(GoblinTactics.SwordAttack.TWOHAND_FLURRY,GoblinSwordCombat.select(false,true,false,combo));
-            assertNotEquals(GoblinTactics.SwordAttack.TWOHAND_FLURRY,GoblinSwordCombat.select(true,false,false,combo));
+            assertEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(true,true,false,combo));
+            assertNotEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(false,true,false,combo));
+            assertNotEquals(GoblinTactics.SwordAttack.FRENZY,GoblinSwordCombat.select(true,false,false,combo));
         }
         assertEquals(GoblinTactics.SwordAttack.SWIPE,GoblinSwordCombat.select(true,false,true,0));
         assertEquals(GoblinTactics.SwordAttack.BACKSWING,GoblinSwordCombat.select(true,false,true,1));

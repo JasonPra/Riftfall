@@ -15,7 +15,7 @@ final class GoblinFlurryStun {
             if (source.getEntity() instanceof net.minecraft.world.entity.LivingEntity attacker
                 && attacker.getMainHandItem().is(GoblinItems.SHORTSWORD.get()) && source.getAnimation()!=null
                 && source.getAnimation().registryName()!=null
-                && "riftfall:biped/goblin_twohand_flurry".equals(source.getAnimation().registryName().toString())
+                && "riftfall:biped/goblin_frenzy".equals(source.getAnimation().registryName().toString())
                 && event.getStunType()==StunType.SHORT && patch.getStunArmor()<=source.calculateImpact())
                 target.getPersistentData().putLong(CONTACT,target.level().getGameTime());
             else target.getPersistentData().remove(CONTACT);

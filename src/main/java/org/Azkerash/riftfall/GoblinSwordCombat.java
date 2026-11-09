@@ -9,13 +9,19 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem.WeaponCategories;
 
 /** Item-bound stances, shared by goblin pursuit and Epic Fight's player combos. */
 final class GoblinSwordCombat {
+    enum Stance implements yesman.epicfight.world.capabilities.item.Style {
+        GOBLIN_FRENZY;
+        private final int id=yesman.epicfight.world.capabilities.item.Style.ENUM_MANAGER.assign(this);
+        @Override public int universalOrdinal() { return id; }
+        @Override public boolean canUseOffhand() { return true; }
+    }
     static GoblinTactics.SwordAttack select(ItemStack weapon,ItemStack offhand,int combo) {
         return select(weapon.is(GoblinItems.SHORTSWORD.get()),offhand.isEmpty(),
             offhand.getItem() instanceof net.minecraft.world.item.ShieldItem,combo);
     }
     static GoblinTactics.SwordAttack select(boolean goblinSword,boolean emptyOffhand,boolean shield,int combo) {
         if (goblinSword) {
-            if (emptyOffhand) return GoblinTactics.SwordAttack.TWOHAND_FLURRY;
+            if (emptyOffhand) return GoblinTactics.SwordAttack.FRENZY;
             if (shield)
                 return switch (Math.floorMod(combo,3)) {
                     case 0 -> GoblinTactics.SwordAttack.SWIPE;
@@ -36,11 +42,11 @@ final class GoblinSwordCombat {
                 .hitSound(yesman.epicfight.registry.entries.EpicFightSounds.BLADE_HIT)
                 .swingSound(yesman.epicfight.registry.entries.EpicFightSounds.WHOOSH_SHARP)
                 .collider(new yesman.epicfight.api.collider.MultiOBBCollider(5,.09,.08,.36,0,-.04,-.32))
-                .styleProvider(patch -> patch.getOriginal().getOffhandItem().isEmpty() ? Styles.TWO_HAND : Styles.ONE_HAND)
+                .styleProvider(patch -> patch.getOriginal().getOffhandItem().isEmpty() ? Stance.GOBLIN_FRENZY : Styles.ONE_HAND)
                 .newStyleCombo(Styles.ONE_HAND,GoblinAnimations.SLASH,GoblinAnimations.BACKSWING,
                     GoblinAnimations.SHIELD_OVERHEAD,GoblinAnimations.SLASH,GoblinAnimations.PLUNGE)
-                .newStyleCombo(Styles.TWO_HAND,GoblinAnimations.TWOHAND_FLURRY,
-                    GoblinAnimations.TWOHAND_FLURRY,GoblinAnimations.PLUNGE)
+                .newStyleCombo(Stance.GOBLIN_FRENZY,GoblinAnimations.FRENZY,
+                    GoblinAnimations.FRENZY,GoblinAnimations.PLUNGE)
                 .weaponCombinationPredicator(patch -> patch.getOriginal().getOffhandItem().getItem()
                     instanceof net.minecraft.world.item.ShieldItem)
                 .canBePlacedOffhand(false));

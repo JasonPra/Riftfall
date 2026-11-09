@@ -83,50 +83,64 @@ class GoblinSwordDirectionTest {
             }
         }
     }
-    @Test void twoHandedFlurryKeepsTheEmptyHandOnTheSwordHilt() {
+    private static Vector3f frenzyTip(float time) {
         var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
-        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_twohand_flurry.json");
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
+        return tool(rig,new Matrix4f(),clip,time).transformPosition(new Vector3f(0,.08995792F,-.04705085F))
+            .add(blade("goblin_frenzy",time).mul(.675F));
+    }
+    @Test void oneHandedFlurryMovesTheArmWithoutSteeringAtTheWristOrDisplacingSockets() {
+        var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
+        float minX=10,maxX=-10,minZ=10,maxZ=-10;
         for (var time:clip.getAsJsonArray("animation").get(0).getAsJsonObject().getAsJsonArray("time")) {
             float t=time.getAsFloat();
-            var tool=tool(rig,new Matrix4f(),clip,t);
-            var primary=tool.transformPosition(new Vector3f(0,.08995792F,-.04705085F));
+            var primary=tool(rig,new Matrix4f(),clip,t).transformPosition(new Vector3f(0,.08995792F,-.04705085F));
             var primaryPalm=joint(rig,new Matrix4f(),clip,t,"Hand_R").transformPosition(new Vector3f(0,.272858F,0));
-            assertTrue(primary.distance(primaryPalm)<.01F,"Primary fist must hold the hilt, not the blade: "+t);
-            var secondary=new Vector3f(primary)
-                .sub(blade("goblin_twohand_flurry",t).mul(.075F));
-            var palm=joint(rig,new Matrix4f(),clip,t,"Tool_L").getTranslation(new Vector3f());
-            assertTrue(palm.distance(secondary)<.02F,"Grip at "+t);
+            assertTrue(primary.distance(primaryPalm)<.01F,"Hilt must remain in the sword hand");
+            var freeHand=joint(rig,new Matrix4f(),clip,t,"Tool_L").getTranslation(new Vector3f());
+            assertTrue(primary.distance(freeHand)>.35F,"Empty hand must not grip the sword");
+            assertTrue(primaryPalm.z<1.7F,"Keep the arm below the old displaced overhead pose");
+            minX=Math.min(minX,primaryPalm.x);maxX=Math.max(maxX,primaryPalm.x);
+            minZ=Math.min(minZ,primaryPalm.z);maxZ=Math.max(maxZ,primaryPalm.z);
         }
-        for (float t:new float[]{.3F,.55F,.8F,1.05F})
-            assertTrue(blade("goblin_twohand_flurry",t).z<-.3F,"Each cut rakes downwards");
+        assertTrue(maxX-minX>.5F && maxZ-minZ>.5F,"The entire sword arm must sweep laterally and down");
+        for (var entry:clip.getAsJsonArray("animation")) {
+            var channel=entry.getAsJsonObject();String name=channel.get("name").getAsString();
+            var transforms=channel.getAsJsonArray("transform");
+            for (var frame:transforms) {
+                if (java.util.Set.of("Tool_R","Shoulder_R","Shoulder_L").contains(name))
+                    assertEquals(transforms.get(0),frame,"No independent weapon steering or raised clavicle: "+name);
+                if (java.util.Set.of("Arm_R","Hand_R").contains(name))
+                    assertEquals(matrix(transforms.get(0).getAsJsonArray()).getTranslation(new Vector3f()),
+                        matrix(frame.getAsJsonArray()).getTranslation(new Vector3f()),"Arm bones must stay connected");
+            }
+        }
     }
     @Test void flurryRepeatsCrossedDescendingCutsInAFigureEight() {
         for (float[] pair:new float[][]{{.12F,.3F},{.37F,.55F},{.62F,.8F},{.87F,1.05F}}) {
-            var wind=blade("goblin_twohand_flurry",pair[0]);
-            var cut=blade("goblin_twohand_flurry",pair[1]);
-            assertTrue(wind.x*cut.x<-.25F,"Cut crosses the body");
-            assertTrue(wind.z>.3F && cut.z<-.3F,"Cut descends diagonally");
+            var wind=frenzyTip(pair[0]);var cut=frenzyTip(pair[1]);
+            assertTrue(wind.x*cut.x<0,"Rendered blade crosses the body");
+            assertTrue(wind.z-cut.z>.5F,"Arm-driven cut descends diagonally");
         }
-        assertTrue(blade("goblin_twohand_flurry",.3F).x<0);
-        assertTrue(blade("goblin_twohand_flurry",.55F).x>0);
-        assertEquals(blade("goblin_twohand_flurry",.3F),blade("goblin_twohand_flurry",.8F));
-        assertEquals(blade("goblin_twohand_flurry",.55F),blade("goblin_twohand_flurry",1.05F));
+        assertEquals(frenzyTip(.3F),frenzyTip(.8F));
+        assertEquals(frenzyTip(.55F),frenzyTip(1.05F));
     }
     @Test void flurryLoopsWideAroundTheBodyAndReturnsToAnUprightGrip() {
         var rig=resource("assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
-        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_twohand_flurry.json");
+        var clip=resource("assets/riftfall/animmodels/animations/biped/goblin_frenzy.json");
         float min=0,max=0;
         for (var time:clip.getAsJsonArray("animation").get(0).getAsJsonObject().getAsJsonArray("time")) {
             float t=time.getAsFloat();
             var tip=tool(rig,new Matrix4f(),clip,t).transformPosition(new Vector3f(0,.08995792F,-.04705085F))
-                .add(blade("goblin_twohand_flurry",t).mul(.675F));
+                .add(blade("goblin_frenzy",t).mul(.675F));
             min=Math.min(min,tip.x);max=Math.max(max,tip.x);
         }
         assertTrue(max-min>1.5F,"Full rendered blade must sweep broadly past both shoulders");
-        assertTrue(blade("goblin_twohand_flurry",.335F).x<-.9F,"Loop outside the left cut");
-        assertTrue(blade("goblin_twohand_flurry",.585F).x>.9F,"Loop outside the right cut");
-        assertTrue(blade("goblin_twohand_flurry",0).z>.5F);
-        assertTrue(blade("goblin_twohand_flurry",1.4F).z>.5F);
+        assertTrue(blade("goblin_frenzy",.335F).x<-.8F,"Loop outside the left cut");
+        assertTrue(blade("goblin_frenzy",.585F).x>.9F,"Loop outside the right cut");
+        assertTrue(blade("goblin_frenzy",0).z>.5F);
+        assertTrue(blade("goblin_frenzy",1.4F).z>.5F);
     }
     @Test void shieldOverheadRaisesThenCutsDownInFront() {
         var raised=blade("goblin_shield_overhead",.4F);

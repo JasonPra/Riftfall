@@ -12,7 +12,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public final class GoblinAnimations {
     public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, GRAPPLE_RELEASE;
-    public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, TWOHAND_FLURRY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
+    public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, FRENZY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
             GRAPPLE_RELEASE=builder.nextAccessor("biped/goblin_grapple_release",a->new ActionAnimation(.05F,a,Armatures.BIPED));
@@ -25,11 +25,11 @@ public final class GoblinAnimations {
                 GoblinWeaponAttacks.phase(1.1F,1.30F,1.50F,1.6F,1.7F)));
             SLASH=builder.nextAccessor("biped/goblin_slash",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.phase(0,.30F,.48F,.75F,.9F)));
-            TWOHAND_FLURRY=builder.nextAccessor("biped/goblin_twohand_flurry",a->GoblinWeaponAttacks.animation(a,
-                GoblinWeaponAttacks.flurryPhase(0,.2F,.35F,.37F,.4F),
-                GoblinWeaponAttacks.flurryPhase(.4F,.45F,.6F,.62F,.65F),
-                GoblinWeaponAttacks.flurryPhase(.65F,.7F,.85F,.87F,.9F),
-                GoblinWeaponAttacks.flurryPhase(.9F,.95F,1.1F,1.15F,1.4F)));
+            FRENZY=builder.nextAccessor("biped/goblin_frenzy",a->GoblinWeaponAttacks.animation(a,
+                GoblinWeaponAttacks.flurryPhase(0,.16F,.33F,.34F,.35F),
+                GoblinWeaponAttacks.flurryPhase(.35F,.37F,.58F,.60F,.62F),
+                GoblinWeaponAttacks.flurryPhase(.62F,.66F,.83F,.84F,.85F),
+                GoblinWeaponAttacks.flurryPhase(.85F,.87F,1.08F,1.15F,1.4F)));
             SHIELD_OVERHEAD=builder.nextAccessor("biped/goblin_shield_overhead",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.phase(0,.4F,.62F,.9F,1.2F)));
             PLUNGE=builder.nextAccessor("biped/goblin_plunge",a->GoblinWeaponAttacks.animation(a,
