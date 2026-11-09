@@ -15,6 +15,7 @@ final class GoblinBehavior {
     private final Map<String,GoalBehaviorAction> executors=new LinkedHashMap<>();
     private final Map<String,BooleanSupplier> commitments=new HashMap<>();
     private final LookAtPlayerGoal look;
+    private final SeekHealingCircleGoal healing;
     private boolean looking;
     private CombatSituation situation;
     private long nextSearchPath;
@@ -25,6 +26,9 @@ final class GoblinBehavior {
             (target,factors)->{},16,10);
         awareness=new CombatBehaviorController(mob,confidence,100,this::sense);
         look=new LookAtPlayerGoal(mob,Player.class,8);
+        healing=new SeekHealingCircleGoal(mob,()->ConfidenceConfig.healingSettingsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()),
+            ()->situation==null?0:situation.confidence().points(),caster->caster instanceof GoblinEntity shaman && shaman.isShaman() && mob.isAlliedTo(shaman));
+        add("seek_healing",healing,()->false);
         if (!mob.isRanged()) {
             add("cautious_retreat",new GoblinTactics.Retreat(mob),()->false);
             add("warrior_retreat",new GoblinTactics.WarriorRetreat(mob),()->false);
@@ -69,7 +73,7 @@ final class GoblinBehavior {
         executors.forEach((id,action)-> {
             boolean combat=!id.equals("wander");
             // Hidden targets cannot start new attacks or track through walls. Committed swings may finish naturally.
-            boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal")):
+            boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing")):
                 !snapshot.context().active("target.present");
             // Do not pathfind or advance idle ability cooldowns while another animation owns the action slot.
             boolean advancing=id.equals("melee") || id.equals("grapple") || id.equals("plunge");
@@ -81,6 +85,12 @@ final class GoblinBehavior {
             signals.put("ready."+id,ready?1D:0D);
             signals.put("committed."+id,ready && action.running() && commitments.get(id).getAsBoolean()?1D:0D);
         });
+        healing.signals(signals);
+        if (!mob.isRanged() && mob.getPersistentData().getBoolean("RiftfallSeekingHealing") && snapshot.targetVisible()) {
+            mob.retreatThreat=snapshot.target();mob.retreatCoverUntil=mob.level().getGameTime()+40;
+        }
+        var notes=new net.minecraft.nbt.CompoundTag();if (healing.wanted()) notes.putString("healing",healing.reason());
+        mob.getPersistentData().put("RiftfallBehaviorNotes",notes);
         var result=snapshot.confidence();var data=mob.getPersistentData();
         data.putDouble("RiftfallConfidence",result.value());data.putDouble("RiftfallConfidencePoints",result.points());
         data.putBoolean("RiftfallConfident",result.atLeast(settings().boldPoints()));

@@ -55,6 +55,10 @@ public final class BehaviorOverlay {
             double points=contributions.getDouble(key);
             lines.add((points<0?"\u00a7c":"\u00a7a")+key.replace("factor.","")+String.format(Locale.ROOT," %+.1f",points));
         });
+        var notes=data.getCompound("Notes");notes.getAllKeys().stream().sorted().forEach(key->lines.add(key+": "+notes.getString(key)));
+        var signals=data.getCompound("Signals");if (signals.getDouble("healing.circle_available")>0)
+            lines.add(String.format(Locale.ROOT,"Healing circle %.1fs | %s",signals.getDouble("healing.remaining_ticks")/20,
+                signals.getDouble("healing.in_circle")>0?"healing inside":"moving to heal"));
         var memories=details.getList("WitnessedDeaths",10);
         for (int i=0;i<memories.size();i++) lines.add(String.format(Locale.ROOT,"Loss memory %.1fs",memories.getCompound(i).getLong("RemainingTicks")/20D));
         if (data.getLong("TargetMemoryRemainingTicks")>0 && data.getCompound("Signals").getDouble("target.visible")==0)

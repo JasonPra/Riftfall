@@ -8,6 +8,7 @@ final class GoblinBehaviorProfile {
     static BehaviorEngine engine() {
         var rules=new ArrayList<BehaviorRule>();
         rules.add(new BehaviorRule("interrupted",5000,Map.of(),c->c.active("self.interrupted")));
+        rules.add(rule("seek_healing",700,Map.of("fear",50D,"self.wounded",50D)));
         rules.add(rule("warrior_retreat",500,Map.of("fear",50D,"self.wounded",40D)));
         rules.add(rule("cautious_retreat",300,Map.of("fear",50D)));
         rules.add(new BehaviorRule("watch",100,Map.of("fear",20D),c->c.active("self.melee_role") && c.active("target.visible") && !c.active("engage")));

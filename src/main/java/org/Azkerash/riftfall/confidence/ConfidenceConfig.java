@@ -27,6 +27,8 @@ public final class ConfidenceConfig {
     private static volatile Map<String,Map<String,Double>> overrides=Map.of();
     private static final ModConfigSpec.DoubleValue SCALE,BOLD,WOUNDED,VULNERABLE,RETREATING,ENGAGE;
     private static volatile double engagePoints=12;
+    private static volatile org.Azkerash.riftfall.behavior.HealingRetreatSettings healing=org.Azkerash.riftfall.behavior.HealingRetreatSettings.defaults();
+    private static final ModConfigSpec.DoubleValue HEAL_ENTRY,HEAL_EXIT,HEAL_RADIUS,HEAL_DANGER,HEAL_RISK;
     private static volatile Settings current=defaults();
     static {
         var defaults=defaults();var b=new ModConfigSpec.Builder();b.push("combatConfidence");
@@ -37,6 +39,11 @@ public final class ConfidenceConfig {
         SCALE=b.comment("Points corresponding to full confidence; final confidence is clamped to 0..1.").defineInRange("normalizationPoints",40D,1D,10000D);
         BOLD=b.comment("Points needed for organized retreat and bold tactics.").defineInRange("boldPoints",25D,0D,10000D);
         ENGAGE=b.comment("Points needed to voluntarily advance into melee; cornered actors can still defend themselves.").defineInRange("engagePoints",12D,-1000D,1000D);
+        HEAL_ENTRY=b.defineInRange("healingEntryHealthFraction",.35D,0D,1D);
+        HEAL_EXIT=b.defineInRange("healingExitHealthFraction",.8D,0D,1D);
+        HEAL_RADIUS=b.defineInRange("healingSearchRadius",24D,1D,64D);
+        HEAL_DANGER=b.defineInRange("healingDangerDistance",5D,0D,32D);
+        HEAL_RISK=b.defineInRange("healingRiskPoints",25D,-1000D,1000D);
         WOUNDED=b.defineInRange("woundedHealthFraction",.35D,0D,1D);
         VULNERABLE=b.defineInRange("vulnerableTargetHealthFraction",.30D,0D,1D);
         RETREATING=b.comment("Multiplier applied to the contribution of an ally that is retreating.").defineInRange("retreatingAllyMultiplier",.25D,0D,1D);
@@ -80,6 +87,12 @@ public final class ConfidenceConfig {
     public static Settings forEntity(String id,Settings base) {
         var values=overrides.get(id);return values==null?base:EntityConfidenceTuning.apply(base,values);
     }
+    public static org.Azkerash.riftfall.behavior.HealingRetreatSettings healingSettingsFor(String id) {
+        var values=overrides.getOrDefault(id,Map.of());var base=healing;
+        return new org.Azkerash.riftfall.behavior.HealingRetreatSettings(values.getOrDefault("healingEntryHealthFraction",base.entryHealth()),
+            values.getOrDefault("healingExitHealthFraction",base.exitHealth()),values.getOrDefault("healingSearchRadius",base.searchRadius()),
+            values.getOrDefault("healingDangerDistance",base.dangerDistance()),values.getOrDefault("healingRiskPoints",base.riskPoints()));
+    }
     public static double engagePointsFor(String id) { return overrides.getOrDefault(id,Map.of()).getOrDefault("engagePoints",engagePoints); }
     public static Settings settingsFor(String id) { return forEntity(id,current); }
     public static double maxWitnessRadius() {
@@ -92,6 +105,7 @@ public final class ConfidenceConfig {
         if (event.getConfig().getSpec()==SPEC) {
             current=new Settings(new ConfidenceProfile(parse(UNITS.get()),withStatusDefaults(parse(FACTORS.get())),SCALE.get()),BOLD.get(),WOUNDED.get(),VULNERABLE.get(),RETREATING.get());
             engagePoints=ENGAGE.get();
+            healing=new org.Azkerash.riftfall.behavior.HealingRetreatSettings(HEAL_ENTRY.get(),HEAL_EXIT.get(),HEAL_RADIUS.get(),HEAL_DANGER.get(),HEAL_RISK.get());
             witness=new WitnessSettings(WITNESS_RADIUS.get(),WITNESS_DURATION.get(),WITNESS_CAP.get());
             Map<String,Map<String,Double>> parsed=new LinkedHashMap<>();
             for (String entry:OVERRIDES.get()) {

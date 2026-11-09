@@ -101,7 +101,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         if (speed!=null && Math.abs(speed.getBaseValue()-.28)<.00001) speed.setBaseValue(.23);
         for (String key:java.util.List.of("RiftfallRetreating","RiftfallCoveringRetreat","RiftfallPanicked",
                 "RiftfallFormation","RiftfallHighGround","RiftfallFlanking","RiftfallScreening","RiftfallCasting",
-                "RiftfallStaffAttack","RiftfallStaffApproaching","RiftfallBehavior")) getPersistentData().remove(key);
+                "RiftfallStaffAttack","RiftfallStaffApproaching","RiftfallSeekingHealing","RiftfallBehaviorNotes","RiftfallBehavior")) getPersistentData().remove(key);
         var scale=getAttribute(Attributes.SCALE);
         if (scale!=null && (Math.abs(scale.getBaseValue()-.56)<.00001 || Math.abs(scale.getBaseValue()-.72)<.00001))
             scale.setBaseValue(.75);

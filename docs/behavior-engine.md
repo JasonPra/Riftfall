@@ -216,3 +216,29 @@ All four factor weights can be adjusted or disabled through global `factorWeight
 `/riftfall behavior debug` toggles the display. These operator commands enable a personal world-space overlay over nearby engine entities, including Epic Fight-rendered goblins and the independent tester. They do not rename mobs, create display entities, or enable other players' overlays.
 
 The display updates four times per second and shows current action, normalized confidence, raw points, advance threshold, self/opponent combat stats, every nonzero confidence contribution (green positive/red negative), and loss/search-memory timers. It covers the nearest 32 engine entities within 32 blocks. Session state clears on login/logout; received entries expire if updates stop and are matched by both entity ID and UUID. Debug text uses the vanilla see-through nameplate pass for readability, including while testing occlusion. Large custom profiles get an explicit overflow notice pointing to `inspect`, which remains the complete detailed view. Turning the overlay off clears it immediately.
+
+## Retreating to an active healing circle
+
+Wounded warriors, archers, and shamans now have a `seek_healing` recovery action. It uses the actual Iron's Spells `HealingAoe` entity from an allied goblin shaman's Healing Circle, including its current radius, owner, healing eligibility, delay and remaining lifetime. A visual target marker alone is not a healing destination. No new healing spell is introduced.
+
+By default an actor starts seeking below 35% health, enters the reachable circle, and waits until 80% health or until the circle stops being usable. If it expires earlier, partial healing is still useful and normal decisions resume. A circle must have enough lifetime remaining for estimated travel plus a healing pulse. Recovery outranks ordinary combat and retreat but does not interrupt an already committed attack/cast or override stun.
+
+Low-confidence actors avoid circles with a known enemy within five blocks of the center, and avoid routes that take them into enemy proximity. An actor already being chased can move away from that immediate danger toward healing; the safety test does not require its starting position to already be safe. Checks use actual navigation nodes and samples along each segment. Visible hostile players and the current visible enemy are considered; creative/spectator/allied players are excluded. This is local awareness, not knowledge of hidden enemies.
+
+At 25 raw confidence points, actors may risk enemy proximity to obtain healing. Confidence does not override a blocked path, hazardous footing, incompatible ownership, expired magic or an unreachable zone. Paths are checked/replanned at most every ten ticks, with circle removal and recovery checked each action update. The wounded actor can switch to another usable allied circle. Retreating warriors continue requesting ranged covering fire while moving toward healing.
+
+The reusable executor is `behavior/SeekHealingCircleGoal`. It takes a mob, settings supplier, raw-confidence supplier and eligible-caster predicate. Goblins supply their shaman/alliance predicate; the shared executor contains no goblin type checks. Its lifecycle is selected by the existing weighted engine through `GoalBehaviorAction`.
+
+Global settings under `[combatConfidence]`, also supported in per-species `entityOverrides`:
+
+| Key | Default |
+|---|---:|
+| `healingEntryHealthFraction` | 0.35 |
+| `healingExitHealthFraction` | 0.8 |
+| `healingSearchRadius` | 24 blocks |
+| `healingDangerDistance` | 5 blocks |
+| `healingRiskPoints` | 25 raw points |
+
+For example, `"riftfall:goblin_archer|healingRiskPoints=30"` makes archers less willing to risk an enemy-camped circle. Entry zero disables seeking; the effective exit threshold is at least the entry threshold to avoid contradictory tuning.
+
+The overhead overlay shows `seek_healing`, a route/rejection note, remaining circle seconds, and whether the actor is moving or healing inside. `inspect` includes `Notes` and `healing.*` situation signals, including the entry/exit health thresholds, danger radius, risk threshold and whether confidence is overriding proximity. `RiftfallHealingRetreats` counts started recoveries and `RiftfallSeekingHealing` marks the active action. All transient notes/flags are cleared on load.

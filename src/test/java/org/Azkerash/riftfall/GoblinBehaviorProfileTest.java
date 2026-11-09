@@ -9,6 +9,11 @@ class GoblinBehaviorProfileTest {
     private String choose(Map<String,Double> signals) {
         return GoblinBehaviorProfile.engine().select(new BehaviorContext(signals),null).selected().orElseThrow();
     }
+    @Test void healingRetreatOutranksOrdinaryCombatButNotStunOrCommittedSwing() {
+        assertEquals("seek_healing",choose(Map.of("ready.seek_healing",1D,"ready.warrior_retreat",1D,"ready.staff",1D)));
+        assertEquals("melee",choose(Map.of("ready.seek_healing",1D,"ready.melee",1D,"committed.melee",1D)));
+        assertEquals("interrupted",choose(Map.of("ready.seek_healing",1D,"self.interrupted",1D)));
+    }
     @Test void warriorAbilitiesAndRetreatCanPreemptOrdinaryPursuit() {
         assertEquals("melee",choose(Map.of("ready.melee",1D)));
         assertEquals("plunge",choose(Map.of("ready.melee",1D,"ready.plunge",1D)));
