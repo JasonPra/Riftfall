@@ -40,7 +40,7 @@ The block retains `riftfall:crystal_cluster` for existing-world compatibility. F
 
 ## Rift formation and root pools
 
-The world spawn chunk starts at critical mass once per world. The default critical mass is 600 essence. A critical chunk rolls a 10% chance every 10 seconds to form a rift on safe terrain. A successful formation consumes its chunk's charge into the rift's construction bank.
+The world spawn chunk cultivates essence like any other chunk and receives no starting bonus. The default critical mass is 600 essence. A critical chunk rolls a 10% chance every 10 seconds to form a rift on safe terrain. A successful formation consumes its chunk's charge into the rift's construction bank.
 
 **New rifts must be more than 1,000 horizontal blocks from every existing rift.** Active and dormant rifts both reserve this radius. Natural formation and `/rift spawn` use the same spacing rule. Previously saved rifts keep their locations.
 

@@ -54,7 +54,6 @@ public final class SoulEssenceEvents {
         ServerLevel world = event.getServer().overworld();
         RiftData data = RiftData.get(event.getServer());
         double criticalMass = Config.CRITICAL_MASS.get();
-        seedSpawnChunk(world, data, criticalMass);
         if (++ticks < 20) return;
         ticks = 0;
         boolean roll = ++rollSeconds >= Config.ESSENCE_ROLL_SECONDS.get();
@@ -90,16 +89,6 @@ public final class SoulEssenceEvents {
             // blocked terrain, and the global cap leave a critical chunk ready to retry.
         }
         RiftEssencePools.tick(world, data, LOADED);
-    }
-
-    private static void seedSpawnChunk(ServerLevel world, RiftData data, double criticalMass) {
-        if (data.spawnChunkSeeded) return;
-        ChunkPos spawn = new ChunkPos(world.getSharedSpawnPos());
-        LevelChunk chunk = world.getChunkSource().getChunkNow(spawn.x, spawn.z);
-        if (chunk == null) return;
-        set(chunk, new SoulEssence(Math.max(criticalMass, chunk.getData(ESSENCE).points())));
-        data.spawnChunkSeeded = true;
-        data.setDirty();
     }
 
     private static BlockPos findSite(ServerLevel world, LevelChunk chunk, RiftData data) {

@@ -13,7 +13,7 @@ public final class Config {
     public static final ModConfigSpec.IntValue RIFT_DEATH_ESSENCE = B.defineInRange("riftDeathEssence", 50, 1, 1000000);
     public static final ModConfigSpec.IntValue RIFT_UPGRADE_ESSENCE = B.defineInRange("riftUpgradeEssence", 50, 1, 1000000);
     public static final ModConfigSpec.IntValue RIFT_MAX_LEVEL = B.defineInRange("riftMaxLevel", 10, 1, 10);
-    public static final ModConfigSpec.DoubleValue CRITICAL_MASS = B.comment("Essence required to roll for a rift; passive accumulation caps here. The world spawn chunk starts critical once per world.").defineInRange("criticalMass", 600.0, 1.0, 1_000_000_000.0);
+    public static final ModConfigSpec.DoubleValue CRITICAL_MASS = B.comment("Essence required to roll for a rift; passive accumulation caps here.").defineInRange("criticalMass", 600.0, 1.0, 1_000_000_000.0);
     public static final ModConfigSpec.IntValue ESSENCE_ROLL_SECONDS = B.comment("Seconds between rift rolls in critical chunks.").defineInRange("essenceRollSeconds", 10, 1, 86400);
     public static final ModConfigSpec.DoubleValue ESSENCE_SPAWN_CHANCE = B.comment("Spawn probability per critical chunk per roll (0 disables natural rifts, 1 guarantees a roll succeeds if a site is available).").defineInRange("essenceSpawnChance", 0.1, 0.0, 1.0);
     public static final ModConfigSpec.IntValue BREAK_SECONDS = B.comment("Loaded server time before an uncleared rift breaks, including while players are inside.").defineInRange("breakSeconds", 600, 10, 86400);

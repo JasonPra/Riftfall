@@ -10,7 +10,6 @@ class RiftDataTest {
     @Test void restartPreservesActiveAndBrokenEncounters() {
         RiftData original = new RiftData();
         original.nextId = 8;
-        original.spawnChunkSeeded = true;
         RiftData.Rift waiting = new RiftData.Rift(6, new BlockPos(-123, 72, 456), 73);
         RiftData.Rift broken = new RiftData.Rift(7, new BlockPos(10, 64, -30), 0);
         broken.exteriorYaw = 123.45F;
@@ -25,7 +24,6 @@ class RiftDataTest {
 
         RiftData restored = RiftData.load(original.save(new CompoundTag(), null), null);
         assertEquals(8, restored.nextId);
-        assertTrue(restored.spawnChunkSeeded);
         assertEquals(2, restored.rifts.size());
         assertEquals(waiting.pos, restored.rifts.getFirst().pos);
         assertEquals(73, restored.rifts.getFirst().remaining);
@@ -48,9 +46,7 @@ class RiftDataTest {
         original.rifts.add(new RiftData.Rift(2, new BlockPos(0, 64, 0), 100));
         CompoundTag tag = original.save(new CompoundTag(), null);
         tag.getList("rifts", net.minecraft.nbt.Tag.TAG_COMPOUND).getCompound(0).remove("exteriorYaw");
-        tag.remove("spawnChunkSeeded");
         RiftData data = RiftData.load(tag, null);
-        assertFalse(data.spawnChunkSeeded, "Older worlds receive the initial soul essence bonus once");
         RiftData.Rift restored = data.rifts.getFirst();
         assertEquals(0F, restored.portalYaw(false));
         assertEquals(180F, restored.portalYaw(true));
