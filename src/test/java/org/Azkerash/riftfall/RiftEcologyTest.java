@@ -70,7 +70,7 @@ class RiftEcologyTest {
         var data=new RiftData();var r=new RiftData.Rift(2,BlockPos.ZERO,100);
         r.sourceBiome="minecraft:snowy_plains";r.theme="frozen";
         r.nativeMobs.clear();r.nativeMobs.add("minecraft:stray");r.roster.put("minecraft:stray",80);r.rosterVersion=2;r.layoutVersion=2;r.boss=java.util.UUID.randomUUID();
-        data.rifts.add(r);
+        data.addRift(r);
         var restored=RiftData.load(data.save(new CompoundTag(),null),null).rifts.getFirst();
         assertEquals(r.sourceBiome,restored.sourceBiome);assertEquals(r.theme,restored.theme);
         assertEquals(r.nativeMobs,restored.nativeMobs);assertEquals(r.boss,restored.boss);

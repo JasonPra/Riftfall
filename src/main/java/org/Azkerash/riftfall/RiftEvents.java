@@ -216,7 +216,7 @@ public final class RiftEvents {
         RiftEcology.capture(server.overworld(), r);
         r.exteriorYaw = server.overworld().random.nextFloat() * 360F;
         r.energy = Math.max(Config.CRITICAL_MASS.get(), SoulEssenceEvents.availableEssence(server.overworld(), pos));
-        data.rifts.add(r); data.setDirty();
+        data.addRift(r); data.setDirty();
         r.opening=true;
         try { openingBurst(server.overworld(), pos); } finally { r.opening=false; }
         SoulEssenceEvents.consume(server.overworld(), pos);
@@ -323,7 +323,7 @@ public final class RiftEvents {
                 if (data.activeCount() >= Config.MAX_RIFTS.get()) { c.getSource().sendFailure(Component.literal("Maximum active rifts reached.")); return 0; }
                 BlockPos pos = BlockPos.containing(c.getSource().getPosition());
                 if (!safe(world, pos) || !RiftPlacement.available(data, pos)) {
-                    c.getSource().sendFailure(Component.literal("Stand on solid ground with clear space, more than 1,000 horizontal blocks from every existing rift (including dormant rifts).")); return 0;
+                    c.getSource().sendFailure(Component.literal("Stand on solid ground with clear space, more than 63 chunks horizontally from every existing rift (including dormant rifts).")); return 0;
                 }
                 create(server, pos); return 1;
             }))

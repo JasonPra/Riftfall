@@ -29,7 +29,7 @@ class RiftReplenishmentTest {
         var data = new RiftData();
         var r = new RiftData.Rift(2, BlockPos.ZERO, 1200);
         r.built = true; r.enemyCapacity = 6; r.replenishTicks = 4500;
-        r.enemies.add(UUID.randomUUID()); data.rifts.add(r);
+        r.enemies.add(UUID.randomUUID()); data.addRift(r);
         var saved = RiftData.load(data.save(new CompoundTag(), null), null).rifts.getFirst();
         assertEquals(6, saved.enemyCapacity);
         assertEquals(4500, saved.replenishTicks);

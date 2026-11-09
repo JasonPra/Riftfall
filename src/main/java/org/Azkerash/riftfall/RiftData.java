@@ -16,11 +16,17 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 public final class RiftData extends SavedData {
     final List<Rift> rifts = new ArrayList<>();
+    final RiftPlacement.Index placement = new RiftPlacement.Index();
     int nextId;
 
     static RiftData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(
             new Factory<>(RiftData::new, RiftData::load, null), "riftfall_rifts");
+    }
+
+    void addRift(Rift r) {
+        rifts.add(r);
+        placement.add(new net.minecraft.world.level.ChunkPos(r.pos));
     }
 
     int activeCount() { return (int) rifts.stream().filter(r -> !r.dormant).count(); }
@@ -60,7 +66,7 @@ public final class RiftData extends SavedData {
             readIds(t.getList("outside", Tag.TAG_COMPOUND), r.outside);
             readIds(t.getList("occupants", Tag.TAG_COMPOUND), r.occupants);
             readIds(t.getList("retired", Tag.TAG_COMPOUND), r.retired);
-            data.rifts.add(r);
+            data.addRift(r);
         }
         return data;
     }

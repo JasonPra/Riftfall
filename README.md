@@ -40,11 +40,11 @@ The block retains `riftfall:crystal_cluster` for existing-world compatibility. F
 
 ## Rift formation and root pools
 
-The world spawn chunk cultivates essence like any other chunk and receives no starting bonus. The default critical mass is 600 essence. A critical chunk rolls a 10% chance every 10 seconds to form a rift on safe terrain. A successful formation consumes its chunk's charge into the rift's construction bank.
+The world spawn chunk cultivates essence like any other chunk and receives no starting bonus. The default critical mass is 600 essence. Rift spacing uses a circular **63-chunk radius** (about 1,008 blocks), independent of height or position within a chunk. A spatial index checks only nine nearby buckets, retains dormant reservations, and rebuilds from saved rifts on load. Blocked chunks skip terrain-site searches. A critical chunk rolls a 10% chance every 10 seconds to form a rift on safe terrain. A successful formation consumes its chunk's charge into the rift's construction bank.
 
-**New rifts must be more than 1,000 horizontal blocks from every existing rift.** Active and dormant rifts both reserve this radius. Natural formation and `/rift spawn` use the same spacing rule. Previously saved rifts keep their locations.
+**New rifts must be more than 63 chunks horizontally (about 1,008 blocks) from every existing rift.** Active and dormant rifts both reserve this radius. Natural formation and `/rift spawn` use the same spacing rule. Previously saved rifts keep their locations.
 
-A rift's chunk is its **root chunk**. Edge-connected, fully loaded overworld chunks within 1,000 blocks of the root (measured between chunk centers) form its essence catchment. If two catchments meet, each chunk belongs to the nearest reachable root, with deterministic ties; essence is never counted twice. Unloaded chunks retain their stored points, but are not force-loaded or remotely drained.
+A rift's chunk is its **root chunk**. Edge-connected, fully loaded overworld chunks within 63 chunks of the root (about 1,008 blocks) form its essence catchment. If two catchments meet, each chunk belongs to the nearest reachable root, with deterministic ties; essence is never counted twice. Unloaded chunks retain their stored points, but are not force-loaded or remotely drained.
 
 Active and dormant roots refill whenever they are below critical mass. Each connected donor can contribute up to 10 essence per second, with a combined cap of 100 per root per second (`riftPoolDrawPerSecond` is now per donor; `riftPoolTotalDrawPerSecond` controls the combined cap). With ten stocked donors, a depleted 600-point root can refill in about six seconds. Crystal growth and cave seeding in a dormant root reserve its reopening charge; other chunks and active roots retain normal crystal spending. Transfers conserve essence and never overdraw a donor. Each chunk's cultivation, including mature-crystal bonuses, contributes to this shared supply.
 

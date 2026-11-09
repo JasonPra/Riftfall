@@ -81,9 +81,9 @@ public final class SoulEssenceEvents {
                 essence = chunk.getData(ESSENCE);
             }
             if (!roll || !essence.isCritical(criticalMass) || data.activeCount() >= Config.MAX_RIFTS.get()) continue;
-            if (data.rifts.stream().anyMatch(r -> new ChunkPos(r.pos).equals(pos))) continue;
+            if (!RiftPlacement.available(data, pos)) continue;
             if (world.random.nextDouble() >= Config.ESSENCE_SPAWN_CHANCE.get()) continue;
-            BlockPos site = findSite(world, chunk, data);
+            BlockPos site = findSite(world, chunk);
             if (site != null) RiftEvents.create(event.getServer(), site);
             // create() consumes essence only after finding a valid site. Failed rolls,
             // blocked terrain, and the global cap leave a critical chunk ready to retry.
@@ -91,13 +91,13 @@ public final class SoulEssenceEvents {
         RiftEssencePools.tick(world, data, LOADED);
     }
 
-    private static BlockPos findSite(ServerLevel world, LevelChunk chunk, RiftData data) {
+    private static BlockPos findSite(ServerLevel world, LevelChunk chunk) {
         for (int attempt = 0; attempt < 12; attempt++) {
             // Leave room for the eruption and portal without querying adjacent chunks.
             int x = chunk.getPos().getMinBlockX() + 4 + world.random.nextInt(8);
             int z = chunk.getPos().getMinBlockZ() + 4 + world.random.nextInt(8);
             BlockPos site = world.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
-            if (RiftEvents.safe(world, site) && RiftPlacement.available(data, site)) return site;
+            if (RiftEvents.safe(world, site)) return site;
         }
         return null;
     }

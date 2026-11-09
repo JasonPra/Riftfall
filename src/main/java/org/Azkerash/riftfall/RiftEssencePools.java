@@ -33,8 +33,7 @@ final class RiftEssencePools {
     }
 
     static boolean withinRadius(ChunkPos root, ChunkPos donor) {
-        double x = ((double) donor.x - root.x) * 16, z = ((double) donor.z - root.z) * 16;
-        return x * x + z * z <= (double) RiftPlacement.RADIUS * RiftPlacement.RADIUS;
+        return RiftPlacement.tooClose(root, donor);
     }
 
     static double drawBudget(int donors, double perDonor, double totalLimit) {

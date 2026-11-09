@@ -8,20 +8,21 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RiftPoolsTest {
-    @Test void thousandBlockExclusionIgnoresHeightAndIncludesTheBoundary() {
-        BlockPos origin = new BlockPos(0,0,0);
-        assertTrue(RiftPlacement.tooClose(origin,new BlockPos(1000,300,0)));
-        assertTrue(RiftPlacement.tooClose(origin,new BlockPos(600,-60,800)));
-        assertFalse(RiftPlacement.tooClose(origin,new BlockPos(1001,0,0)));
-        assertFalse(RiftPlacement.tooClose(origin,new BlockPos(-1001,0,0)));
+    @Test void sixtyThreeChunkExclusionIncludesTheBoundaryAndKeepsACircularRadius() {
+        ChunkPos origin = new ChunkPos(0, 0);
+        assertTrue(RiftPlacement.tooClose(origin, new ChunkPos(63, 0)));
+        assertTrue(RiftPlacement.tooClose(origin, new ChunkPos(37, 50)));
+        assertFalse(RiftPlacement.tooClose(origin, new ChunkPos(64, 0)));
+        assertFalse(RiftPlacement.tooClose(origin, new ChunkPos(-64, 0)));
+        assertFalse(RiftPlacement.tooClose(origin, new ChunkPos(45, 45)));
     }
 
     @Test void dormantRiftsKeepTheirReservedArea() {
         RiftData data = new RiftData();
         RiftData.Rift r = new RiftData.Rift(0,new BlockPos(0,64,0),0);
-        r.dormant=true; data.rifts.add(r);
+        r.dormant=true; data.addRift(r);
         assertFalse(RiftPlacement.available(data,new BlockPos(300,10,300)));
-        assertTrue(RiftPlacement.available(data,new BlockPos(1001,64,0)));
+        assertTrue(RiftPlacement.available(data,new BlockPos(1024,64,0)));
     }
 
     @Test void connectedChunksHaveOneOwnerAndDisconnectedChunksHaveNone() {
@@ -41,12 +42,12 @@ class RiftPoolsTest {
         assertEquals(0,RiftEssencePools.transfer(600,50,10,600));
     }
 
-    @Test void catchmentsStopAtThousandBlocksEvenWithAContinuousLoadedPath() {
+    @Test void catchmentsStopAtSixtyThreeChunksEvenWithAContinuousLoadedPath() {
         var loaded = new java.util.HashSet<Long>();
         for (int x = 0; x <= 70; x++) loaded.add(ChunkPos.asLong(x, 0));
         var owned = RiftEssencePools.assign(loaded, Map.of(ChunkPos.asLong(0, 0), 1));
-        assertEquals(1, owned.get(ChunkPos.asLong(62, 0))); // 992 blocks
-        assertFalse(owned.containsKey(ChunkPos.asLong(63, 0))); // 1008 blocks
+        assertEquals(1, owned.get(ChunkPos.asLong(63, 0))); // 1008 blocks
+        assertFalse(owned.containsKey(ChunkPos.asLong(64, 0))); // 1024 blocks
         assertFalse(RiftEssencePools.withinRadius(new ChunkPos(0, 0), new ChunkPos(50, 50)));
     }
 

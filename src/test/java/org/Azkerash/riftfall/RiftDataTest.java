@@ -19,8 +19,8 @@ class RiftDataTest {
         UUID escaped = UUID.randomUUID();
         broken.enemies.add(enemy);
         broken.outside.add(escaped);
-        original.rifts.add(waiting);
-        original.rifts.add(broken);
+        original.addRift(waiting);
+        original.addRift(broken);
 
         RiftData restored = RiftData.load(original.save(new CompoundTag(), null), null);
         assertEquals(8, restored.nextId);
@@ -43,7 +43,7 @@ class RiftDataTest {
 
     @Test void olderSavesKeepTheirExteriorOrientationAndUseTheSouthExit() {
         RiftData original = new RiftData();
-        original.rifts.add(new RiftData.Rift(2, new BlockPos(0, 64, 0), 100));
+        original.addRift(new RiftData.Rift(2, new BlockPos(0, 64, 0), 100));
         CompoundTag tag = original.save(new CompoundTag(), null);
         tag.getList("rifts", net.minecraft.nbt.Tag.TAG_COMPOUND).getCompound(0).remove("exteriorYaw");
         RiftData data = RiftData.load(tag, null);
@@ -68,7 +68,7 @@ class RiftDataTest {
         UUID visitor = UUID.randomUUID(); rift.occupants.add(visitor);
         UUID pendingRetirement = UUID.randomUUID(); rift.retired.add(pendingRetirement);
         rift.cycle = 4; rift.encounterLevel = 3; rift.radius = 14;
-        original.rifts.add(rift);
+        original.addRift(rift);
         RiftData restored = RiftData.load(original.save(new CompoundTag(), null), null);
         RiftData.Rift saved = restored.rifts.getFirst();
         assertEquals(0, restored.activeCount());
