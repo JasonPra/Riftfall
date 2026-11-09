@@ -13,6 +13,7 @@ public class Riftfall {
             org.Azkerash.riftfall.confidence.ConfidenceConfig.SPEC);
         bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Loading event)->org.Azkerash.riftfall.confidence.ConfidenceConfig.loaded(event));
         bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Reloading event)->org.Azkerash.riftfall.confidence.ConfidenceConfig.loaded(event));
+        BehaviorTestEntities.register(bus);
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(GoblinSwordCombat::presets);

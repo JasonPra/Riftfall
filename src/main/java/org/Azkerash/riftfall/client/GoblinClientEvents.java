@@ -27,6 +27,7 @@ public final class GoblinClientEvents {
         });
     }
     @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(org.Azkerash.riftfall.BehaviorTestEntities.TESTER.get(),BehaviorTestRenderer::new);
         event.registerEntityRenderer(GoblinEntities.GOBLIN_ARCHER.get(), context->new GoblinRenderer(context,false));
         event.registerEntityRenderer(GoblinEntities.GOBLIN.get(), context->new GoblinRenderer(context,false));
         event.registerEntityRenderer(GoblinEntities.GOBLIN_SHAMAN.get(), context->new GoblinRenderer(context,true));
