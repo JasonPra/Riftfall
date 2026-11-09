@@ -69,6 +69,17 @@ class GoblinSwordDirectionTest {
             assertTrue(Math.abs(face.z)>.95F,"The broad face must face up/down during a lateral cut, not into its sweep");
         }
     }
+    @Test void basicCutsKeepTheShieldArmInGuardWithoutAFeint() {
+        for (String name:new String[]{"goblin_slash","goblin_backswing"}) {
+            var clip=resource("assets/riftfall/animmodels/animations/biped/"+name+".json");
+            for (var entry:clip.getAsJsonArray("animation")) {
+                var channel=entry.getAsJsonObject();
+                if (!java.util.Set.of("Arm_L","Hand_L","Tool_L").contains(channel.get("name").getAsString())) continue;
+                var frames=channel.getAsJsonArray("transform");
+                for (var frame:frames) assertEquals(frames.get(0),frame,"Offhand must stay tucked during "+name);
+            }
+        }
+    }
     @Test void everyBackstabPointsDownwardIntoThePlayerFacingSide() {
         for (float time : new float[]{1,1.8F,2.6F,3.4F}) {
             var direction=blade("goblin_grapple",time);
