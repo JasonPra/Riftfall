@@ -7,7 +7,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import org.Azkerash.riftfall.GoblinEntities;
 import org.Azkerash.riftfall.Riftfall;
 
-@EventBusSubscriber(modid = Riftfall.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Riftfall.MODID, value = Dist.CLIENT)
 public final class GoblinClientEvents {
     @SubscribeEvent public static void reload(net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent event) {
         event.registerReloadListener((net.minecraft.server.packs.resources.ResourceManagerReloadListener)manager->{GoblinFaceTextures.clear();org.Azkerash.riftfall.shield.ShieldModels.clear();});

@@ -42,13 +42,9 @@ final class GoblinSwordCombat {
                 .hitSound(yesman.epicfight.registry.entries.EpicFightSounds.BLADE_HIT)
                 .swingSound(yesman.epicfight.registry.entries.EpicFightSounds.WHOOSH_SHARP)
                 .collider(new yesman.epicfight.api.collider.MultiOBBCollider(5,.09,.08,.36,0,-.04,-.32))
-                .styleProvider(patch -> patch.getOriginal().getOffhandItem().isEmpty() ? Stance.GOBLIN_FRENZY : Styles.ONE_HAND)
-                .newStyleCombo(Styles.ONE_HAND,GoblinAnimations.SLASH,GoblinAnimations.BACKSWING,
-                    GoblinAnimations.FRENZY,GoblinAnimations.SHIELD_OVERHEAD,yesman.epicfight.gameasset.Animations.SWORD_DASH,GoblinAnimations.PLUNGE)
-                .newStyleCombo(Stance.GOBLIN_FRENZY,GoblinAnimations.SWORD_SWIPE,GoblinAnimations.SWORD_REVERSE,
-                    GoblinAnimations.FRENZY,yesman.epicfight.gameasset.Animations.SWORD_DASH,GoblinAnimations.PLUNGE)
-                .weaponCombinationPredicator(patch -> patch.getOriginal().getOffhandItem().getItem()
-                    instanceof net.minecraft.world.item.ShieldItem)
+                .addConditionals(GoblinCombatRegistries.EMPTY_HAND,GoblinCombatRegistries.SHIELD_HAND,GoblinCombatRegistries.OTHER_HAND)
+                .addMoveset(Styles.ONE_HAND,GoblinCombatRegistries.ONE_HAND_SET)
+                .addMoveset(Stance.GOBLIN_FRENZY,GoblinCombatRegistries.FRENZY_SET)
                 .canBePlacedOffhand(false));
     }
     private GoblinSwordCombat() {}
