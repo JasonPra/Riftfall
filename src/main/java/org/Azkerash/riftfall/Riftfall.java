@@ -33,6 +33,7 @@ public class Riftfall {
         bus.addListener(BackstabActorPayload::register);
         bus.addListener(BackstabViewPayload::register);
         bus.addListener(GoblinVoicePayload::register);
+        bus.addListener(GoblinVocalCuePayload::register);
         bus.addListener(org.Azkerash.riftfall.behavior.BehaviorOverlayPayload::register);
         bus.addListener(GoblinAnimations::register);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.ENTITY_PATCH.registerEvent(GoblinEntities::patches);

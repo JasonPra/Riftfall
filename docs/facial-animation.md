@@ -91,3 +91,12 @@ For jaw/speech integration, call `animator().jaw(0..15)` every tick from a futur
 To move the mouth again, update `GoblinFaceBinding.MOUTH`'s atlas `u/v` and, if needed, model bounds. The current north-face binding mirrors U to match Minecraft's original head UV orientation. Mouth UVs span exact pixel edges; transparent pixels stay transparent. At rest, one texture pixel maps to 1.1 × 1.0625 model pixels on the vanilla head. Epic Fight's different head dimensions are accounted for by the head-surface transform in `PatchedGoblinFacialLayer`.
 
 Combat render timing uses Epic Fight's fourth layer float (`partialTicks`). Its third float is head pitch and must never be used as a blend factor. Facial blends are bounded to [0,1] as a second guard against parts escaping the face during blinks. The mouth panel centers the visible fang-to-fang span; the atlas region's asymmetric transparent padding does not shift it sideways.
+
+
+## Vocal jaw motion
+
+Goblin screams, hurt voices, death voices and laughter now drive the existing articulated mouth. `VoiceEnvelope` and `VocalTrack` are species-independent: an envelope stores an amplitude curve and the track mixes channels by priority, using playback pitch to advance source time. `GoblinVocalAnimation` binds those controls to goblin sound events. Normal positional audio is unchanged; a server cue synchronizes the associated jaw motion, while client-owned fear clips start/stop their own channel. Hurt/death voices override fear, and expressions regain control once a clip ends. Manual jaw previews still override automatic vocal movement.
+
+The curves are sampled from the original OGG files by `tools/generate_goblin_voice_envelopes.py` using FFmpeg. The generator changes no audio or textures. Re-run it after replacing the recordings. Grunts use a short low-opening curve to match the existing random half-second audio slice.
+
+Enemy kills trigger laughter even while panicked; the old five-second voice cooldown is removed. Simultaneous kills emit one laugh per server tick. Allied kills do not trigger it, and silent entities retain silence.

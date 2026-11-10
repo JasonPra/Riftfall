@@ -17,7 +17,7 @@ public final class GoblinFacialLayer extends RenderLayer<GoblinEntity,HumanoidMo
         if(mob.isInvisible())return;
         var state=history.computeIfAbsent(mob,m->new History(m.tickCount,m.facialFrame()));
         if(state.tick!=mob.tickCount){state.previous=state.current;state.current=mob.facialFrame();state.tick=mob.tickCount;}
-        rig.render(state.previous,state.current,partial,stack,buffers,light,GoblinFaceTextures.material(),GoblinFaceTextures.base(mob.isShaman()?"goblin_shaman":mob.isArcher()?"goblin_archer":"goblin"));
+        rig.render(GoblinVocalAnimation.frame(mob,state.previous,mob.tickCount-1),GoblinVocalAnimation.frame(mob,state.current,mob.tickCount),partial,stack,buffers,light,GoblinFaceTextures.material(),GoblinFaceTextures.base(mob.isShaman()?"goblin_shaman":mob.isArcher()?"goblin_archer":"goblin"));
     }
     @Override public void render(PoseStack stack,MultiBufferSource buffers,int light,GoblinEntity mob,float limb,float amount,float partial,float age,float yaw,float pitch) {
         stack.pushPose();getParentModel().head.translateAndRotate(stack);renderFace(mob,stack,buffers,light,partial);stack.popPose();

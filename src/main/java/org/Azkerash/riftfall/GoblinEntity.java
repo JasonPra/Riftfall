@@ -39,7 +39,7 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
     public boolean isPanting(){return level().isClientSide?entityData.get(PANTING):org.Azkerash.riftfall.stamina.MobStamina.panting(this);}
     @Override public boolean managesStaminaActions(){return true;}
     private float previousBurrow,visualBurrow;
-    private int nextVoiceTick;
+    private long lastKillLaugh=Long.MIN_VALUE;
     private final org.Azkerash.riftfall.behavior.EscapeSoundWait escapeSounds=new org.Azkerash.riftfall.behavior.EscapeSoundWait();
     private long hurtVoiceUntil;
     public boolean isWaitingUnderground(){return isBurrowing() && burrowProgress()>=1;}
@@ -141,14 +141,20 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
             hurtVoiceUntil=Math.max(hurtVoiceUntil,level().getGameTime()+24);
         }
     }
-    private void playGoblinVoice(net.minecraft.sounds.SoundEvent sound) {
-        if(level().isClientSide || !isAlive() || tickCount<nextVoiceTick)return;
-        playSound(sound,.9F,.95F+getRandom().nextFloat()*.1F);
-        nextVoiceTick=tickCount+100;
+    @Override public void playSound(net.minecraft.sounds.SoundEvent sound,float volume,float pitch) {
+        super.playSound(sound,volume,pitch);
+        if(level().isClientSide || isSilent())return;
+        int kind=sound==GoblinSounds.LAUGH.get()?GoblinVocalCuePayload.LAUGH:sound==GoblinSounds.HURT.get()?GoblinVocalCuePayload.HURT:
+            sound==GoblinSounds.DEATH.get()?GoblinVocalCuePayload.DEATH:sound==GoblinSounds.GRUNT.get()?GoblinVocalCuePayload.GRUNT:-1;
+        if(kind>=0)GoblinVocalCuePayload.send(this,kind,pitch);
     }
     @Override public boolean killedEntity(net.minecraft.server.level.ServerLevel world,net.minecraft.world.entity.LivingEntity victim) {
         boolean result=super.killedEntity(world,victim);
-        if(!isAlliedTo(victim) && !isPanicking()) playGoblinVoice(GoblinSounds.LAUGH.get());
+        // A simultaneous multi-kill produces one laugh, but panic and the former five-second cooldown cannot suppress victory voices.
+        if(isAlive() && !isAlliedTo(victim) && lastKillLaugh!=world.getGameTime()) {
+            lastKillLaugh=world.getGameTime();playSound(GoblinSounds.LAUGH.get(),.9F,.95F+getRandom().nextFloat()*.1F);
+            getPersistentData().putInt("RiftfallKillLaughs",getPersistentData().getInt("RiftfallKillLaughs")+1);
+        }
         return result;
     }
     @Override protected net.minecraft.sounds.SoundEvent getHurtSound(net.minecraft.world.damagesource.DamageSource source) {

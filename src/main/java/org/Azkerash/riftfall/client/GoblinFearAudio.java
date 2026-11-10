@@ -26,7 +26,7 @@ public final class GoblinFearAudio {
     private static void finished(GoblinEntity mob,Voice voice) {
         if(voice.sound!=null && Minecraft.getInstance().getConnection()!=null)
             PacketDistributor.sendToServer(new GoblinVoicePayload(mob.getId(),voice.sequence,0));
-        voice.sound=null;
+        voice.sound=null;GoblinVocalAnimation.stopFear(mob);
     }
     private static boolean afraid(GoblinEntity mob) {
         return mob.isAlive() && !mob.isRemoved() && mob.isPanicking() && !mob.isSilent();
@@ -58,7 +58,7 @@ public final class GoblinFearAudio {
             float pitch=minimum+mob.getRandom().nextFloat()*(PITCH_MULTIPLIER-minimum);
             voice.sound=new FearSound(mob,pitch);
             voice.startedAt=mob.tickCount;voice.sequence=++nextSequence;
-            sounds.play(voice.sound);
+            sounds.play(voice.sound);GoblinVocalAnimation.fear(mob,pitch);
             PacketDistributor.sendToServer(new GoblinVoicePayload(mob.getId(),voice.sequence,(int)Math.ceil(CLIP_TICKS/pitch)+20));
             // Lower pitch lengthens the recording; allow it to finish before the next random voice.
             voice.nextClipTick=mob.tickCount+(int)Math.ceil(CLIP_TICKS/pitch)+8+mob.getRandom().nextInt(9);
