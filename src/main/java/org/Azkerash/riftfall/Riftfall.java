@@ -16,6 +16,7 @@ public class Riftfall {
         BehaviorTestEntities.register(bus);
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
+        GoblinSounds.register(bus);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(GoblinSwordCombat::presets);
         bus.addListener(GoblinEntities::attributes);
         bus.addListener(GrappleEscapePayload::register);

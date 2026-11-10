@@ -30,6 +30,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> BURROW_DURATION=
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private float previousBurrow,visualBurrow;
+    private int nextVoiceTick;
     public float burrowProgress(){return entityData.get(BURROW_PROGRESS)/1000F;}
     public int burrowDuration(){return entityData.get(BURROW_DURATION);}
     void burrowDuration(int ticks){entityData.set(BURROW_DURATION,ticks);}
@@ -39,6 +40,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public boolean isInRift(){return getPersistentData().getBoolean("RiftfallInRift");}
     public void setInRift(boolean inRift){getPersistentData().putBoolean("RiftfallInRift",inRift);}
     void panicVisuals(boolean panicked,boolean escaping,double progress){
+        if(panicked && !isPanicking()) playGoblinVoice(GoblinSounds.SCREAM.get());
         entityData.set(PANIC,!panicked?0:!escaping?3:getPersistentData().getBoolean("RiftfallBurrowing")?2:1);
         entityData.set(BURROW_PROGRESS,(int)Math.round(progress*1000));
     }
@@ -105,6 +107,19 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     @Override protected void hurtCurrentlyUsedShield(float damage) {
         if (damage >= 3 && getUseItem().is(GoblinItems.BUCKLER.get()))
             getUseItem().hurtAndBreak(1 + (int) damage, this, EquipmentSlot.OFFHAND);
+    }
+    private void playGoblinVoice(net.minecraft.sounds.SoundEvent sound) {
+        if(level().isClientSide || !isAlive() || tickCount<nextVoiceTick)return;
+        playSound(sound,.9F,.95F+getRandom().nextFloat()*.1F);
+        nextVoiceTick=tickCount+100;
+    }
+    @Override public boolean killedEntity(net.minecraft.server.level.ServerLevel world,net.minecraft.world.entity.LivingEntity victim) {
+        boolean result=super.killedEntity(world,victim);
+        if(!isAlliedTo(victim) && !isPanicking()) playGoblinVoice(GoblinSounds.LAUGH.get());
+        return result;
+    }
+    @Override protected net.minecraft.sounds.SoundEvent getDeathSound() {
+        return tickCount>=nextVoiceTick ? GoblinSounds.SCREAM.get() : null;
     }
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes().add(yesman.epicfight.registry.entries.EpicFightAttributes.IMPACT,.5)

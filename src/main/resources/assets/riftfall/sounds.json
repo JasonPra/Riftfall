@@ -1,0 +1,10 @@
+{
+  "goblin_laugh": {
+    "subtitle": "subtitles.riftfall.goblin_laugh",
+    "sounds": [{ "name": "riftfall:entity/goblin/laugh", "attenuation_distance": 16 }]
+  },
+  "goblin_scream": {
+    "subtitle": "subtitles.riftfall.goblin_scream",
+    "sounds": [{ "name": "riftfall:entity/goblin/scream", "attenuation_distance": 16 }]
+  }
+}
