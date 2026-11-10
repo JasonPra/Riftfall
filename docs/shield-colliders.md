@@ -6,8 +6,8 @@ Epic Fight weapon sweeps use their actual OBB, line, or plane colliders; vanilla
 attacks, which have no animated weapon collider, use a strike segment. Projectiles
 use their movement segment. Shield-piercing damage and piercing arrows bypass it.
 
-Ordinary guard clangs, including goblin shield blocks, play five semitones lower
-(pitch multiplier about 0.749), retaining the original random variation. Only
+Ordinary guard clangs, including goblin shield blocks, play ten semitones lower
+(pitch multiplier about 0.561), retaining the original random variation. Only
 successful timed parries retain the original guard clang pitch. Holding the Parry
 skill beyond its parry window produces the lower ordinary-block pitch.
 
