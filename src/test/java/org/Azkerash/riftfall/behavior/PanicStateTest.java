@@ -28,6 +28,23 @@ class PanicStateTest {
         assertTrue(state.beginBurrow(21,true,true));assertFalse(state.advanceBurrow(71,true,false,settings));
         assertEquals(PanicState.Stage.PANICKED,state.stage());assertTrue(state.active());
     }
+    @Test void completedDigWaitsUndergroundUntilAudioFinishesWithoutEmergingWhenApproached(){
+        var state=panicked();state.beginBurrow(20,true,true);
+        assertFalse(state.advanceBurrow(70,true,true,settings,false));
+        assertEquals(PanicState.Stage.UNDERGROUND,state.stage());assertTrue(state.active());assertEquals(1,state.progress(90,settings));
+        assertFalse(state.advanceBurrow(90,false,true,settings,false));
+        assertTrue(state.advanceBurrow(100,false,true,settings,true));assertEquals(PanicState.Stage.ESCAPED,state.stage());
+    }
+    @Test void riftRestrictionStillCancelsAnUndergroundAudioWait(){
+        var state=panicked();state.beginBurrow(20,true,true);
+        state.advanceBurrow(70,true,true,settings,false);
+        assertFalse(state.advanceBurrow(80,true,false,settings,false));assertEquals(PanicState.Stage.PANICKED,state.stage());
+    }
+    @Test void theLastDiggingTickMustStillBeSafeBeforeCommittingUnderground(){
+        var state=panicked();state.beginBurrow(20,true,true);
+        assertFalse(state.advanceBurrow(70,false,true,settings,false));
+        assertEquals(PanicState.Stage.PANICKED,state.stage());assertEquals(0,state.progress(70,settings));
+    }
     @Test void approachingOrHittingRestartsTheFullDiggingWindow(){
         var state=panicked();state.beginBurrow(20,true,true);
         assertFalse(state.advanceBurrow(69,false,true,settings));assertEquals(0,state.progress(69,settings));

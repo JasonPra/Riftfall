@@ -19,6 +19,10 @@ public final class GoblinBurrowPlayback {
                 animator.getPlayerFor(GoblinAnimations.BURROW).setElapsedTime(
                     Math.min(Math.max(0,duration-.001F),mob.burrowProgress()*duration));
             }
+            if(mob.isWaitingUnderground()) {
+                float end=Math.max(0,GoblinAnimations.BURROW.get().getTotalTime()-.001F);
+                animator.getPlayerFor(GoblinAnimations.BURROW).setElapsedTime(end);
+            }
         }else if(playing) {
             animator.playAnimation(GoblinAnimations.RECOVER,0);
         }

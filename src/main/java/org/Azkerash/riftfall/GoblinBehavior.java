@@ -98,7 +98,7 @@ final class GoblinBehavior {
         if (!mob.isRanged() && mob.getPersistentData().getBoolean("RiftfallSeekingHealing") && snapshot.targetVisible()) {
             mob.retreatThreat=snapshot.target();mob.retreatCoverUntil=mob.level().getGameTime()+40;
         }
-        var notes=new net.minecraft.nbt.CompoundTag();if(panic.active())notes.putString("panic",mob.isInRift()?"scared; escape blocked inside rift; ordinary retreat/regroup":panic.burrowing()?"burrowing; interruptible until complete":"fleeing to find safe burrow ground");if (healing.wanted()) notes.putString("healing",healing.reason());
+        var notes=new net.minecraft.nbt.CompoundTag();if(panic.active())notes.putString("panic",mob.isInRift()?"scared; escape blocked inside rift; ordinary retreat/regroup":mob.isWaitingUnderground()?"underground; waiting for current voice to finish":panic.burrowing()?"burrowing; interruptible until complete":"fleeing to find safe burrow ground");if (healing.wanted()) notes.putString("healing",healing.reason());
         mob.getPersistentData().put("RiftfallBehaviorNotes",notes);
         var result=snapshot.confidence();var data=mob.getPersistentData();
         data.putDouble("RiftfallConfidence",result.value());data.putDouble("RiftfallConfidencePoints",result.points());

@@ -26,11 +26,13 @@ final class GoblinPanicVisuals implements PanicEscapeGoal.Visuals {
         }else if(ownsRetreat){mob.getPersistentData().putBoolean("RiftfallRetreating",false);ownsRetreat=false;}
     }
     @Override public void beginBurrow(int duration){
+        mob.resetEscapeSoundHold();
         digStrokes=0;mob.burrowDuration(duration);
         mob.getPersistentData().putInt("RiftfallBurrowDuration",duration);
         GoblinAnimations.play(mob,GoblinAnimations.BURROW);
     }
-    @Override public void abortBurrow(){GoblinAnimations.play(mob,GoblinAnimations.RECOVER);}
+    @Override public boolean readyToEscape(){return mob.escapeSoundsFinished();}
+    @Override public void abortBurrow(){mob.resetEscapeSoundHold();GoblinAnimations.play(mob,GoblinAnimations.RECOVER);}
     @Override public void dig(BlockState ground){
         if(mob.level() instanceof net.minecraft.server.level.ServerLevel server){
             double yaw=Math.toRadians(mob.yBodyRot);double backX=Math.sin(yaw),backZ=-Math.cos(yaw);

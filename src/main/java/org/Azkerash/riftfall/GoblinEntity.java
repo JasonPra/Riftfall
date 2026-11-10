@@ -31,6 +31,13 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private float previousBurrow,visualBurrow;
     private int nextVoiceTick;
+    private final org.Azkerash.riftfall.behavior.EscapeSoundWait escapeSounds=new org.Azkerash.riftfall.behavior.EscapeSoundWait();
+    private long hurtVoiceUntil;
+    public boolean isWaitingUnderground(){return isBurrowing() && burrowProgress()>=1;}
+    public void voiceStarted(java.util.UUID observer,long sequence,int duration){escapeSounds.started(observer,sequence,level().getGameTime(),duration);}
+    public void voiceFinished(java.util.UUID observer,long sequence){escapeSounds.finished(observer,sequence);}
+    void resetEscapeSoundHold(){escapeSounds.resetHold();}
+    boolean escapeSoundsFinished(){return escapeSounds.ready(level().getGameTime()) && level().getGameTime()>=hurtVoiceUntil;}
     public float burrowProgress(){return entityData.get(BURROW_PROGRESS)/1000F;}
     public int burrowDuration(){return entityData.get(BURROW_DURATION);}
     void burrowDuration(int ticks){entityData.set(BURROW_DURATION,ticks);}
@@ -118,6 +125,8 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         return result;
     }
     @Override protected net.minecraft.sounds.SoundEvent getHurtSound(net.minecraft.world.damagesource.DamageSource source) {
+        // The slowest hurt pitch is 1.2x: allow the whole recording plus a short delivery margin.
+        if(!level().isClientSide && !isSilent())hurtVoiceUntil=level().getGameTime()+68;
         return GoblinSounds.HURT.get();
     }
     @Override protected net.minecraft.sounds.SoundEvent getDeathSound() {
@@ -151,7 +160,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         // Update the old default without overwriting deliberately customized speeds.
         var speed=getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed!=null && Math.abs(speed.getBaseValue()-.28)<.00001) speed.setBaseValue(.23);
-        for (String key:java.util.List.of("RiftfallRetreating","RiftfallCoveringRetreat","RiftfallPanicked","RiftfallPanicking","RiftfallBurrowing","RiftfallBurrowProgress","RiftfallPanicEscapeAllowed","RiftfallPanicSafety","RiftfallBurrowDuration",
+        for (String key:java.util.List.of("RiftfallRetreating","RiftfallCoveringRetreat","RiftfallPanicked","RiftfallPanicking","RiftfallBurrowing","RiftfallBurrowProgress","RiftfallPanicEscapeAllowed","RiftfallPanicSafety","RiftfallBurrowDuration","RiftfallBurrowWaitingForSound",
                 "RiftfallFormation","RiftfallHighGround","RiftfallFlanking","RiftfallScreening","RiftfallCasting",
                 "RiftfallStaffAttack","RiftfallStaffApproaching","RiftfallSeekingHealing","RiftfallBehaviorNotes","RiftfallBehavior")) getPersistentData().remove(key);
         var scale=getAttribute(Attributes.SCALE);

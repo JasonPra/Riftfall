@@ -18,6 +18,7 @@ public final class PanicEscapeGoal extends Goal {
         void beginBurrow(int durationTicks);
         void abortBurrow();
         void dig(BlockState ground);
+        default boolean readyToEscape(){return true;}
     }
     private final PathfinderMob mob;
     private final Supplier<PanicSettings> tuning;
@@ -35,7 +36,7 @@ public final class PanicEscapeGoal extends Goal {
     }
     public boolean active(){return state.active();}
     public boolean escapeAllowed(){return enabled.getAsBoolean()&&escapeAllowed.getAsBoolean();}
-    public boolean burrowing(){return state.stage()==PanicState.Stage.BURROWING;}
+    public boolean burrowing(){return state.stage()==PanicState.Stage.BURROWING||state.stage()==PanicState.Stage.UNDERGROUND;}
     public void observe(CombatSituation situation){
         if(situation.targetVisible())lastThreat=situation.target().position();
         else if(situation.lastSeenPosition()!=null)lastThreat=situation.lastSeenPosition();
@@ -90,12 +91,13 @@ public final class PanicEscapeGoal extends Goal {
         long now=mob.level().getGameTime();var s=tuning.get();var threats=threats();boolean safe=safe(threats,!burrowing());
         if(burrowing()){
             mob.getNavigation().stop();mob.setDeltaMovement(0,mob.getDeltaMovement().y,0);
-            if(state.advanceBurrow(now,safe,escapeAllowed(),s)){
+            boolean ready=state.progress(now,s)>=1 && visuals.readyToEscape();
+            if(state.advanceBurrow(now,safe,escapeAllowed(),s,ready)){
                 // Last-moment checks run before discard, including the owner's in-rift restriction.
                 mob.getPersistentData().putBoolean("RiftfallEscaped",true);mob.discard();return;
             }
             if(!burrowing()){visuals.abortBurrow();nextPath=0;}
-            else if(now%2==0){
+            else if(state.progress(now,s)<1 && now%2==0){
                 int depth=Math.max(2,(int)Math.ceil(mob.getBbHeight()*1.12));
                 int layer=Math.min(depth-1,(int)(state.progress(now,s)*depth));
                 var ground=BlockPos.containing(mob.getX(),mob.getBoundingBox().minY-.05,mob.getZ()).below(layer);
@@ -129,11 +131,13 @@ public final class PanicEscapeGoal extends Goal {
         data.putBoolean("RiftfallPanicking",active);data.putBoolean("RiftfallBurrowing",burrowing());
         data.putBoolean("RiftfallPanicEscapeAllowed",escapeAllowed());
         data.putDouble("RiftfallBurrowProgress",state.progress(mob.level().getGameTime(),tuning.get()));
+        data.putBoolean("RiftfallBurrowWaitingForSound",state.stage()==PanicState.Stage.UNDERGROUND);
         visuals.update(active,active&&escapeAllowed(),data.getDouble("RiftfallBurrowProgress"));
     }
     public void signals(Map<String,Double> signals){
         signals.put("panic.active",active()?1D:0D);signals.put("panic.escape_allowed",escapeAllowed()?1D:0D);
         signals.put("panic.burrowing",burrowing()?1D:0D);signals.put("panic.progress",state.progress(mob.level().getGameTime(),tuning.get()));
+        signals.put("panic.waiting_for_sound",state.stage()==PanicState.Stage.UNDERGROUND?1D:0D);
         if(Double.isFinite(distance))signals.put("panic.distance",distance);
     }
 }
