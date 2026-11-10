@@ -33,7 +33,17 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         if (original.isAggressive() || action)
             GoblinCombatTremor.apply(pose,(original.tickCount+partialTick)/20F,original.getId(),action,original.tremorConfidence(partialTick));
     }
-    @Override public void updateMotion(boolean considerInaction) { if (original.isArcher()) commonAggressiveRangedMobUpdateMotion(considerInaction);
+    @Override public void postTickClient() {
+        super.postTickClient();
+        org.Azkerash.riftfall.client.GoblinBurrowPlayback.update(this);
+    }
+    @Override public void updateMotion(boolean considerInaction) {
+        if(original.isBurrowing() && !isStunned()) {
+            currentLivingMotion=yesman.epicfight.api.animation.LivingMotions.INACTION;
+            currentCompositeMotion=yesman.epicfight.api.animation.LivingMotions.NONE;
+            return;
+        }
+        if (original.isArcher()) commonAggressiveRangedMobUpdateMotion(considerInaction);
         else commonAggressiveMobUpdateMotion(considerInaction);
         if(original.isPanicFleeing() && !isStunned() && original.getDeltaMovement().horizontalDistanceSqr()>.0001) {
             currentLivingMotion=yesman.epicfight.api.animation.LivingMotions.RUN;

@@ -30,6 +30,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> BURROW_DURATION=
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private float previousBurrow,visualBurrow;
+    public float burrowProgress(){return entityData.get(BURROW_PROGRESS)/1000F;}
     public int burrowDuration(){return entityData.get(BURROW_DURATION);}
     void burrowDuration(int ticks){entityData.set(BURROW_DURATION,ticks);}
     public boolean isPanicking(){return entityData.get(PANIC)>0;}
