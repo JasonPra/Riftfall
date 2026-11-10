@@ -36,6 +36,7 @@ final class GoblinBehavior {
         add("seek_healing",healing,()->false);
         add("regroup",new RegroupGoal(mob,other->other instanceof GoblinEntity goblin && !goblin.isBurrowing() && !goblin.isPanicFleeing(),32,10,4,1.05),()->false);
         if (!mob.isRanged()) {
+            add("rear_approach",new GoblinRearAmbush(mob),()->false);
             add("cautious_retreat",new GoblinTactics.Retreat(mob),()->false);
             add("warrior_retreat",new GoblinTactics.WarriorRetreat(mob),()->false);
             var grapple=new GoblinGrapple(mob);add("grapple",grapple,()->true);
@@ -60,7 +61,10 @@ final class GoblinBehavior {
     private void sense(CombatSituation snapshot,Map<String,Double> signals) {
         situation=snapshot;
         panic.observe(snapshot);
-        boolean escaping=panic.active()&&panic.escapeAllowed();
+        boolean rearOpening=snapshot.targetVisible() && GoblinRearAmbush.opening(mob);
+        boolean committedAmbush=List.of("grapple","plunge","melee").stream().anyMatch(id->
+            executors.containsKey(id) && executors.get(id).running() && commitments.get(id).getAsBoolean());
+        boolean escaping=panic.active()&&panic.escapeAllowed()&&!rearOpening&&!committedAmbush;
         if (!snapshot.targetVisible()) {
             mob.getPersistentData().putBoolean("RiftfallFlanking",false);
             mob.getPersistentData().putBoolean("RiftfallScreening",false);
@@ -70,6 +74,7 @@ final class GoblinBehavior {
         signals.put("self.melee_role",mob.isRanged()?0D:1D);
         signals.put("cover.safe",GoblinTactics.coverSafe(mob)?1D:0D);
         signals.put("target.exposed",snapshot.targetVisible() && GoblinTactics.exposedToStaff(snapshot.target())?1D:0D);
+        signals.put("target.unaware",rearOpening?1D:0D);
         Map<String,Boolean> prepared=new HashMap<>();String committed=null;
         if (!interrupted && !escaping) for (var entry:executors.entrySet()) {
             if (entry.getValue().running() && commitments.get(entry.getKey()).getAsBoolean()) {
@@ -80,6 +85,10 @@ final class GoblinBehavior {
         String committedAction=committed;
         executors.forEach((id,action)-> {
             boolean combat=!id.equals("wander");
+            // An unwatched opening temporarily overrides flight; a latched grapple or airborne leap finishes normally.
+            if(id.equals("panic_escape") && (rearOpening || committedAmbush)) {
+                signals.put("ready."+id,0D);signals.put("committed."+id,0D);return;
+            }
             if(escaping&&!id.equals("panic_escape")){signals.put("ready."+id,0D);signals.put("committed."+id,0D);return;}
             // Hidden targets cannot start new attacks or track through walls. Committed swings may finish naturally.
             boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing") || id.equals("panic_escape") || id.equals("regroup")):
@@ -87,8 +96,8 @@ final class GoblinBehavior {
             // Do not pathfind or advance idle ability cooldowns while another animation owns the action slot.
             boolean advancing=id.equals("melee") || id.equals("grapple") || id.equals("plunge");
             boolean defensive=id.equals("melee") && snapshot.context().get("target.distance")<=1.8;
-            boolean willing=!advancing || snapshot.context().active("engage") || defensive || action.running() && commitments.get(id).getAsBoolean();
-            if (id.equals("cautious_retreat")) willing=!snapshot.context().active("engage");
+            boolean willing=!advancing || snapshot.context().active("engage") || rearOpening || defensive || action.running() && commitments.get(id).getAsBoolean();
+            if (id.equals("cautious_retreat")) willing=!snapshot.context().active("engage") && !rearOpening;
             boolean ready=!interrupted && allowed && willing && (committedAction==null || committedAction.equals(id))
                 && prepared.computeIfAbsent(id,key->action.prepare());
             signals.put("ready."+id,ready?1D:0D);

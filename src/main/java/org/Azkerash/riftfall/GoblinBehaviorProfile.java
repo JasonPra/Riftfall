@@ -12,9 +12,10 @@ final class GoblinBehaviorProfile {
         rules.add(rule("seek_healing",700,Map.of("fear",50D,"self.wounded",50D)));
         rules.add(rule("warrior_retreat",500,Map.of("fear",50D,"self.wounded",40D)));
         rules.add(rule("cautious_retreat",300,Map.of("fear",50D)));
-        rules.add(new BehaviorRule("watch",100,Map.of("fear",20D),c->c.active("self.melee_role") && c.active("target.visible") && !c.active("engage")));
+        rules.add(new BehaviorRule("watch",100,Map.of("fear",20D),c->c.active("self.melee_role") && c.active("target.visible") && !c.active("engage") && !c.active("target.unaware")));
         rules.add(rule("grapple",400,Map.of("confidence",20D)));
         rules.add(rule("plunge",350,Map.of("confidence",20D)));
+        rules.add(rule("rear_approach",320,Map.of("fear",20D)));
         rules.add(rule("staff",500,Map.of("target.exposed",40D)));
         rules.add(rule("heal",400,Map.of("fear",10D)));
         rules.add(rule("ranged_retreat",300,Map.of("fear",50D)));

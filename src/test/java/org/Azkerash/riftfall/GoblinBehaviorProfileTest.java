@@ -48,6 +48,15 @@ class GoblinBehaviorProfileTest {
         assertEquals("bow",choose(Map.of("ready.regroup",1D,"ready.bow",1D,"cover.safe",1D)));
         assertEquals("interrupted",choose(Map.of("ready.regroup",1D,"self.interrupted",1D)));
     }
+    @Test void unwatchedRearOpeningAllowsAnAmbushAtLowConfidence() {
+        var signals=new java.util.HashMap<>(Map.of("self.melee_role",1D,"target.visible",1D,"target.unaware",1D,
+            "engage",0D,"fear",1D,"ready.rear_approach",1D,"ready.melee",1D));
+        assertEquals("rear_approach",choose(signals));
+        signals.put("ready.plunge",1D);assertEquals("plunge",choose(signals));
+        signals.put("ready.grapple",1D);assertEquals("grapple",choose(signals));
+        signals.put("ready.seek_healing",1D);assertEquals("seek_healing",choose(signals));
+        signals.put("self.interrupted",1D);assertEquals("interrupted",choose(signals));
+    }
     @Test void lostSightUsesMemoryInsteadOfLaunchingNewAttacks() {
         assertEquals("search",choose(Map.of("target.remembered",1D)));
         assertEquals("idle",choose(Map.of("target.remembered",1D,"self.melee_role",1D,"engage",0D)));
