@@ -61,7 +61,7 @@ class BackstabAnimationTest {
             var item=new Matrix4f().translate(0,0,-.13F).rotateX(-(float)Math.PI/2).translate(0,11.25F/16,0)
                 .rotateY(-(float)Math.PI/2).rotateZ((float)Math.PI/4).scale(2,2,1);
             float draw=0;
-            for(double time:new double[]{.38,.58,.76}){
+            for(double time:new double[]{.38,.58,.72}){
                 var tool=world("greatsword_backstab",rig,new Matrix4f(),time,"Tool_R");
                 var sword=new Matrix4f(tool).mul(item);
                 var grip=sword.transformPosition(new org.joml.Vector3f(6.5F/32-.5F,1-26.5F/32-.5F,0));
@@ -75,8 +75,30 @@ class BackstabAnimationTest {
             }
         }
     }
+    @Test void pairedImpaleLiftsOnlySlightlyThenTipsAndDropsBeforeRecovery() throws IOException {
+        try(var reader=new InputStreamReader(getClass().getResourceAsStream("/assets/epicfight/animmodels/entity/biped.json"),StandardCharsets.UTF_8)){
+            var rig=JsonParser.parseReader(reader).getAsJsonObject().getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
+            for(double t:new double[]{0,.18,.38,.58,.72}){
+                var tool=world("greatsword_backstab",rig,new Matrix4f(),t,"Tool_R");
+                var forward=tool.transformDirection(new org.joml.Vector3f(0,0,-1)).normalize();
+                assertTrue(forward.y>.99 && Math.abs(forward.z)<.02,"plunge must stay level, not chop downward");
+            }
+            var hilt=world("greatsword_backstab",rig,new Matrix4f(),.72,"Tool_R");
+            var lift=world("greatsword_backstab",rig,new Matrix4f(),.9,"Tool_R");
+            assertEquals(.045,lift.m32()-hilt.m32(),.003);
+            var tip=world("greatsword_backstab",rig,new Matrix4f(),1.3,"Tool_R").transformDirection(new org.joml.Vector3f(0,0,-1)).normalize();
+            assertTrue(tip.y>.85 && tip.z<-.4,"sword tips forward only after the lift");
+            var victim=joint("greatsword_backstab_fall","Root");
+            assertEquals(.045,at(victim,.38).m32()-at(victim,.18).m32(),.001);
+            assertEquals(0,at(victim,1.8).m12(),.001);
+            assertTrue(at(joint("greatsword_backstab_death","Root"),1.9).equals(at(victim,1.8),.0001F));
+            assertTrue(BackstabSequence.GREATSWORD_ATTACK_TICKS>=Math.ceil(2.4*20)+2);
+            assertTrue(BackstabSequence.GREATSWORD_RECOVERY_TICKS>=Math.ceil(5.0*20)+2);
+            assertTrue(BackstabSequence.GREATSWORD_DEATH_TICKS>=Math.ceil(1.9*20)+2);
+        }
+    }
     @Test void clipsHaveFiniteRigidTransformsAndSmoothVictimKeySpacing(){
-        for(var name:new String[]{"backstab_caught","backstab_fall","goblin_shield_backstab","greatsword_backstab"})for(var value:clip(name)){
+        for(var name:new String[]{"backstab_caught","backstab_fall","goblin_shield_backstab","greatsword_backstab","greatsword_backstab_fall","greatsword_backstab_death"})for(var value:clip(name)){
             var channel=value.getAsJsonObject();var times=channel.getAsJsonArray("time");var transforms=channel.getAsJsonArray("transform");assertEquals(times.size(),transforms.size());
             for(int i=0;i<times.size();i++){
                 var time=times.get(i).getAsDouble();var matrix=at(channel,time);assertTrue(matrix.isFinite());assertEquals(1,matrix.determinant(),.001F);

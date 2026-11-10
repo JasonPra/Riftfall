@@ -23,15 +23,18 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 
 /** Shared player/NPC critical-hit sequence. A real weapon hit starts the protected fall and recovery. */
 public final class BackstabSequence {
-    public static final int ATTACK_TICKS=36,RECOVERY_TICKS=94;
+    public static final int ATTACK_TICKS=36,RECOVERY_TICKS=94,GREATSWORD_ATTACK_TICKS=50,GREATSWORD_RECOVERY_TICKS=102,GREATSWORD_DEATH_TICKS=40;
     private static final ResourceLocation RESTRAINT=ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"backstab");
     private static final Map<UUID,Victim> VICTIMS=new HashMap<>();
     private static final class Victim {
         final LivingEntity target,attacker;final yesman.epicfight.api.animation.AnimationManager.AnimationAccessor<AttackAnimation> attack;final Vec3 anchor;final ResourceLocation dimension;final boolean oldNoAi;
-        long until;boolean fallen;
+        final float facingYaw;final boolean great;final int attackTicks;final long releaseAt;
+        long until;boolean fallen,corpse,detached;
         Victim(LivingEntity target,LivingEntity attacker){
             this.target=target;this.attacker=attacker;attack=animation(attacker);anchor=target.position();dimension=target.level().dimension().location();
-            oldNoAi=target instanceof Mob mob && mob.isNoAi();until=target.level().getGameTime()+ATTACK_TICKS+4;
+            facingYaw=target.getYRot();great=attack==GoblinAnimations.GREATSWORD_BACKSTAB;attackTicks=great?GREATSWORD_ATTACK_TICKS:ATTACK_TICKS;
+            releaseAt=target.level().getGameTime()+31;
+            oldNoAi=target instanceof Mob mob && mob.isNoAi();until=target.level().getGameTime()+attackTicks+4;
         }
     }
     static boolean greatsword(yesman.epicfight.world.capabilities.item.WeaponCategory category){
@@ -41,6 +44,23 @@ public final class BackstabSequence {
         return greatsword(EpicFightCapabilities.getItemStackCapability(attacker.getMainHandItem()).getWeaponCategory())
             ?GoblinAnimations.GREATSWORD_BACKSTAB:GoblinAnimations.SHIELD_BACKSTAB;
     }
+    static double maximumDistance(LivingEntity attacker){return animation(attacker)==GoblinAnimations.GREATSWORD_BACKSTAB?2.2:1.5;}
+    static void clientCorpseHold(LivingEntity entity,int ticks){
+        entity.getPersistentData().putLong("RiftfallBackstabCorpseUntil",entity.level().getGameTime()+ticks);
+        entity.getPersistentData().putLong("RiftfallBackstabCorpsePoseUntil",entity.level().getGameTime()+(ticks>0?ticks+20:0));
+        if(ticks>0){entity.deathTime=0;corpseClientPose(entity);}
+    }
+    private static void corpseClientPose(LivingEntity entity){
+        if(entity.getPersistentData().getLong("RiftfallBackstabCorpsePoseUntil")<=entity.level().getGameTime())return;
+        entity.deathTime=0;var p=patch(entity);if(p==null)return;
+        var player=p.getAnimator().getPlayerFor(null);
+        if(player.getRealAnimation().get()!=GoblinAnimations.GREATSWORD_BACKSTAB_DEATH.get()){
+            float elapsed=(GREATSWORD_DEATH_TICKS-(entity.getPersistentData().getLong("RiftfallBackstabCorpseUntil")-entity.level().getGameTime()))/20F;
+            p.playAnimationInstantly(GoblinAnimations.GREATSWORD_BACKSTAB_DEATH);
+            p.getAnimator().getPlayerFor(null).setElapsedTime(Math.clamp(elapsed,0,GoblinAnimations.GREATSWORD_BACKSTAB_DEATH.get().getTotalTime()-.001F));
+        }
+    }
+    public static boolean holdsCorpse(LivingEntity entity){if(entity.level().isClientSide)return entity.getPersistentData().getLong("RiftfallBackstabCorpseUntil")>entity.level().getGameTime();var state=VICTIMS.get(entity.getUUID());return state!=null && state.corpse && entity.level().getGameTime()<state.until;}
     public static boolean captured(LivingEntity entity){return VICTIMS.containsKey(entity.getUUID());}
     private static LivingEntityPatch<?> patch(LivingEntity entity){return EpicFightCapabilities.getEntityPatch(entity,LivingEntityPatch.class);}
     private static boolean proneSpace(LivingEntity target){
@@ -76,7 +96,7 @@ public final class BackstabSequence {
             || attacker.level()!=target.level() || !humanoid(attacker) || !humanoid(target)
             || attacker.level().getGameTime()<attacker.getPersistentData().getLong("RiftfallBackstabReady"))return false;
         var offset=attacker.position().subtract(target.position());
-        return offset.horizontalDistanceSqr()<1.5*1.5 && Math.abs(offset.y)<.6 && GoblinGrapple.isBehind(target.getLookAngle(),offset)
+        return offset.horizontalDistanceSqr()<Math.pow(maximumDistance(attacker),2) && Math.abs(offset.y)<.6 && GoblinGrapple.isBehind(target.getLookAngle(),offset)
             && attacker.hasLineOfSight(target) && proneSpace(target)
             && (attacker.level().isClientSide || WeaponReach.canContact(attacker,target,animation(attacker).get()));
     }
@@ -97,12 +117,12 @@ public final class BackstabSequence {
         attacker.getPersistentData().putLong("RiftfallBackstabReady",began+200);
         float yaw=GoblinTactics.staffFacing(target.getX()-attacker.getX(),target.getZ()-attacker.getZ());attacker.setYRot(yaw);attacker.setYBodyRot(yaw);attacker.setYHeadRot(yaw);
         if(attacker instanceof Mob mob)mob.getNavigation().stop();
-        if(attacker instanceof GoblinEntity goblin)GoblinBuckler.lowerForAttack(goblin,ATTACK_TICKS);
+        if(attacker instanceof GoblinEntity goblin)GoblinBuckler.lowerForAttack(goblin,state.attackTicks);
         patch(attacker).playAnimationSynchronized(state.attack,0);
         attacker.getPersistentData().putInt("RiftfallBackstabAttempts",attacker.getPersistentData().getInt("RiftfallBackstabAttempts")+1);
         return new MobActiveSkill.Execution(){
-            @Override public boolean running(){return attacker.isAlive() && target.isAlive() && attacker.level()==target.level()
-                && !attacker.isRemoved() && !patch(attacker).isStunned() && attacker.level().getGameTime()-began<ATTACK_TICKS;}
+            @Override public boolean running(){return attacker.isAlive() && (target.isAlive() || state.corpse) && attacker.level()==target.level()
+                && !attacker.isRemoved() && !patch(attacker).isStunned() && attacker.level().getGameTime()-began<state.attackTicks;}
             @Override public void tick(){attacker.setSprinting(false);if(attacker instanceof Mob mob)mob.getNavigation().stop();}
             @Override public void stop(){if(VICTIMS.get(target.getUUID())==state && !state.fallen)release(state,true);attacker.setSprinting(false);}
         };
@@ -116,11 +136,13 @@ public final class BackstabSequence {
     }
     @SubscribeEvent public static void landed(LivingDamageEvent.Post event){
         var state=VICTIMS.get(event.getEntity().getUUID());if(state==null || state.fallen || event.getNewDamage()<=0)return;
-        if(!state.target.isAlive()){release(state,false);return;}
         if(event.getSource() instanceof EpicFightDamageSource source && source.getEntity()==state.attacker
             && source.getAnimation()!=null && source.getAnimation().get()==state.attack.get()){
-            state.fallen=true;state.until=state.target.level().getGameTime()+RECOVERY_TICKS;
-            patch(state.target).playAnimationSynchronized(GoblinAnimations.BACKSTAB_FALL,0);
+            if(!state.target.isAlive() && !state.great){release(state,false);return;}
+            state.fallen=true;state.corpse=!state.target.isAlive();
+            state.until=state.target.level().getGameTime()+(state.great?(state.corpse?GREATSWORD_DEATH_TICKS:GREATSWORD_RECOVERY_TICKS):RECOVERY_TICKS);
+            if(state.corpse)BackstabCorpsePayload.send(state.target,GREATSWORD_DEATH_TICKS);
+            patch(state.target).playAnimationSynchronized(state.great?(state.corpse?GoblinAnimations.GREATSWORD_BACKSTAB_DEATH:GoblinAnimations.GREATSWORD_BACKSTAB_FALL):GoblinAnimations.BACKSTAB_FALL,0);
             state.target.getPersistentData().putBoolean("RiftfallBackstabProtected",true);
             state.target.getPersistentData().putLong("RiftfallBackstabRecoveryUntil",state.until);
             state.attacker.getPersistentData().putInt("RiftfallBackstabHits",state.attacker.getPersistentData().getInt("RiftfallBackstabHits")+1);
@@ -130,14 +152,23 @@ public final class BackstabSequence {
         var state=VICTIMS.get(event.getEntity().getUUID());
         if(state!=null && state.fallen && !event.getSource().is(DamageTypeTags.BYPASSES_INVULNERABILITY))event.setCanceled(true);
     }
-    @SubscribeEvent public static void hold(EntityTickEvent.Post event){
-        if(!(event.getEntity() instanceof LivingEntity target) || target.level().isClientSide)return;
+    @SubscribeEvent(priority=EventPriority.LOWEST) public static void hold(EntityTickEvent.Post event){
+        if(!(event.getEntity() instanceof LivingEntity target))return;
+        if(target.level().isClientSide){corpseClientPose(target);return;}
         var state=VICTIMS.get(target.getUUID());if(state==null)return;
-        boolean invalid=!target.isAlive() || target instanceof ServerPlayer p && (p.hasDisconnected() || p.isCreative() || p.isSpectator())
+        boolean attackerInterrupted=!state.attacker.isAlive() || state.attacker.isRemoved() || patch(state.attacker)==null || patch(state.attacker).isStunned();
+        if(state.great && state.fallen && !state.detached && target.level().getGameTime()<state.releaseAt && attackerInterrupted){
+            if(state.corpse){patch(target).playAnimationSynchronized(yesman.epicfight.gameasset.Animations.BIPED_DEATH,0);release(state,false);return;}
+            state.detached=true;state.until=target.level().getGameTime()+RECOVERY_TICKS;
+            patch(target).playAnimationSynchronized(GoblinAnimations.BACKSTAB_FALL,0);
+            target.getPersistentData().putLong("RiftfallBackstabRecoveryUntil",state.until);
+        }
+        boolean invalid=(!target.isAlive() && !state.corpse) || target instanceof ServerPlayer p && (p.hasDisconnected() || p.isCreative() || p.isSpectator())
             || target.isPassenger() || target.isInWaterOrBubble() || target.isInLava() || !supported(target,state.anchor) || !target.level().dimension().location().equals(state.dimension)
             || target.position().distanceToSqr(state.anchor)>4 || target.level().getGameTime()>=state.until
-            || !state.fallen && (!state.attacker.isAlive() || state.attacker.isRemoved() || patch(state.attacker)==null || patch(state.attacker).isStunned());
+            || !state.fallen && attackerInterrupted;
         if(invalid){release(state,true);return;}
+        if(target instanceof Mob){target.setYRot(state.facingYaw);target.setYBodyRot(state.facingYaw);target.setYHeadRot(state.facingYaw);}
         target.setDeltaMovement(0,target.getDeltaMovement().y,0);target.setSprinting(false);
         if(target.position().distanceToSqr(state.anchor)>.0001){
             if(target instanceof ServerPlayer player)player.connection.teleport(state.anchor.x,state.anchor.y,state.anchor.z,player.getYRot(),player.getXRot());
@@ -145,13 +176,14 @@ public final class BackstabSequence {
         }
     }
     private static void release(Victim state,boolean resetAnimation){
-        VICTIMS.remove(state.target.getUUID(),state);restrain(state.target,false);
+        VICTIMS.remove(state.target.getUUID(),state);if(state.corpse && !state.target.isRemoved() && state.target.level().getGameTime()<state.until)BackstabCorpsePayload.send(state.target,0);restrain(state.target,false);
         if(state.target instanceof Mob mob)mob.setNoAi(state.oldNoAi);
         var data=state.target.getPersistentData();data.putBoolean("RiftfallBackstabLocked",false);data.putBoolean("RiftfallBackstabProtected",false);data.remove("RiftfallBackstabRecoveryUntil");
         if(resetAnimation && state.target.isAlive()){
             var targetPatch=patch(state.target);
             if(targetPatch!=null && (targetPatch.getAnimator().getPlayerFor(null).getAnimation().get()==GoblinAnimations.BACKSTAB_CAUGHT.get()
-                || targetPatch.getAnimator().getPlayerFor(null).getAnimation().get()==GoblinAnimations.BACKSTAB_FALL.get()))
+                || targetPatch.getAnimator().getPlayerFor(null).getAnimation().get()==GoblinAnimations.BACKSTAB_FALL.get()
+                || targetPatch.getAnimator().getPlayerFor(null).getAnimation().get()==GoblinAnimations.GREATSWORD_BACKSTAB_FALL.get()))
                 targetPatch.playAnimationSynchronized(yesman.epicfight.gameasset.Animations.BIPED_IDLE,0);
         }
     }

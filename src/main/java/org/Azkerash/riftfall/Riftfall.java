@@ -25,6 +25,7 @@ public class Riftfall {
         GoblinCombatRegistries.CONDITIONALS.register(bus);
         bus.addListener(GoblinEntities::attributes);
         bus.addListener(GrappleEscapePayload::register);
+        bus.addListener(BackstabCorpsePayload::register);
         bus.addListener(GoblinVoicePayload::register);
         bus.addListener(org.Azkerash.riftfall.behavior.BehaviorOverlayPayload::register);
         bus.addListener(GoblinAnimations::register);

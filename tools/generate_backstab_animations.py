@@ -1,5 +1,5 @@
 """Author the paired backstab clips. Usage: python tools/generate_backstab_animations.py EPIC_FIGHT_JAR
-Requires numpy. Writes only the four backstab clips; existing combat animations are untouched.
+Requires numpy. Writes only the six backstab clips; existing combat animations are untouched.
 """
 from pathlib import Path
 import json,zipfile,math,sys,numpy as np
@@ -113,11 +113,23 @@ windup={**ready,'_hands':{'Arm_R':(.36,1.27,-.04)},'Chest':(-8,-24,0),'_sink':-.
 thrust={**ready,'_hands':{'Arm_R':(.18,1.4,.58)},'Chest':(-17,16,0),'_sink':-.06,'Thigh_L':(18,0,0),'Leg_L':(-18,0,0),'Head':(9,0,0)}
 export('goblin_shield_backstab',[(0,ready),(.2,windup),(.46,windup),(.62,thrust),(.8,thrust),(.98,ready),(1.3,ready),(1.8,{})])
 
-# Two-handed, waist/chest-level greatsword thrust. The support hand follows the rear grip.
-great_ready={'_greatsword':1,'_blade':(0,.4,1),'_hands':{'Arm_R':(.04,1.16,.14),'Arm_L':(.04,1.08,-.04)},
+# Paired impale: keep the edge level through the plunge, lift only an inch, tip and release.
+great_ready={'_greatsword':1,'_blade':(0,0,1),'_hands':{'Arm_R':(.04,1.18,.06),'Arm_L':(.04,1.18,-.14)},
  'Torso':(-4,0,0),'Chest':(-4,-7,0),'Head':(5,0,0),'_sink':-.025,'Thigh_R':(10,0,-3),'Leg_R':(-18,0,0),'Thigh_L':(10,0,3),'Leg_L':(-18,0,0)}
-great_draw={**great_ready,'_blade':(0,.06,1),'_hands':{'Arm_R':(.06,1.16,-.12),'Arm_L':(.06,1.15,-.30)},'Torso':(5,0,0),'Chest':(3,-12,0),'Head':(-4,0,0)}
-great_thrust={**great_ready,'_blade':(0,0,1),'_hands':{'Arm_R':(.06,1.18,.54),'Arm_L':(.06,1.18,.34)},
+great_draw={**great_ready,'_hands':{'Arm_R':(.04,1.18,-.20),'Arm_L':(.04,1.18,-.40)},'Torso':(7,0,0),'Chest':(4,-10,0),'Head':(-4,0,0)}
+great_thrust={**great_ready,'_hands':{'Arm_R':(.06,1.18,.54),'Arm_L':(.06,1.18,.34)},
  'Torso':(-12,0,0),'Chest':(-10,8,0),'Head':(12,0,0),'_sink':-.04,'Thigh_L':(17,0,3),'Leg_L':(-25,0,0)}
-export('greatsword_backstab',[(0,great_ready),(.18,great_draw),(.38,great_draw),(.58,great_thrust),(.76,great_thrust),(.98,great_draw),(1.3,great_ready),(1.8,great_ready)])
-print('Generated one-handed and greatsword strikes, caught, and 4.6-second fall/recovery clips')
+great_lift={**great_thrust,'_hands':{'Arm_R':(.06,1.225,.54),'Arm_L':(.06,1.225,.34)},'Torso':(-8,0,0),'Chest':(-8,8,0)}
+great_tip={**great_lift,'_blade':(0,-.5,1),'_hands':{'Arm_R':(.06,1.225,.54),'Arm_L':(.06,1.3144,.3611)},'Torso':(-14,0,0),'Chest':(-12,8,0)}
+great_release={**great_tip,'_blade':(0,-.7,1),'_hands':{'Arm_R':(.06,1.19,.56),'Arm_L':(.06,1.3047,.3962)}}
+great_withdraw={**great_ready,'_blade':(0,-.4,1),'_hands':{'Arm_R':(.04,1.18,-.06),'Arm_L':(.04,1.2543,-.2457)}}
+export('greatsword_backstab',[(0,great_ready),(.18,great_draw),(.38,great_draw),(.58,great_thrust),(.72,great_thrust),(.9,great_lift),(1.08,great_lift),(1.3,great_tip),(1.5,great_release),(1.76,great_withdraw),(2.08,great_ready),(2.4,great_ready)])
+impaled={**caught,'Torso':(-3,0,0),'Chest':(5,0,0),'Head':(-8,0,0),'Arm_R':(-8,0,-8),'Arm_L':(-8,0,8)}
+lifted={**impaled,'_sink':.045,'Thigh_R':(5,0,-3),'Thigh_L':(5,0,3),'Leg_R':(-7,0,0),'Leg_L':(-7,0,0)}
+carried_tip={**lifted,'Root':(-12,0,0),'Torso':(-12,0,0),'Chest':(-10,0,0),'Head':(8,0,0),'_forward':.06}
+sliding={**caught,'Root':(-32,0,0),'Torso':(-12,0,0),'Chest':(-8,0,0),'Head':(10,0,0),'_sink':-.12,'_forward':.16}
+dropped_knees={**knees,'Root':(-38,0,0),'Torso':(-8,0,0),'Chest':(-5,0,0)}
+impale_drop=[(0,impaled),(.18,impaled),(.38,lifted),(.56,lifted),(.78,carried_tip),(1.0,sliding),(1.2,dropped_knees),(1.5,prone),(1.62,{**prone,'Root':(-85,0,0),'_sink':-.43}),(1.8,prone)]
+export('greatsword_backstab_fall',impale_drop+[(2.4,prone),(2.65,{**prone,'_hands':{'Arm_R':(.5,.13,.85),'Arm_L':(-.5,.13,.85)}}),(3.05,push),(3.4,allfours),(3.75,knees),(4.2,rise),(4.52,{'Root':(-3,0,0),'_sink':-.025,'Chest':(-5,0,0),'Arm_R':(-8,0,-7),'Arm_L':(-8,0,7)}),(5.0,{})])
+export('greatsword_backstab_death',impale_drop+[(1.9,prone)])
+print('Generated one-handed backstab and paired greatsword impale/lift/release clips')

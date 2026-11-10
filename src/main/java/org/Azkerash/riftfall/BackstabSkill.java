@@ -12,7 +12,7 @@ import yesman.epicfight.skill.*;
 public final class BackstabSkill extends Skill implements MobActiveSkill {
     public BackstabSkill(SkillBuilder<?> builder){super(builder);}
     private LivingEntity target(LivingEntity player){
-        return player.level().getEntitiesOfClass(LivingEntity.class,player.getBoundingBox().inflate(1.6),entity->
+        return player.level().getEntitiesOfClass(LivingEntity.class,player.getBoundingBox().inflate(2.3),entity->
             BackstabSequence.canStart(player,entity) && player.getLookAngle().dot(entity.position().subtract(player.position()).normalize())>.35).stream()
             .min(Comparator.comparingDouble(player::distanceToSqr)).orElse(null);
     }

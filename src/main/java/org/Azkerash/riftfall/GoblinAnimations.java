@@ -13,7 +13,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 public final class GoblinAnimations {
     public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, GRAPPLE_RELEASE, BURROW;
     public static AnimationAccessor<yesman.epicfight.api.animation.types.StaticAnimation> PANIC_RUN;
-    public static AnimationAccessor<yesman.epicfight.api.animation.types.KnockdownAnimation> BACKSTAB_FALL;
+    public static AnimationAccessor<yesman.epicfight.api.animation.types.KnockdownAnimation> BACKSTAB_FALL, GREATSWORD_BACKSTAB_FALL, GREATSWORD_BACKSTAB_DEATH;
     public static AnimationAccessor<ActionAnimation> BACKSTAB_CAUGHT;
     public static AnimationAccessor<yesman.epicfight.api.animation.types.StaticAnimation> PANT;
     public static AnimationAccessor<AttackAnimation> SHIELD_BACKSTAB, GREATSWORD_BACKSTAB;
@@ -24,13 +24,15 @@ public final class GoblinAnimations {
             BACKSTAB_CAUGHT=builder.nextAccessor("biped/backstab_caught",a->new ActionAnimation(.06F,a,Armatures.BIPED)
                 .addStateRemoveOld(EntityState.CAN_USE_ITEM,false).addStateRemoveOld(EntityState.CAN_SWITCH_HAND_ITEM,false));
             BACKSTAB_FALL=builder.nextAccessor("biped/backstab_fall",BackstabSequence::recovery);
+            GREATSWORD_BACKSTAB_FALL=builder.nextAccessor("biped/greatsword_backstab_fall",BackstabSequence::recovery);
+            GREATSWORD_BACKSTAB_DEATH=builder.nextAccessor("biped/greatsword_backstab_death",BackstabSequence::recovery);
             SHIELD_BACKSTAB=builder.nextAccessor("biped/goblin_shield_backstab",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.phase(0,.55F,.85F,1.25F,1.8F)
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,yesman.epicfight.api.utils.math.ValueModifier.setter(6))
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.STUN_TYPE,yesman.epicfight.world.damagesource.StunType.NONE))
                 .addStateRemoveOld(EntityState.TURNING_LOCKED,true));
             GREATSWORD_BACKSTAB=builder.nextAccessor("biped/greatsword_backstab",a->GoblinWeaponAttacks.animation(a,
-                GoblinWeaponAttacks.phase(0,.45F,.78F,1.25F,1.8F)
+                GoblinWeaponAttacks.phase(0,.52F,.70F,1.9F,2.4F)
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,yesman.epicfight.api.utils.math.ValueModifier.setter(6))
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.STUN_TYPE,yesman.epicfight.world.damagesource.StunType.NONE))
                 .addStateRemoveOld(EntityState.TURNING_LOCKED,true));
