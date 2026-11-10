@@ -21,7 +21,7 @@ final class GoblinShieldGuard {
         if(!patch.isLogicalClient()) {
             mob.hurtCurrentlyUsedShield(incoming.damage);
             mob.playBlockedGrunt();
-            patch.playSound(EpicFightSounds.CLASH.get(),-.05F,.1F);
+            mob.playSound(EpicFightSounds.CLASH.get(),1,org.Azkerash.riftfall.shield.GuardClang.pitch(mob.getRandom().nextFloat(),-.05F,.1F));
             patch.playAnimationSynchronized(Animations.BIPED_HIT_SHIELD,0);
             if(source.getEntity()!=null) {
                 var attacker=EpicFightCapabilities.getEntityPatch(source.getEntity(),LivingEntityPatch.class);
