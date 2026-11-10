@@ -6,6 +6,19 @@ import net.minecraft.world.entity.Mob;
 
 /** Shared stamina API. All mobs inherit a pool; undead retain unlimited resource behavior. */
 public final class MobStamina {
+    /** Keep the configured base while applying native Epic Fight equipment modifiers in their normal order. */
+    public static double maximum(Mob mob){
+        var a=mob.getAttribute(yesman.epicfight.registry.entries.EpicFightAttributes.MAX_STAMINA);
+        if(a==null)return StaminaConfig.maximum();
+        var data=mob.getPersistentData();double previous=data.contains("RiftfallStaminaBase")?data.getDouble("RiftfallStaminaBase"):15;
+        if(a.getBaseValue()==previous){a.setBaseValue(StaminaConfig.maximum());data.putDouble("RiftfallStaminaBase",StaminaConfig.maximum());}
+        // Curios reapplies transient equipment modifiers on its first post-tick after loading.
+        return Math.max(a.getValue(),data.getDouble("RiftfallStaminaLoadingMaximum"));
+    }
+    public static double regeneration(Mob mob){
+        var a=mob.getAttribute(yesman.epicfight.registry.entries.EpicFightAttributes.STAMINA_REGEN);
+        return StaminaConfig.regeneration()*(a==null?1:a.getValue());
+    }
     public static boolean uses(Mob mob){return mob instanceof StaminaUser && !mob.getType().is(EntityTypeTags.UNDEAD);}
     public static StaminaUser user(Mob mob){return (StaminaUser)mob;}
     public static boolean manual(Mob mob){return user(mob).managesStaminaActions();}
@@ -31,7 +44,7 @@ public final class MobStamina {
     public static boolean spend(Mob mob,String action){return spend(mob,StaminaConfig.cost(action),action);}
     public static boolean spend(Mob mob,double amount,String reason){
         if(!uses(mob))return true;
-        boolean paid=((StaminaUser)mob).staminaState().spend(amount,StaminaConfig.maximum(),StaminaConfig.delay(),reason);
+        boolean paid=((StaminaUser)mob).staminaState().spend(amount,maximum(mob),StaminaConfig.delay(),reason);
         ((StaminaUser)mob).syncPanting(panting(mob));
         if(!paid){mob.setSprinting(false);mob.stopUsingItem();mob.getNavigation().stop();}
         return paid;
@@ -39,13 +52,13 @@ public final class MobStamina {
     /** Reject an attempted sprint if there is not even one tick's worth of stamina available. */
     public static boolean sprintAllowed(Mob mob){
         if(!uses(mob))return true;
-        if(((StaminaUser)mob).staminaState().canSpend(StaminaConfig.sprint()/20,StaminaConfig.maximum()))return true;
+        if(((StaminaUser)mob).staminaState().canSpend(StaminaConfig.sprint()/20,maximum(mob)))return true;
         spend(mob,StaminaConfig.sprint()/20,"sprint");return false;
     }
     public static void beforeTick(Mob mob,boolean working){
         if(!uses(mob)||!mob.isAlive())return;
         var user=(StaminaUser)mob;
-        user.staminaState().tick(StaminaConfig.maximum(),StaminaConfig.regeneration(),user.staminaFleeing(),user.staminaConfident(),working);
+        user.staminaState().tick(maximum(mob),regeneration(mob),user.staminaFleeing(),user.staminaConfident(),working);
         user.syncPanting(user.staminaState().panting());
         if(panting(mob)){mob.setSprinting(false);mob.stopUsingItem();mob.getNavigation().stop();}
     }
@@ -62,15 +75,15 @@ public final class MobStamina {
     public static CompoundTag diagnostics(Mob mob){
         var d=new CompoundTag();if(!uses(mob))return d;
         var user=(StaminaUser)mob;var state=user.staminaState();
-        d.putDouble("Current",state.current(StaminaConfig.maximum()));d.putDouble("Maximum",StaminaConfig.maximum());
+        d.putDouble("Current",state.current(maximum(mob)));d.putDouble("Maximum",maximum(mob));
         d.putBoolean("Panting",state.panting());d.putInt("DelayTicks",state.recoveryDelay());
         d.putDouble("RegenMultiplier",StaminaState.regenerationMultiplier(state.panting(),user.staminaFleeing(),user.staminaConfident()));
-        d.putDouble("BaseRegenPerSecond",StaminaConfig.regeneration());d.putString("LastExpense",state.lastExpense());return d;
+        d.putDouble("BaseRegenPerSecond",regeneration(mob));d.putString("LastExpense",state.lastExpense());return d;
     }
     public static void save(Mob mob,CompoundTag data){if(uses(mob))data.put("RiftfallStamina",diagnostics(mob));}
     public static void load(Mob mob,CompoundTag data){
         if(!uses(mob)||!data.contains("RiftfallStamina"))return;
-        var saved=data.getCompound("RiftfallStamina");((StaminaUser)mob).staminaState().restore(saved.getDouble("Current"),saved.getBoolean("Panting"),saved.getInt("DelayTicks"),StaminaConfig.maximum());
+        var saved=data.getCompound("RiftfallStamina");mob.getPersistentData().putDouble("RiftfallStaminaLoadingMaximum",saved.getDouble("Maximum"));((StaminaUser)mob).staminaState().restore(saved.getDouble("Current"),saved.getBoolean("Panting"),saved.getInt("DelayTicks"),maximum(mob));
     }
     private MobStamina(){}
 }

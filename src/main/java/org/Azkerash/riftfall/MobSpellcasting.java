@@ -1,7 +1,7 @@
 package org.Azkerash.riftfall;
 
 import java.util.EnumSet;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
+import org.Azkerash.riftfall.mana.MobMana;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -37,27 +37,33 @@ final class MobSpellcasting {
     }
     private static final class CastingGoal extends Goal {
         final Mob mob;
-        final MagicData data = new MagicData(true);
+        io.redspace.ironsspellbooks.api.magic.MagicData data;
+        int level;
         AbstractSpell spell;
-        int time, cooldown=40;
+        int time, cooldown=40,windup=20;
         boolean released;
         CastingGoal(Mob mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
             if (cooldown>0) { cooldown--; return false; }
+            spell=mob instanceof GoblinEntity ? SpellRegistry.MAGIC_ARROW_SPELL.get() : SpellRegistry.FIREBOLT_SPELL.get();
+            level=Math.min(spell.getMaxLevel(),Math.max(1,mob.getPersistentData().getInt("RiftfallSpellLevel")));
+            MobMana.describe(mob,spell,level);
+            if(!MobMana.canCast(mob,spell,level))return false;
             var target=mob.getTarget();
             return intelligentLiving(mob) && target!=null && target.isAlive() && !mob.isAlliedTo(target)
                 && (!(mob instanceof GoblinEntity goblin) || mob.distanceToSqr(target)>=Math.pow(goblin.squad.panicRange(),2) || GoblinTactics.coverSafe(goblin))
                 && mob.distanceToSqr(target)<24*24 && mob.getSensing().hasLineOfSight(target) && mob.hurtTime==0;
         }
         @Override public boolean canContinueToUse() {
-            return time<34 && mob.getTarget()!=null && mob.getTarget().isAlive() && !mob.isAlliedTo(mob.getTarget())
+            return time<windup+14 && mob.getTarget()!=null && mob.getTarget().isAlive() && !mob.isAlliedTo(mob.getTarget())
                 && (!(mob instanceof GoblinEntity) || mob.distanceToSqr(mob.getTarget())>=3*3)
-                && mob.distanceToSqr(mob.getTarget())<28*28 && mob.getSensing().hasLineOfSight(mob.getTarget()) && mob.hurtTime==0;
+                && mob.distanceToSqr(mob.getTarget())<28*28 && mob.getSensing().hasLineOfSight(mob.getTarget()) && !MobMana.hurtInterrupts(mob,spell);
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
-            if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,"cast")){time=34;return;}
-            time=0; released=false;
+            data=MobMana.data(mob);
+            if(!MobMana.canCast(mob,spell,level)){time=windup+14;return;}
+            time=0; released=false;windup=MobMana.windup(mob,spell,level);
             spell = mob instanceof GoblinEntity ? SpellRegistry.MAGIC_ARROW_SPELL.get() : SpellRegistry.FIREBOLT_SPELL.get();
             mob.getNavigation().stop(); mob.getPersistentData().putBoolean("RiftfallCasting",true);
             spell.playSound(spell.getCastStartSound(),mob);
@@ -69,26 +75,26 @@ final class MobSpellcasting {
             mob.getLookControl().setLookAt(target,90,90);
             mob.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES,target.getEyePosition());
             var patch=EpicFightCapabilities.getEntityPatch(mob,LivingEntityPatch.class);
-            if (patch!=null && patch.isStunned()) { time=34; return; }
-            if (++time<20) ((ServerLevel)mob.level()).sendParticles(ParticleTypes.ENCHANT,mob.getX(),mob.getEyeY(),mob.getZ(),2,.25,.15,.25,0);
-            if (time==20 && spell.isEnabled()) {
-                int level=Math.min(spell.getMaxLevel(),Math.max(1,mob.getPersistentData().getInt("RiftfallSpellLevel")));
-                if (spell.checkPreCastConditions(mob.level(),level,mob,data)) {
+            if (patch!=null && patch.isStunned()) { time=windup+14; return; }
+            if (++time<windup) ((ServerLevel)mob.level()).sendParticles(ParticleTypes.ENCHANT,mob.getX(),mob.getEyeY(),mob.getZ(),2,.25,.15,.25,0);
+            if (time==windup && spell.isEnabled()) {
+                if (spell.checkPreCastConditions(mob.level(),level,mob,data) && MobMana.spend(mob,spell,level)) {
                     spell.onServerPreCast(mob.level(),level,mob,data);
                     spell.onCast(mob.level(),level,mob,CastSource.MOB,data);
                     spell.onServerCastComplete(mob.level(),level,mob,data,false);
                     released=true;
                     mob.getPersistentData().putInt("RiftfallSpellsCast",mob.getPersistentData().getInt("RiftfallSpellsCast")+1);
                 }
-                GoblinAnimations.play(mob,GoblinAnimations.RELEASE);
+                GoblinAnimations.play(mob,released?GoblinAnimations.RELEASE:GoblinAnimations.RECOVER);
+                if(!released)time=windup+14;
             }
-            if (time==26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
+            if (time==windup+6) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
         }
         @Override public void stop() {
             mob.getPersistentData().putBoolean("RiftfallCasting",false);
-            cooldown=released?100:60;
-            if (time<26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
-            data.resetCastingState();
+            cooldown=MobMana.cooldown(mob,released?100:60);
+            if (time<windup+6) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
+            if(data!=null)data.resetCastingState();
         }
     }
     private MobSpellcasting() {}

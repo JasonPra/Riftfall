@@ -35,17 +35,25 @@ public final class MobStaminaEvents {
             }
         }
     }
+    @SubscribeEvent(priority=EventPriority.LOWEST) public static void finishEquipmentLoad(EntityTickEvent.Post event){
+        if(event.getEntity() instanceof Mob mob && !mob.level().isClientSide && MobStamina.uses(mob) && mob.getPersistentData().contains("RiftfallStaminaLoadingMaximum")){
+            mob.getPersistentData().remove("RiftfallStaminaLoadingMaximum");
+            MobStamina.user(mob).staminaState().current(MobStamina.maximum(mob));
+        }
+    }
     @SubscribeEvent public static void joined(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide())return;
         if(event.getEntity() instanceof Mob mob && MobStamina.uses(mob) && !MobStamina.manual(mob)
                 && mob.goalSelector.getAvailableGoals().stream().noneMatch(g->g.getGoal() instanceof Rest))
             mob.goalSelector.addGoal(-1,new Rest(mob));
+        if(event.getEntity() instanceof io.redspace.ironsspellbooks.entity.spells.AbstractMagicProjectile)return;
         if(event.getEntity() instanceof Projectile projectile && projectile.getOwner() instanceof Mob mob){
             if(!MobStamina.automaticContact(mob,"bow")){event.setCanceled(true);return;}
             projectile.getPersistentData().putBoolean(PROJECTILE_PAID,true);
         }
     }
     @SubscribeEvent(priority=EventPriority.HIGH) public static void customDamage(LivingIncomingDamageEvent event){
+        if(event.getSource() instanceof io.redspace.ironsspellbooks.damage.SpellDamageSource)return;
         if(!(event.getSource().getEntity() instanceof Mob mob) || !MobStamina.uses(mob))return;
         var direct=event.getSource().getDirectEntity();
         // An already-fired projectile keeps working if the shooter subsequently becomes exhausted.

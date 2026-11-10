@@ -3,6 +3,7 @@ package org.Azkerash.riftfall;
 import java.util.EnumSet;
 import java.util.Comparator;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import org.Azkerash.riftfall.mana.MobMana;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.TargetEntityCastData;
@@ -354,10 +355,12 @@ final class GoblinTactics {
     static final class Heal extends Goal {
         final GoblinEntity mob;
         LivingEntity recipient;
-        int ticks;
-        final MagicData data=new MagicData(true);
+        int ticks,windup=20;
+        MagicData data;
         Heal(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
+            var spell=SpellRegistry.HEALING_CIRCLE_SPELL.get();MobMana.describe(mob,spell,1);
+            if(!MobMana.canCast(mob,spell,1))return false;
             if (mob.level().getGameTime()<mob.getPersistentData().getLong("RiftfallNextHeal") || mob.hurtTime>0
                 || mob.getTarget()!=null && mob.distanceToSqr(mob.getTarget())<Math.pow(mob.squad.panicRange(),2) && !coverSafe(mob) || !SpellRegistry.HEALING_CIRCLE_SPELL.get().isEnabled()) return false;
             recipient=mob.level().getEntitiesOfClass(LivingEntity.class,mob.getBoundingBox().inflate(10),
@@ -368,35 +371,37 @@ final class GoblinTactics {
             return recipient!=null;
         }
         @Override public boolean canContinueToUse() {
-            return ticks<34 && mob.hurtTime==0 && recipient!=null && recipient.isAlive() && mob.distanceToSqr(recipient)<12*12
+            return ticks<windup+14 && !MobMana.hurtInterrupts(mob,SpellRegistry.HEALING_CIRCLE_SPELL.get()) && recipient!=null && recipient.isAlive() && mob.distanceToSqr(recipient)<12*12
                 && (mob.getTarget()==null || mob.distanceToSqr(mob.getTarget())>=Math.pow(mob.squad.panicRange(),2) || coverSafe(mob));
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
-            if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,"heal")){ticks=34;return;}
-            ticks=0; mob.getNavigation().stop(); mob.getPersistentData().putBoolean("RiftfallCasting",true);
+            data=MobMana.data(mob);
+            if(!MobMana.canCast(mob,SpellRegistry.HEALING_CIRCLE_SPELL.get(),1)){ticks=windup+14;return;}
+            ticks=0;windup=MobMana.windup(mob,SpellRegistry.HEALING_CIRCLE_SPELL.get(),1); mob.getNavigation().stop(); mob.getPersistentData().putBoolean("RiftfallCasting",true);
             GoblinAnimations.play(mob,GoblinAnimations.CHARGE);
             var spell=SpellRegistry.HEALING_CIRCLE_SPELL.get(); spell.playSound(spell.getCastStartSound(),mob);
         }
         @Override public void tick() {
             mob.getLookControl().setLookAt(recipient,90,90);
             var spell=SpellRegistry.HEALING_CIRCLE_SPELL.get();
-            if (++ticks==20) {
+            if (++ticks==windup) {
                 data.setAdditionalCastData(new TargetEntityCastData(recipient));
+                if(!spell.checkPreCastConditions(mob.level(),1,mob,data) || !MobMana.spend(mob,spell,1)){ticks=windup+14;GoblinAnimations.play(mob,GoblinAnimations.RECOVER);return;}
                 spell.onServerPreCast(mob.level(),1,mob,data);
                 data.setAdditionalCastData(new TargetEntityCastData(recipient));
                 spell.onCast(mob.level(),1,mob,CastSource.MOB,data);
                 spell.onServerCastComplete(mob.level(),1,mob,data,false);
-                mob.getPersistentData().putLong("RiftfallNextHeal",mob.level().getGameTime()+400);
+                mob.getPersistentData().putLong("RiftfallNextHeal",mob.level().getGameTime()+MobMana.cooldown(mob,400));
                 mob.getPersistentData().putInt("RiftfallHealsCast",mob.getPersistentData().getInt("RiftfallHealsCast")+1);
                 GoblinAnimations.play(mob,GoblinAnimations.RELEASE);
             }
-            if (ticks==26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
+            if (ticks==windup+6) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
         }
         @Override public void stop() {
-            mob.getPersistentData().putBoolean("RiftfallCasting",false); data.resetCastingState();
-            if (ticks<20) mob.getPersistentData().putLong("RiftfallNextHeal",mob.level().getGameTime()+80);
-            if (ticks<26) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
+            mob.getPersistentData().putBoolean("RiftfallCasting",false); if(data!=null)data.resetCastingState();
+            if (ticks<windup) mob.getPersistentData().putLong("RiftfallNextHeal",mob.level().getGameTime()+80);
+            if (ticks<windup+6) GoblinAnimations.play(mob,GoblinAnimations.RECOVER);
         }
     }
     @net.neoforged.bus.api.SubscribeEvent

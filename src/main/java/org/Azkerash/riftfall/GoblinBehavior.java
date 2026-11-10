@@ -116,8 +116,8 @@ final class GoblinBehavior {
         });
         signals.put("ready.pant",mob.isPanting()?1D:0D);
         if(mob.isPanting())executors.keySet().forEach(id->{signals.put("ready."+id,0D);signals.put("committed."+id,0D);});
-        signals.put("stamina.current",mob.staminaState().current(org.Azkerash.riftfall.stamina.StaminaConfig.maximum()));
-        signals.put("stamina.maximum",org.Azkerash.riftfall.stamina.StaminaConfig.maximum());
+        signals.put("stamina.current",mob.staminaState().current(org.Azkerash.riftfall.stamina.MobStamina.maximum(mob)));
+        signals.put("stamina.maximum",org.Azkerash.riftfall.stamina.MobStamina.maximum(mob));
         signals.put("stamina.panting",mob.isPanting()?1D:0D);
         signals.put("stamina.regen_multiplier",org.Azkerash.riftfall.stamina.StaminaState.regenerationMultiplier(mob.isPanting(),mob.staminaFleeing(),mob.staminaConfident()));
         panic.signals(signals);

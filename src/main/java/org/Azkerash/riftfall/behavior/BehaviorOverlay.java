@@ -32,12 +32,13 @@ public final class BehaviorOverlay {
     private static void update(ServerPlayer player) {
         if (!player.createCommandSourceStack().hasPermission(2)) { player.getPersistentData().remove(ENABLED);send(player,List.of());return; }
         var mobs=player.level().getEntitiesOfClass(Mob.class,player.getBoundingBox().inflate(32),
-            mob->mob.isAlive() && mob.distanceToSqr(player)<=32*32 && (mob.getPersistentData().contains("RiftfallBehavior") || org.Azkerash.riftfall.stamina.MobStamina.uses(mob)));
+            mob->mob.isAlive() && mob.distanceToSqr(player)<=32*32 && (mob.getPersistentData().contains("RiftfallBehavior") || org.Azkerash.riftfall.stamina.MobStamina.uses(mob) || org.Azkerash.riftfall.mana.MobMana.active(mob)));
         mobs.sort(Comparator.comparingDouble(mob->mob.distanceToSqr(player)));
         var entries=new ArrayList<BehaviorOverlayPayload.Entry>();
         for (var mob:mobs.stream().limit(32).toList()) {
             var data=mob.getPersistentData().getCompound("RiftfallBehavior").copy();
             var stamina=org.Azkerash.riftfall.stamina.MobStamina.diagnostics(mob);data.put("Stamina",stamina);
+            data.put("Mana",org.Azkerash.riftfall.mana.MobMana.diagnostics(mob));
             if(!data.contains("Action"))data.putString("Action",stamina.getBoolean("Panting")?"recover stamina":"normal AI");
             entries.add(new BehaviorOverlayPayload.Entry(mob.getId(),mob.getUUID(),lines(BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).getPath()+" #"+mob.getId(),data)));
         }
@@ -52,6 +53,12 @@ public final class BehaviorOverlay {
             int filled=(int)Math.round(10*stamina.getDouble("Current")/Math.max(1,stamina.getDouble("Maximum")));
             lines.add("Stamina ["+"|".repeat(Math.clamp(filled,0,10))+".".repeat(10-Math.clamp(filled,0,10))+"] "+String.format(Locale.ROOT,"%.1f/%.0f | regen x%.2f%s",stamina.getDouble("Current"),stamina.getDouble("Maximum"),stamina.getDouble("RegenMultiplier"),stamina.getBoolean("Panting")?" | PANTING":""));
             lines.add("Stamina: "+stamina.getString("LastExpense")+" | regen delay "+stamina.getInt("DelayTicks"));
+        }
+        if(data.getCompound("Mana").contains("Current")){
+            var mana=data.getCompound("Mana");
+            lines.add(String.format(Locale.ROOT,"Mana %.1f/%.0f | regen %.2f/s (x%.2f) | delay %dt",mana.getDouble("Current"),mana.getDouble("Maximum"),mana.getDouble("RegenPerSecond"),mana.getDouble("RegenMultiplier"),mana.getInt("DelayTicks")));
+            lines.add("Mana: "+mana.getString("LastExpense"));
+            var costs=mana.getCompound("SpellCosts");costs.getAllKeys().stream().sorted().forEach(key->lines.add(key+": "+costs.getInt(key)+" mana"));
         }
         for (String key:List.of("SelfCombatStats","VisibleTargetCombatStats")) if (details.contains(key)) {
             var stats=details.getCompound(key);
