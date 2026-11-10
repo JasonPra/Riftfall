@@ -22,14 +22,14 @@ public final class PanicEscapeGoal extends Goal {
     private final PathfinderMob mob;
     private final Supplier<PanicSettings> tuning;
     private final BooleanSupplier enabled,escapeAllowed,interrupted;
-    private final BiPredicate<BlockState,BlockPos> substrate;
+    private final Predicate<BlockState> substrate;
     private final Visuals visuals;
     private final PanicState state=new PanicState();
     private Vec3 lastThreat;
     private long nextPath;
     private double distance=Double.POSITIVE_INFINITY;
     public PanicEscapeGoal(PathfinderMob mob,Supplier<PanicSettings> tuning,BooleanSupplier enabled,BooleanSupplier escapeAllowed,
-            BooleanSupplier interrupted,BiPredicate<BlockState,BlockPos> substrate,Visuals visuals){
+            BooleanSupplier interrupted,Predicate<BlockState> substrate,Visuals visuals){
         this.mob=mob;this.tuning=tuning;this.enabled=enabled;this.escapeAllowed=escapeAllowed;this.interrupted=interrupted;
         this.substrate=substrate;this.visuals=visuals;setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK,Flag.JUMP));
     }
@@ -65,16 +65,8 @@ public final class PanicEscapeGoal extends Goal {
         // Epic Fight can temporarily clear onGround while advancing a stationary action animation.
         // Check actual foot support instead, so digging cannot cancel its own grounded animation.
         return !collision.isEmpty()&&Math.abs(feet-(below.getY()+collision.max(Direction.Axis.Y)))<=.08&&!mob.isInWaterOrBubble()&&!mob.isInLava()&&mob.getVehicle()==null
-            &&diggableColumn(below)
+            &&substrate.test(ground)&&ground.isFaceSturdy(mob.level(),below,Direction.UP)
             &&mob.level().getFluidState(below).isEmpty();
-    }
-    private boolean diggableColumn(BlockPos surface){
-        int depth=Math.max(2,(int)Math.ceil(mob.getBbHeight()*1.12));
-        for(int i=0;i<depth;i++){
-            var state=mob.level().getBlockState(surface.below(i));
-            if(!substrate.test(state,surface.below(i))||!state.getFluidState().isEmpty())return false;
-        }
-        return true;
     }
     private boolean safe(List<Vec3> threats,boolean starting){
         distance=separation(mob.position(),threats);
@@ -95,12 +87,7 @@ public final class PanicEscapeGoal extends Goal {
                 mob.getPersistentData().putBoolean("RiftfallEscaped",true);mob.discard();return;
             }
             if(!burrowing()){visuals.abortBurrow();nextPath=0;}
-            else if(now%2==0){
-                int depth=Math.max(2,(int)Math.ceil(mob.getBbHeight()*1.12));
-                int layer=Math.min(depth-1,(int)(state.progress(now,s)*depth));
-                var ground=BlockPos.containing(mob.getX(),mob.getBoundingBox().minY-.05,mob.getZ()).below(layer);
-                visuals.dig(mob.level().getBlockState(ground));
-            }
+            else if(now%4==0)visuals.dig(mob.level().getBlockState(mob.blockPosition().below()));
         }else if(state.beginBurrow(now,safe,escapeAllowed())){
             mob.getNavigation().stop();mob.stopUsingItem();visuals.beginBurrow(s.burrowTicks());
         }else if(now>=nextPath){

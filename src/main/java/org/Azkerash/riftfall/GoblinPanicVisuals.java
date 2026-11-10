@@ -11,9 +11,6 @@ import org.Azkerash.riftfall.behavior.PanicEscapeGoal;
 /** Species animation binding; the shared panic executor has no goblin or Epic Fight dependency. */
 final class GoblinPanicVisuals implements PanicEscapeGoal.Visuals {
     static final TagKey<Block> BURROWABLE=TagKey.create(net.minecraft.core.registries.Registries.BLOCK,ResourceLocation.fromNamespaceAndPath("riftfall","burrowable"));
-    static boolean canDig(GoblinEntity mob,BlockState ground,net.minecraft.core.BlockPos position){
-        return org.Azkerash.riftfall.behavior.BurrowTerrain.canDig(ground.is(BURROWABLE),ground.getDestroySpeed(mob.level(),position));
-    }
     private final GoblinEntity mob;
     private boolean ownsRetreat;
     private int digStrokes;
@@ -33,18 +30,8 @@ final class GoblinPanicVisuals implements PanicEscapeGoal.Visuals {
     @Override public void abortBurrow(){GoblinAnimations.play(mob,GoblinAnimations.RECOVER);}
     @Override public void dig(BlockState ground){
         if(mob.level() instanceof net.minecraft.server.level.ServerLevel server){
-            double yaw=Math.toRadians(mob.yBodyRot);double backX=Math.sin(yaw),backZ=-Math.cos(yaw);
-            double sideX=Math.cos(yaw),sideZ=Math.sin(yaw);
-            var debris=new BlockParticleOption(ParticleTypes.BLOCK,ground);
-            // A dense local cloud plus directed clods: use the actual substrate, never generic smoke.
-            double x=mob.getX()+backX*.5,z=mob.getZ()+backZ*.5;
-            server.sendParticles(debris,x,mob.getY()+.16,z,18,.35,.16,.35,.12);
-            for(int i=0;i<6;i++){
-                double lateral=(mob.getRandom().nextDouble()-.5)*.65;
-                server.sendParticles(debris,x+sideX*lateral,mob.getY()+.12,z+sideZ*lateral,0,
-                    backX*.9+sideX*lateral,.7+mob.getRandom().nextDouble()*.5,backZ*.9+sideZ*lateral,.22);
-            }
-            if(++digStrokes%3==0)mob.playSound(ground.getSoundType().getHitSound(),.8F,1.25F);
+            server.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK,ground),mob.getX(),mob.getY()+.08,mob.getZ(),8,.4,.08,.4,.05);
+            if(++digStrokes%2==0)mob.playSound(ground.getSoundType().getHitSound(),.65F,1.2F);
         }
     }
 }

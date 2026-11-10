@@ -31,7 +31,7 @@ final class GoblinBehavior {
             ()->situation==null?0:situation.confidence().points(),caster->caster instanceof GoblinEntity shaman && shaman.isShaman() && mob.isAlliedTo(shaman));
         panic=new PanicEscapeGoal(mob,()->ConfidenceConfig.panicSettingsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()),
             ()->!mob.isShaman(),()->!mob.isInRift(),()->GoblinTactics.interrupted(mob),
-            (state,pos)->GoblinPanicVisuals.canDig(mob,state,pos),new GoblinPanicVisuals(mob));
+            state->state.is(GoblinPanicVisuals.BURROWABLE),new GoblinPanicVisuals(mob));
         add("panic_escape",panic,()->true);
         add("seek_healing",healing,()->false);
         if (!mob.isRanged()) {
