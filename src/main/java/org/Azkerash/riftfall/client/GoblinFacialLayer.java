@@ -9,7 +9,7 @@ import org.Azkerash.riftfall.GoblinEntity;
 import org.Azkerash.riftfall.facial.FaceFrame;
 
 public final class GoblinFacialLayer extends RenderLayer<GoblinEntity,HumanoidModel<GoblinEntity>> {
-    private final ArticulatedFaceRig rig=new ArticulatedFaceRig(new ArticulatedFaceRig.Layout(2.3F,-5.05F,-4.45F,-2.125F),new ArticulatedFaceRig.MouthLayout(64,64,8,14,8,2,1.1F,1.0625F));
+    private final ArticulatedFaceRig rig=new ArticulatedFaceRig(GoblinFaceBinding.LAYOUT,GoblinFaceBinding.MOUTH,GoblinFaceBinding.STYLE);
     private static final class History {int tick;FaceFrame previous,current;History(int tick,FaceFrame frame){this.tick=tick;previous=current=frame;}}
     private final java.util.Map<GoblinEntity,History> history=new java.util.WeakHashMap<>();
     public GoblinFacialLayer(RenderLayerParent<GoblinEntity,HumanoidModel<GoblinEntity>> parent){super(parent);}

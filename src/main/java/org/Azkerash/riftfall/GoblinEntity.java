@@ -47,7 +47,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public GoblinEntity(EntityType<? extends GoblinEntity> type, Level level) {
         super(type,level);
         xpReward=isShaman()?12:5;
-        face=new org.Azkerash.riftfall.facial.FacialController(this,org.Azkerash.riftfall.facial.FacialProfile.defaults(),packed->entityData.set(FACE,packed));
+        face=new org.Azkerash.riftfall.facial.FacialController(this,org.Azkerash.riftfall.facial.FacialProfile.defaults().withBlinkTiming(2,2),packed->entityData.set(FACE,packed));
         setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:GoblinItems.SHORTSWORD.get()));
         setDropChance(EquipmentSlot.MAINHAND,0);
     }

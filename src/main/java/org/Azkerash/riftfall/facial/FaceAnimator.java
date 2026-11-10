@@ -37,7 +37,10 @@ public final class FaceAnimator {
         if (nextBlink<0) nextBlink=tick+interval(profile.blinkMin(),profile.blinkMax());
         if (tick>=nextBlink) { blinkStart=tick;nextBlink=tick+interval(profile.blinkMin(),profile.blinkMax()); }
         long blinkAge=blinkStart==Long.MIN_VALUE?Long.MAX_VALUE:tick-blinkStart;
-        int blink=forcedBlink>=0?forcedBlink:blinkAge==0 || blinkAge==3?1:blinkAge==1 || blinkAge==2?2:0;
+        long closeEnd=profile.blinkHalfTicks()+profile.blinkClosedTicks();
+        long blinkEnd=closeEnd+profile.blinkHalfTicks();
+        int blink=forcedBlink>=0?forcedBlink:blinkAge<0 || blinkAge>=blinkEnd?0:
+            blinkAge<profile.blinkHalfTicks() || blinkAge>=closeEnd?1:2;
         FaceExpression expression=cycle?FaceExpression.values()[(int)(Math.floorDiv(tick,40)%FaceExpression.values().length)]:
             forcedExpression!=null?forcedExpression:tracking?(tick<surprisedUntil?FaceExpression.SURPRISED:profile.combat()):profile.idle();
         return new FaceFrame(expression,blink,(int)Math.round(x*50),(int)Math.round(y*100),talking?(int)Math.round((Math.sin(tick*1.1)+1)*6):forcedJaw);

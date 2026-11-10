@@ -14,6 +14,8 @@ public final class PatchedGoblinFacialLayer extends PatchedLayer<GoblinEntity,Go
         var head=patch.getArmature().searchJointByName("Head");
         if(head==null)return;
         var transform=new OpenMatrix4f().scale(new Vec3f(-1,-1,1)).mulFront(poses[head.getId()]);
-        stack.pushPose();MathUtils.mulStack(stack,transform);layer.renderFace(mob,stack,buffers,light,partial);stack.popPose();
+        stack.pushPose();MathUtils.mulStack(stack,transform);
+        stack.translate(0,GoblinFaceBinding.EPIC_Y_OFFSET/16,GoblinFaceBinding.EPIC_Z_OFFSET/16);
+        stack.scale(1,GoblinFaceBinding.EPIC_Y_SCALE,1);layer.renderFace(mob,stack,buffers,light,partial);stack.popPose();
     }
 }

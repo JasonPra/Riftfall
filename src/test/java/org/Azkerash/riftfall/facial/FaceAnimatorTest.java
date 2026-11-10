@@ -64,4 +64,14 @@ class FaceAnimatorTest {
         }
         assertEquals(225,frames.size());assertEquals(FaceFrame.NEUTRAL,FaceFrame.unpack(-1));
     }
+    @Test void slowerSpeciesBlinkLengthensClosingAndOpeningWithoutChangingGazeOrBlinkFrequency() {
+        var normal=FacialProfile.defaults();var profile=normal.withBlinkTiming(2,2);
+        assertEquals(normal.blinkMin(),profile.blinkMin());assertEquals(normal.blinkMax(),profile.blinkMax());
+        var animator=new FaceAnimator(profile,8);animator.blinkOnce(0);animator.gaze(2,-1);
+        int[] stages={1,1,2,2,1,1,0};
+        for(int tick=0;tick<stages.length;tick++)assertEquals(stages[tick],animator.update(tick,new FaceAnimator.Input(4,35,-25)).blink());
+        assertTrue(animator.update(7,new FaceAnimator.Input(4,35,-25)).gazeX()>90);
+        assertThrows(IllegalArgumentException.class,()->normal.withBlinkTiming(0,2));
+        assertThrows(IllegalArgumentException.class,()->normal.withBlinkTiming(30,2));
+    }
 }
