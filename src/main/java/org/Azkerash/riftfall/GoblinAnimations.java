@@ -16,7 +16,7 @@ public final class GoblinAnimations {
     public static AnimationAccessor<yesman.epicfight.api.animation.types.KnockdownAnimation> BACKSTAB_FALL;
     public static AnimationAccessor<ActionAnimation> BACKSTAB_CAUGHT;
     public static AnimationAccessor<yesman.epicfight.api.animation.types.StaticAnimation> PANT;
-    public static AnimationAccessor<AttackAnimation> SHIELD_BACKSTAB;
+    public static AnimationAccessor<AttackAnimation> SHIELD_BACKSTAB, GREATSWORD_BACKSTAB;
     public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, SWORD_SWIPE, SWORD_REVERSE, FRENZY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
@@ -26,6 +26,11 @@ public final class GoblinAnimations {
             BACKSTAB_FALL=builder.nextAccessor("biped/backstab_fall",BackstabSequence::recovery);
             SHIELD_BACKSTAB=builder.nextAccessor("biped/goblin_shield_backstab",a->GoblinWeaponAttacks.animation(a,
                 GoblinWeaponAttacks.phase(0,.55F,.85F,1.25F,1.8F)
+                    .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,yesman.epicfight.api.utils.math.ValueModifier.setter(6))
+                    .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.STUN_TYPE,yesman.epicfight.world.damagesource.StunType.NONE))
+                .addStateRemoveOld(EntityState.TURNING_LOCKED,true));
+            GREATSWORD_BACKSTAB=builder.nextAccessor("biped/greatsword_backstab",a->GoblinWeaponAttacks.animation(a,
+                GoblinWeaponAttacks.phase(0,.45F,.78F,1.25F,1.8F)
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER,yesman.epicfight.api.utils.math.ValueModifier.setter(6))
                     .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.AttackPhaseProperty.STUN_TYPE,yesman.epicfight.world.damagesource.StunType.NONE))
                 .addStateRemoveOld(EntityState.TURNING_LOCKED,true));

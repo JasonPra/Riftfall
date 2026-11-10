@@ -1,5 +1,5 @@
 """Author the paired backstab clips. Usage: python tools/generate_backstab_animations.py EPIC_FIGHT_JAR
-Requires numpy. Writes only the three backstab clips; existing combat animations are untouched.
+Requires numpy. Writes only the four backstab clips; existing combat animations are untouched.
 """
 from pathlib import Path
 import json,zipfile,math,sys,numpy as np
@@ -42,10 +42,10 @@ def matrices(pose):
   if name=='Tool_R' and '_blade' in pose:
    # Orient the wrist so the vanilla sword's diagonal blade follows a safe world-space path.
    # Includes Epic Fight's -90 degree item correction and vanilla handheld display transform.
-   bx,by,bz=pose['_blade'];direction=np.array([bx,bz,by]);direction/=np.linalg.norm(direction)
+   bx,by,bz=pose['_blade'];direction=np.array([bx,bz,by],dtype=float);direction/=np.linalg.norm(direction)
    x=np.array(pose.get('_cut_normal',(1.,0,0)));x-=direction*np.dot(x,direction);x/=np.linalg.norm(x)
    perpendicular=np.cross(x,direction)
-   bladeY=-math.sin(math.radians(10));bladeZ=-math.cos(math.radians(10))
+   bladeY=0 if pose.get("_greatsword") else -math.sin(math.radians(10));bladeZ=-1 if pose.get("_greatsword") else -math.cos(math.radians(10))
    y=bladeY*direction-bladeZ*perpendicular;z=bladeZ*direction+bladeY*perpendicular
    orientation=np.column_stack([x,y,z])
    if '_cut_normal' in pose:
@@ -57,6 +57,12 @@ def matrices(pose):
     offset=np.eye(4);offset[:3,3]=[0,.25,.03125]
     grip=(display@offset@rotation((0,-90,55))@np.diag([.85,.85,.85,1])@np.array([3.5/16-.5,3.5/16-.5,0,1]))[:3]
     g[:3,3]+=oldOrientation@grip-orientation@grip
+   if pose.get('_greatsword'):
+    # Epic Fight greatsword: its own 2x display scale, 11.25px hand offset and 45-degree blade.
+    correction=rotation((-90,0,0));correction[:3,3]=[0,0,-.13]
+    display=np.eye(4);display[:3,3]=[0,11.25/16,0]
+    grip=(correction@display@rotation((0,-90,45))@np.diag([2,2,1,1])@np.array([6.5/32-.5,1-26.5/32-.5,0,1]))[:3]
+    g[:3,3]-=orientation@grip
    g[:3,:3]=orientation;local=np.linalg.inv(parent)@g
   result[name]=local;globals[name]=g
   for child in n['children']:visit(child,g)
@@ -106,4 +112,12 @@ ready={'_blade':(.05,.05,1),'_hands':{'Arm_R':(.34,1.24,.15)},'Chest':(-5,-12,0)
 windup={**ready,'_hands':{'Arm_R':(.36,1.27,-.04)},'Chest':(-8,-24,0),'_sink':-.035,'Thigh_R':(12,0,0),'Leg_R':(-22,0,0)}
 thrust={**ready,'_hands':{'Arm_R':(.18,1.4,.58)},'Chest':(-17,16,0),'_sink':-.06,'Thigh_L':(18,0,0),'Leg_L':(-18,0,0),'Head':(9,0,0)}
 export('goblin_shield_backstab',[(0,ready),(.2,windup),(.46,windup),(.62,thrust),(.8,thrust),(.98,ready),(1.3,ready),(1.8,{})])
-print('Generated backstab strike, caught, and 4.6-second fall/recovery clips')
+
+# Two-handed, waist/chest-level greatsword thrust. The support hand follows the rear grip.
+great_ready={'_greatsword':1,'_blade':(0,.4,1),'_hands':{'Arm_R':(.04,1.16,.14),'Arm_L':(.04,1.08,-.04)},
+ 'Torso':(-4,0,0),'Chest':(-4,-7,0),'Head':(5,0,0),'_sink':-.025,'Thigh_R':(10,0,-3),'Leg_R':(-18,0,0),'Thigh_L':(10,0,3),'Leg_L':(-18,0,0)}
+great_draw={**great_ready,'_blade':(0,.06,1),'_hands':{'Arm_R':(.06,1.16,-.12),'Arm_L':(.06,1.15,-.30)},'Torso':(5,0,0),'Chest':(3,-12,0),'Head':(-4,0,0)}
+great_thrust={**great_ready,'_blade':(0,0,1),'_hands':{'Arm_R':(.06,1.18,.54),'Arm_L':(.06,1.18,.34)},
+ 'Torso':(-12,0,0),'Chest':(-10,8,0),'Head':(12,0,0),'_sink':-.04,'Thigh_L':(17,0,3),'Leg_L':(-25,0,0)}
+export('greatsword_backstab',[(0,great_ready),(.18,great_draw),(.38,great_draw),(.58,great_thrust),(.76,great_thrust),(.98,great_draw),(1.3,great_ready),(1.8,great_ready)])
+print('Generated one-handed and greatsword strikes, caught, and 4.6-second fall/recovery clips')

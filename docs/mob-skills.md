@@ -4,7 +4,7 @@ Mobs have five active slots matching this version of Epic Fight: `dodge`, `guard
 
 ## Backstab
 
-`/give @s riftfall:backstab_skill_book` gives a real Epic Fight skill book. Learn it into the Identity slot. In Epic Fight combat mode, attack a nearby humanoid from behind with a melee weapon to use Backstab instead of an ordinary swipe. It has a ten-second cooldown. The weapon must actually reach the victim; the thrust uses Epic Fight's weapon collider.
+`/give @s riftfall:backstab_skill_book` gives a real Epic Fight skill book. Learn it into the Identity slot. In Epic Fight combat mode, attack a nearby humanoid from behind with a melee weapon to use Backstab instead of an ordinary swipe. It has a ten-second cooldown. The weapon must actually reach the victim; the thrust uses Epic Fight's weapon collider. Weapons registered with Epic Fight's `GREATSWORD` category use a dedicated two-handed draw/thrust/withdraw animation with the greatsword model's grip transform. Other weapons keep the existing one-handed thrust. Prediction, playback, and landed-hit recognition all use the same selected animation; compatible add-on greatswords do not require an item-ID whitelist.
 
 Shielded goblin warriors learn this skill automatically. Unshielded warriors retain their existing back-climbing grapple. A successful Backstab deals six damage before mitigation, then plays a knees-to-face fall and a smooth push-up/get-up sequence. The victim cannot act and is protected from ordinary damage during the roughly 4.6-second fall/recovery. Administrative damage that bypasses invulnerability still works. The sequence requires grounded humanoids and clear, supported floor space ahead of the victim. This is an authored Epic Fight knockdown, not a physics ragdoll.
 
@@ -35,4 +35,4 @@ All non-undead mobs now automatically have stamina and pay the adapter's `stamin
 
 ## Animation authoring
 
-`tools/generate_backstab_animations.py <epic-fight.jar>` regenerates the three authored clips from the biped rig. It requires Python and NumPy. The game loads the generated animation JSON files; the script is only an authoring tool.
+`tools/generate_backstab_animations.py <epic-fight.jar>` regenerates the four authored clips from the biped rig. It requires Python and NumPy. The game loads the generated animation JSON files; the script is only an authoring tool.
