@@ -27,7 +27,8 @@ public final class GoblinClientEvents {
             for (var type : java.util.List.of(GoblinEntities.GOBLIN.get(), GoblinEntities.GOBLIN_SHAMAN.get(), GoblinEntities.GOBLIN_ARCHER.get()))
                 event.addPatchedEntityRenderer(type, t -> { var renderer=new yesman.epicfight.client.renderer.patched.entity.PHumanoidRenderer<org.Azkerash.riftfall.GoblinEntity,org.Azkerash.riftfall.GoblinPatch,net.minecraft.client.model.HumanoidModel<org.Azkerash.riftfall.GoblinEntity>,GoblinRenderer,yesman.epicfight.client.mesh.HumanoidMesh>(
                     t==GoblinEntities.GOBLIN_SHAMAN.get() ? GoblinMeshes.SHAMAN : GoblinMeshes.BODY,event.getContext(),t);
-                    renderer.addPatchedLayer(GoblinFacialLayer.class,new PatchedGoblinFacialLayer());return renderer;});
+                    renderer.addPatchedLayer(GoblinFacialLayer.class,new PatchedGoblinFacialLayer());
+                    renderer.addPatchedLayer(GoblinHeldItemLayer.class,new PatchedGoblinHeldItemLayer());return renderer;});
         });
     }
     @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
