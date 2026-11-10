@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "org.Azkerash.riftfall.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": ["ShieldColliderAccess", "ShieldLineAccess", "ShieldPlaneAccess", "ShieldColliderSampleMixin", "ShieldBlockContactMixin", "ShieldGuardContactMixin", "ShieldAttackSweepMixin", "ShieldPhaseContactsMixin", "ShieldOnlyContactMixin"],
   "client": [
     "GoblinBurrowLockOnMixin",
     "EndermanCarryRenderMixin",

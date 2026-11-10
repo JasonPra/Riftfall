@@ -16,7 +16,7 @@ final class GoblinBuckler {
     }
 
     static boolean canAttack(GoblinEntity mob) {
-        return !mob.getOffhandItem().is(GoblinItems.BUCKLER.get()) || mob.level().getGameTime() >= mob.bucklerNextAttack;
+        return !org.Azkerash.riftfall.shield.ShieldCollisions.isShield(mob.getOffhandItem()) || mob.level().getGameTime() >= mob.bucklerNextAttack;
     }
 
     static void tick(GoblinEntity mob) {
@@ -26,7 +26,7 @@ final class GoblinBuckler {
         var patch = yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(mob, GoblinPatch.class);
         boolean attacking = mob.level().getGameTime() < mob.bucklerAttackUntil || mob.grappledPlayerId() >= 0
             || (patch != null && patch.getEntityState().inaction());
-        boolean guard = shouldGuard(mob.getOffhandItem().is(GoblinItems.BUCKLER.get()),
+        boolean guard = shouldGuard(org.Azkerash.riftfall.shield.ShieldCollisions.isShield(mob.getOffhandItem()),
             GoblinSquadTactics.validEnemy(mob, target), target != null && mob.getSensing().hasLineOfSight(target),
             mob.onGround() && !mob.isNoAi(), GoblinTactics.interrupted(mob), attacking,
             target == null ? Double.POSITIVE_INFINITY : mob.distanceToSqr(target));

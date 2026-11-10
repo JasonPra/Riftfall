@@ -119,8 +119,18 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         getPersistentData().putInt("RiftfallArrowsShot",getPersistentData().getInt("RiftfallArrowsShot")+1);
     }
     @Override protected void hurtCurrentlyUsedShield(float damage) {
-        if (damage >= 3 && getUseItem().is(GoblinItems.BUCKLER.get()))
-            getUseItem().hurtAndBreak(1 + (int) damage, this, EquipmentSlot.OFFHAND);
+        if (damage >= 3 && org.Azkerash.riftfall.shield.ShieldCollisions.isShield(getUseItem()))
+            getUseItem().hurtAndBreak(1 + (int) damage, this, getUsedItemHand()==net.minecraft.world.InteractionHand.OFF_HAND?EquipmentSlot.OFFHAND:EquipmentSlot.MAINHAND);
+    }
+    @Override public boolean isDamageSourceBlocked(net.minecraft.world.damagesource.DamageSource source) {
+        // Shield contacts are resolved by GoblinPatch.tryHurt before vanilla shield handling.
+        return org.Azkerash.riftfall.shield.ShieldCollisions.isShield(getUseItem())?false:super.isDamageSourceBlocked(source);
+    }
+    void playBlockedGrunt() {
+        if(!level().isClientSide && isAlive() && !isSilent()) {
+            playSound(GoblinSounds.GRUNT.get(),getSoundVolume(),.55F+getRandom().nextFloat()*.2F);
+            hurtVoiceUntil=Math.max(hurtVoiceUntil,level().getGameTime()+24);
+        }
     }
     private void playGoblinVoice(net.minecraft.sounds.SoundEvent sound) {
         if(level().isClientSide || !isAlive() || tickCount<nextVoiceTick)return;
@@ -147,8 +157,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
                 hurtVoiceUntil=level().getGameTime()+68;
             }else {
                 // The client slices a random half-second from the existing scream in memory.
-                playSound(GoblinSounds.GRUNT.get(),getSoundVolume(),.55F+getRandom().nextFloat()*.2F);
-                hurtVoiceUntil=Math.max(hurtVoiceUntil,level().getGameTime()+24);
+                playBlockedGrunt();
             }
         }
     }

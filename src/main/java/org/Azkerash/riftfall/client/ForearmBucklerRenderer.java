@@ -15,6 +15,6 @@ public final class ForearmBucklerRenderer extends RenderShield {
         if (!(patch.getOriginal() instanceof GoblinEntity)) return super.getCorrectionMatrix(patch, hand, poses);
         boolean left = hand == InteractionHand.OFF_HAND;
         var forearm = patch.getArmature().searchJointByName(left ? "Hand_L" : "Hand_R");
-        return new OpenMatrix4f(poses[forearm.getId()]).translate(left ? -.13F : .13F, .14F, 0);
+        return new OpenMatrix4f(poses[forearm.getId()]).mulBack(org.Azkerash.riftfall.shield.ShieldModels.forearmCorrection(hand));
     }
 }
