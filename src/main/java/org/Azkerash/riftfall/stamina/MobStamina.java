@@ -4,9 +4,29 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.Mob;
 
-/** Shared stamina API. Nonparticipants and all undead keep their existing unlimited resource behavior. */
+/** Shared stamina API. All mobs inherit a pool; undead retain unlimited resource behavior. */
 public final class MobStamina {
     public static boolean uses(Mob mob){return mob instanceof StaminaUser && !mob.getType().is(EntityTypeTags.UNDEAD);}
+    public static StaminaUser user(Mob mob){return (StaminaUser)mob;}
+    public static boolean manual(Mob mob){return user(mob).managesStaminaActions();}
+    public static void beginSkill(Mob mob){if(uses(mob))user(mob).staminaState().budget().beginSkill();}
+    public static void endSkill(Mob mob){if(uses(mob))user(mob).staminaState().budget().endSkill();}
+    public static boolean automaticContact(Mob mob,String action){
+        if(!uses(mob))return true;if(panting(mob))return false;if(manual(mob))return true;
+        var budget=user(mob).staminaState().budget();long now=mob.level().getGameTime();
+        if(budget.covered(now)||budget.sameContactTick(now))return true;
+        if(!spend(mob,action))return false;budget.contact(now);return true;
+    }
+    public static boolean automaticAnimation(Mob mob,yesman.epicfight.api.animation.types.AttackAnimation animation){
+        if(!uses(mob))return true;if(panting(mob))return false;if(manual(mob))return true;
+        var budget=user(mob).staminaState().budget();long now=mob.level().getGameTime();
+        // A supported active skill already paid its own explicit cost.
+        if(!budget.skillCovered() && !spend(mob,"swipe"))return false;
+        budget.animation(now,(int)Math.ceil(animation.getTotalTime()*20)+4);return true;
+    }
+    public static boolean fastMovement(Mob mob){
+        return mob.isSprinting() || !manual(mob) && !mob.getNavigation().isDone() && mob.getMoveControl().getSpeedModifier()>1.1;
+    }
     public static boolean panting(Mob mob){return uses(mob)&&((StaminaUser)mob).staminaState().panting();}
     public static boolean spend(Mob mob,String action){return spend(mob,StaminaConfig.cost(action),action);}
     public static boolean spend(Mob mob,double amount,String reason){
@@ -31,13 +51,13 @@ public final class MobStamina {
     }
     public static void afterTick(Mob mob){
         if(!uses(mob)||!mob.isAlive())return;
-        if(mob.isSprinting() && mob.getDeltaMovement().horizontalDistanceSqr()>.0001)spend(mob,StaminaConfig.sprint()/20,"sprint");
+        if(fastMovement(mob) && mob.getDeltaMovement().horizontalDistanceSqr()>.0001)spend(mob,StaminaConfig.sprint()/20,"sprint");
         if(panting(mob)){
             mob.setSprinting(false);mob.stopUsingItem();mob.getNavigation().stop();
             // Preserve vertical gravity and knockback reactions; no invulnerability is granted.
             if(mob.hurtTime==0)mob.setDeltaMovement(0,mob.getDeltaMovement().y,0);
         }
-        mob.getPersistentData().put("RiftfallStamina",diagnostics(mob));
+        if(mob.tickCount%5==0 || panting(mob))mob.getPersistentData().put("RiftfallStamina",diagnostics(mob));
     }
     public static CompoundTag diagnostics(Mob mob){
         var d=new CompoundTag();if(!uses(mob))return d;

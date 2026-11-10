@@ -32,11 +32,13 @@ public final class BehaviorOverlay {
     private static void update(ServerPlayer player) {
         if (!player.createCommandSourceStack().hasPermission(2)) { player.getPersistentData().remove(ENABLED);send(player,List.of());return; }
         var mobs=player.level().getEntitiesOfClass(Mob.class,player.getBoundingBox().inflate(32),
-            mob->mob.isAlive() && mob.distanceToSqr(player)<=32*32 && mob.getPersistentData().contains("RiftfallBehavior"));
+            mob->mob.isAlive() && mob.distanceToSqr(player)<=32*32 && (mob.getPersistentData().contains("RiftfallBehavior") || org.Azkerash.riftfall.stamina.MobStamina.uses(mob)));
         mobs.sort(Comparator.comparingDouble(mob->mob.distanceToSqr(player)));
         var entries=new ArrayList<BehaviorOverlayPayload.Entry>();
         for (var mob:mobs.stream().limit(32).toList()) {
-            var data=mob.getPersistentData().getCompound("RiftfallBehavior");
+            var data=mob.getPersistentData().getCompound("RiftfallBehavior").copy();
+            var stamina=org.Azkerash.riftfall.stamina.MobStamina.diagnostics(mob);data.put("Stamina",stamina);
+            if(!data.contains("Action"))data.putString("Action",stamina.getBoolean("Panting")?"recover stamina":"normal AI");
             entries.add(new BehaviorOverlayPayload.Entry(mob.getId(),mob.getUUID(),lines(BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).getPath()+" #"+mob.getId(),data)));
         }
         send(player,entries);
@@ -44,7 +46,7 @@ public final class BehaviorOverlay {
     public static List<String> lines(String name,CompoundTag data) {
         var lines=new ArrayList<String>();var details=data.getCompound("ConfidenceDetails");
         lines.add(name+" | "+data.getString("Action"));
-        lines.add(String.format(Locale.ROOT,"Confidence %.0f%% | %.1f pts | advance %.1f",data.getDouble("Confidence")*100,data.getDouble("Points"),details.getDouble("EngagePoints")));
+        if(data.contains("Confidence"))lines.add(String.format(Locale.ROOT,"Confidence %.0f%% | %.1f pts | advance %.1f",data.getDouble("Confidence")*100,data.getDouble("Points"),details.getDouble("EngagePoints")));
         if(data.getCompound("Stamina").contains("Current")){
             var stamina=data.getCompound("Stamina");
             int filled=(int)Math.round(10*stamina.getDouble("Current")/Math.max(1,stamina.getDouble("Maximum")));

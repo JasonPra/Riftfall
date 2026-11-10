@@ -31,7 +31,7 @@ Backstab's NPC implementation requires a shield and a melee weapon. Assigning it
 
 Stock player skills are not automatically safe to execute on NPCs: many require `ServerPlayerPatch`, stamina, or player input. They need an NPC adapter. Unsupported assignments fail with a clear error rather than crashing. Backstab is the first supported implementation; five available slots does not mean five free abilities are granted to every mob.
 
-Stamina-enabled mobs pay the adapter's `staminaCost(owner)` before skill execution. See [mob-stamina.md](mob-stamina.md) for exhaustion and adrenaline rules. Undead are exempt.
+All non-undead mobs now automatically have stamina and pay the adapter's `staminaCost(owner)` before skill execution. See [mob-stamina.md](mob-stamina.md) for exhaustion and adrenaline rules. Undead are exempt.
 
 ## Animation authoring
 

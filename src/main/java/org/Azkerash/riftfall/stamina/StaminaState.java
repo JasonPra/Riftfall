@@ -2,6 +2,8 @@ package org.Azkerash.riftfall.stamina;
 
 /** Server-owned resource accounting, independent of entity AI and rendering. Units are points and ticks. */
 public final class StaminaState {
+    private final StaminaBudget budget=new StaminaBudget();
+    public StaminaBudget budget(){return budget;}
     private double current=Double.NaN;
     private boolean panting;
     private int recoveryDelay;
@@ -27,6 +29,7 @@ public final class StaminaState {
         else if(!working)current=Math.min(maximum,current+perSecond/20*regenerationMultiplier(false,fleeing,confident));
     }
     public void restore(double value,boolean exhausted,int delay,double maximum){
+        budget.reset();
         current=Double.isFinite(value)?Math.clamp(value,0,maximum):maximum;panting=exhausted;recoveryDelay=Math.max(0,delay);
     }
     public int recoveryDelay(){return recoveryDelay;}

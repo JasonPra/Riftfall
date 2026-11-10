@@ -13,6 +13,11 @@ class BehaviorOverlayTest {
         assertTrue(text.contains("watch"));assertTrue(text.contains("-10.0 pts"));assertTrue(text.contains("advance 12.0"));
         assertTrue(text.contains("combat.armor_advantage -15.0"));assertTrue(text.contains("allies.riftfall:goblin +10.0"));
     }
+    @Test void ordinaryMobShowsItsStaminaWithoutInventingConfidence(){
+        var d=new CompoundTag();d.putString("Action","normal AI");
+        var stamina=new CompoundTag();stamina.putDouble("Current",12);stamina.putDouble("Maximum",40);stamina.putDouble("RegenMultiplier",1.25);d.put("Stamina",stamina);
+        String text=String.join("\n",BehaviorOverlay.lines("Cow",d));assertTrue(text.contains("12.0/40"));assertTrue(text.contains("regen x1.25"));assertFalse(text.contains("Confidence"));
+    }
     @Test void oversizedPayloadsAreRejectedBeforeSending() {
         assertThrows(IllegalArgumentException.class,()->new BehaviorOverlayPayload.Entry(1,java.util.UUID.randomUUID(),java.util.List.of("x".repeat(257))));
         assertThrows(IllegalArgumentException.class,()->new BehaviorOverlayPayload(java.util.Collections.nCopies(33,new BehaviorOverlayPayload.Entry(1,java.util.UUID.randomUUID(),java.util.List.of()))));

@@ -37,10 +37,7 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
     @Override public boolean staminaFleeing(){return isPanicFleeing() || getPersistentData().getBoolean("RiftfallRetreating") || getPersistentData().getBoolean("RiftfallSeekingHealing");}
     @Override public void syncPanting(boolean panting){entityData.set(PANTING,panting);}
     public boolean isPanting(){return level().isClientSide?entityData.get(PANTING):org.Azkerash.riftfall.stamina.MobStamina.panting(this);}
-    @Override public void setSprinting(boolean sprinting){
-        super.setSprinting(sprinting && (level().isClientSide || org.Azkerash.riftfall.stamina.MobStamina.sprintAllowed(this)));
-    }
-    @Override public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag data){super.addAdditionalSaveData(data);org.Azkerash.riftfall.stamina.MobStamina.save(this,data);}
+    @Override public boolean managesStaminaActions(){return true;}
     private float previousBurrow,visualBurrow;
     private int nextVoiceTick;
     private final org.Azkerash.riftfall.behavior.EscapeSoundWait escapeSounds=new org.Azkerash.riftfall.behavior.EscapeSoundWait();
@@ -188,7 +185,6 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
     }
     @Override public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        org.Azkerash.riftfall.stamina.MobStamina.load(this,tag);
         // Correct the previous default in existing saves while preserving deliberate
         // custom scale values and attribute modifiers.
         if (isShaman() && getMainHandItem().is(Items.BLAZE_ROD))
@@ -224,11 +220,6 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
             target->GoblinHostility.undeadHunter(target) && !isAlliedTo(target)));
     }
     @Override public void tick() {
-        if(!level().isClientSide){
-            var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(this,GoblinPatch.class);
-            boolean working=isSprinting() || isBurrowing() || grappledPlayerId()>=0 || patch!=null && patch.getEntityState().inaction();
-            org.Azkerash.riftfall.stamina.MobStamina.beforeTick(this,working);
-        }
         super.tick();
         if (level().isClientSide) {
             previousBurrow=visualBurrow;visualBurrow=entityData.get(BURROW_PROGRESS)/1000F;
@@ -243,7 +234,6 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
             // Keep the client combat pose active while withdrawing or covering allies as well.
             setAggressive(target!=null && target.isAlive() && !isAlliedTo(target));
             GoblinBuckler.tick(this);
-            org.Azkerash.riftfall.stamina.MobStamina.afterTick(this);
         }
     }
 }
