@@ -117,6 +117,9 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         if(!isAlliedTo(victim) && !isPanicking()) playGoblinVoice(GoblinSounds.LAUGH.get());
         return result;
     }
+    @Override protected net.minecraft.sounds.SoundEvent getHurtSound(net.minecraft.world.damagesource.DamageSource source) {
+        return GoblinSounds.HURT.get();
+    }
     @Override protected net.minecraft.sounds.SoundEvent getDeathSound() {
         if(level().isClientSide) org.Azkerash.riftfall.client.GoblinFearAudio.stop(this);
         return GoblinSounds.DEATH.get();
