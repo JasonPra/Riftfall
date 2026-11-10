@@ -50,10 +50,12 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         }
         if (original.isArcher()) commonAggressiveRangedMobUpdateMotion(considerInaction);
         else commonAggressiveMobUpdateMotion(considerInaction);
-        if((original.isPanicFleeing() || original.isArcher() && original.isSprinting())
+        if((original.isPanicFleeing() || original.isSprinting() && !getEntityState().inaction())
                 && !isStunned() && original.getDeltaMovement().horizontalDistanceSqr()>.0001) {
             currentLivingMotion=yesman.epicfight.api.animation.LivingMotions.RUN;
-            currentCompositeMotion=yesman.epicfight.api.animation.LivingMotions.NONE;return;
+            if (original.isPanicFleeing() || original.isArcher()) {
+                currentCompositeMotion=yesman.epicfight.api.animation.LivingMotions.NONE;return;
+            }
         }
         if (original.isAlive() && original.isBlocking() && !getEntityState().inaction())
             currentCompositeMotion = yesman.epicfight.api.animation.LivingMotions.BLOCK;

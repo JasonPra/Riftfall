@@ -104,11 +104,11 @@ final class GoblinSquadTactics {
     }
     void moveWarrior() {
         scan(); if (!validEnemy(mob,enemy) || !hasWarriorPlan()) {
-            warriorPlan=null;mob.getPersistentData().putBoolean("RiftfallFlanking",false);mob.getPersistentData().putBoolean("RiftfallScreening",false);return;
+            warriorPlan=null;mob.setSprinting(false);mob.getPersistentData().putBoolean("RiftfallFlanking",false);mob.getPersistentData().putBoolean("RiftfallScreening",false);return;
         }
         long now=mob.level().getGameTime();
         if (now>=nextWarriorPlan) {
-            nextWarriorPlan=now+12;int index=warriors.indexOf(mob);if (index<0) return;
+            nextWarriorPlan=now+12;int index=warriors.indexOf(mob);if (index<0) { mob.setSprinting(false);return; }
             boolean pack=canFlank();
             int guards=Math.min(archers.size(),pack?Math.max(1,warriors.size()/3):warriors.size());
             Vec3 destination;
@@ -119,16 +119,19 @@ final class GoblinSquadTactics {
                     destination=destination.add(-line.z*(index-(warriors.size()-1)*.5),0,line.x*(index-(warriors.size()-1)*.5));
                 }
             } else if (pack) destination=ringSlot(enemy.position(),index,warriors.size(),bearing(),enemy.getBbWidth()*.5+.75);
-            else { warriorPlan=null;mob.getPersistentData().putBoolean("RiftfallFlanking",false);mob.getPersistentData().putBoolean("RiftfallScreening",false);return; }
+            else { warriorPlan=null;mob.setSprinting(false);mob.getPersistentData().putBoolean("RiftfallFlanking",false);mob.getPersistentData().putBoolean("RiftfallScreening",false);return; }
             Vec3 waypoint=orbitWaypoint(mob.position(),enemy.position(),destination,Math.max(2.7,enemy.getBbWidth()*.5+1.8));
             warriorPlan=near(waypoint,false);
             mob.getPersistentData().putBoolean("RiftfallFlanking",pack && index>=guards);
             mob.getPersistentData().putBoolean("RiftfallScreening",!archers.isEmpty() && index<guards);
         }
+        boolean sprint=false;
         if (warriorPlan!=null) {
             if (mob.distanceToSqr(warriorPlan.position)<.45*.45) mob.getNavigation().stop();
-            else mob.getNavigation().moveTo(warriorPlan.path,1.05);
+            else sprint=mob.getNavigation().moveTo(warriorPlan.path,1.05)
+                && mob.getPersistentData().getBoolean("RiftfallScreening");
         }
+        mob.setSprinting(sprint);
     }
     record Plan(Vec3 position,Path path) {}
     private boolean safe(BlockPos feet) {

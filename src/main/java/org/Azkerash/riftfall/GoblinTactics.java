@@ -161,11 +161,12 @@ final class GoblinTactics {
                 if (!WeaponReach.canContact(goblin,target,planned.get())) {
                     // Once in the correct formation sector, close until the actual equipped collider can contact.
                     // A block-centered ring slot may otherwise stop outside shortsword reach forever.
-                    closing=true;
+                    closing=true;goblin.setSprinting(false);
                     var path=goblin.getNavigation().createPath(target.blockPosition(),0);
                     if (path!=null) goblin.getNavigation().moveTo(path,1.1);
                     return;
                 }
+                goblin.setSprinting(false);
                 resetAttackCooldown(); victim=target;
                 attack=selected; nextAttack=(nextAttack+1)%GoblinSwordCombat.comboLength(goblin.getMainHandItem().is(GoblinItems.SHORTSWORD.get()),goblin.getOffhandItem().getItem() instanceof net.minecraft.world.item.ShieldItem);
                 remaining=attack.duration;
@@ -177,6 +178,7 @@ final class GoblinTactics {
             }
         }
         @Override public void tick() {
+            if (remaining>0 || interrupted(goblin)) goblin.setSprinting(false);
             closing=false;
             if (remaining<=0 && !interrupted(goblin) && goblin.squad.hasWarriorPlan()) goblin.squad.moveWarrior();
             super.tick();
@@ -189,7 +191,7 @@ final class GoblinTactics {
             goblin.getLookControl().setLookAt(victim,90,90);
             if (attack.hitsAt(attack.duration- --remaining)) goblin.swing(InteractionHand.MAIN_HAND);
         }
-        @Override public void stop() { super.stop(); remaining=0; victim=null; }
+        @Override public void stop() { goblin.setSprinting(false);super.stop(); remaining=0; victim=null; }
     }
     /** A committed spider-like leap from nearby high ground, never a homing attack. */
     static final class Plunge extends Goal {
