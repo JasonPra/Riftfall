@@ -98,7 +98,7 @@ class BackstabAnimationTest {
         }
     }
     @Test void clipsHaveFiniteRigidTransformsAndSmoothVictimKeySpacing(){
-        for(var name:new String[]{"backstab_caught","backstab_fall","goblin_shield_backstab","greatsword_backstab","greatsword_backstab_fall","greatsword_backstab_death"})for(var value:clip(name)){
+        for(var name:new String[]{"backstab_caught","backstab_fall","goblin_shield_backstab","greatsword_backstab","greatsword_backstab_fall","greatsword_backstab_death","backstab_death","backstab_getup"})for(var value:clip(name)){
             var channel=value.getAsJsonObject();var times=channel.getAsJsonArray("time");var transforms=channel.getAsJsonArray("transform");assertEquals(times.size(),transforms.size());
             for(int i=0;i<times.size();i++){
                 var time=times.get(i).getAsDouble();var matrix=at(channel,time);assertTrue(matrix.isFinite());assertEquals(1,matrix.determinant(),.001F);

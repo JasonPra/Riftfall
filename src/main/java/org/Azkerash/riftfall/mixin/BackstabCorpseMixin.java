@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Let an already-dead impaled victim reach the floor before vanilla's corpse timer removes it. */
+/** Keep the authored face-down corpse pose on the client; server death and despawn now run normally. */
 @Mixin(LivingEntity.class)
 public abstract class BackstabCorpseMixin {
     @Inject(method="tickDeath",at=@At("HEAD"),cancellable=true)

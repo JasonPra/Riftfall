@@ -1,5 +1,5 @@
 """Author the paired backstab clips. Usage: python tools/generate_backstab_animations.py EPIC_FIGHT_JAR
-Requires numpy. Writes only the six backstab clips; existing combat animations are untouched.
+Requires numpy. Writes only the eight backstab clips; existing combat animations are untouched.
 """
 from pathlib import Path
 import json,zipfile,math,sys,numpy as np
@@ -133,3 +133,7 @@ impale_drop=[(0,impaled),(.18,impaled),(.38,lifted),(.56,lifted),(.78,carried_ti
 export('greatsword_backstab_fall',impale_drop+[(2.4,prone),(2.65,{**prone,'_hands':{'Arm_R':(.5,.13,.85),'Arm_L':(-.5,.13,.85)}}),(3.05,push),(3.4,allfours),(3.75,knees),(4.2,rise),(4.52,{'Root':(-3,0,0),'_sink':-.025,'Chest':(-5,0,0),'Arm_R':(-8,0,-7),'Arm_L':(-8,0,7)}),(5.0,{})])
 export('greatsword_backstab_death',impale_drop+[(1.9,prone)])
 print('Generated one-handed backstab and paired greatsword impale/lift/release clips')
+
+# Fatal short-blade fall and shared prone-to-standing recovery (for vanilla totem saves).
+export('backstab_death',[(0,caught),(.12,{**caught,'Chest':(14,0,0)}),(.3,{**caught,'Chest':(-22,0,0),'Head':(16,0,0)}),(.68,knees),(.86,{**knees,'Root':(-38,0,0),'_sink':-.35}),(1.14,prone),(1.26,{**prone,'Root':(-85,0,0),'_sink':-.43}),(1.45,prone),(1.8,prone)])
+export('backstab_getup',[(0,prone),(.25,{**prone,'_hands':{'Arm_R':(.5,.13,.85),'Arm_L':(-.5,.13,.85)}}),(.65,push),(1.0,allfours),(1.35,knees),(1.8,rise),(2.12,{'Root':(-3,0,0),'_sink':-.025,'Chest':(-5,0,0),'Arm_R':(-8,0,-7),'Arm_L':(-8,0,7)}),(2.6,{})])

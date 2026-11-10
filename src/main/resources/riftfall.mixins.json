@@ -3,8 +3,10 @@
   "minVersion": "0.8",
   "package": "org.Azkerash.riftfall.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": ["BackstabCorpseMixin", "MobStaminaMixin", "MobSprintStaminaMixin", "MobAttackStaminaMixin", "GuardClangMixin", "ParryClangMixin", "ShieldColliderAccess", "ShieldLineAccess", "ShieldPlaneAccess", "ShieldColliderSampleMixin", "ShieldBlockContactMixin", "ShieldGuardContactMixin", "ShieldAttackSweepMixin", "ShieldPhaseContactsMixin", "ShieldOnlyContactMixin"],
+  "mixins": ["BackstabFatalAccess", "BackstabCorpseMixin", "MobStaminaMixin", "MobSprintStaminaMixin", "MobAttackStaminaMixin", "GuardClangMixin", "ParryClangMixin", "ShieldColliderAccess", "ShieldLineAccess", "ShieldPlaneAccess", "ShieldColliderSampleMixin", "ShieldBlockContactMixin", "ShieldGuardContactMixin", "ShieldAttackSweepMixin", "ShieldPhaseContactsMixin", "ShieldOnlyContactMixin"],
   "client": [
+    "CameraAccess",
+    "ThirdPersonCameraMixin",
     "GoblinBurrowLockOnMixin",
     "EndermanCarryRenderMixin",
     "EndermanCarriedBlockLayerMixin",

@@ -15,6 +15,8 @@ public class Riftfall {
         bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Reloading event)->org.Azkerash.riftfall.confidence.ConfidenceConfig.loaded(event));
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,
             org.Azkerash.riftfall.stamina.StaminaConfig.SPEC,"riftfall-stamina-server.toml");
+        if(net.neoforged.fml.loading.FMLEnvironment.dist==net.neoforged.api.distmarker.Dist.CLIENT)
+            container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT,org.Azkerash.riftfall.client.CameraConfig.SPEC,"riftfall-camera-client.toml");
         BehaviorTestEntities.register(bus);
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
@@ -26,6 +28,8 @@ public class Riftfall {
         bus.addListener(GoblinEntities::attributes);
         bus.addListener(GrappleEscapePayload::register);
         bus.addListener(BackstabCorpsePayload::register);
+        bus.addListener(BackstabActorPayload::register);
+        bus.addListener(BackstabViewPayload::register);
         bus.addListener(GoblinVoicePayload::register);
         bus.addListener(org.Azkerash.riftfall.behavior.BehaviorOverlayPayload::register);
         bus.addListener(GoblinAnimations::register);
@@ -34,6 +38,7 @@ public class Riftfall {
         NeoForge.EVENT_BUS.register(GoblinTactics.class);
         NeoForge.EVENT_BUS.register(GoblinWeaponAttacks.class);
         NeoForge.EVENT_BUS.register(BackstabSequence.class);
+        NeoForge.EVENT_BUS.register(BackstabActorLock.class);
         NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.class);
         NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.behavior.skills.MobSkillCommands.class);
         GoblinFlurryStun.register();

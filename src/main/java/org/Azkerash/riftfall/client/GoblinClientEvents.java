@@ -20,6 +20,7 @@ public final class GoblinClientEvents {
         event.registerLayerDefinition(GoblinModel.SHAMAN_LAYER,()->GoblinModel.layer(true));
     }
     @SubscribeEvent public static void setup(net.neoforged.fml.event.lifecycle.FMLClientSetupEvent setup) {
+        yesman.epicfight.api.client.event.EpicFightClientEventHooks.Camera.BUILD_TRANSFORM_POST.registerEvent(ThirdPersonCamera::build);
         yesman.epicfight.api.client.event.EpicFightClientEventHooks.Registry.PATCHED_ITEM.registerEvent(event ->
             event.addItemRenderer(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"forearm_buckler"),
                 ForearmBucklerRenderer::new));
