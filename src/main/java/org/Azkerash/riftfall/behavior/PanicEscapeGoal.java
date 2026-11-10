@@ -80,7 +80,7 @@ public final class PanicEscapeGoal extends Goal {
     private boolean safe(List<Vec3> threats,boolean starting){
         distance=separation(mob.position(),threats);
         String reason=interrupted.getAsBoolean()?"hurt or stunned":!groundSafe()?"unsupported or non-burrowable ground":
-            distance<(starting?tuning.get().escapeDistance():tuning.get().interruptDistance())?"threat too close":"safe";
+            starting && distance<tuning.get().escapeDistance()?"threat too close to start digging":"safe";
         mob.getPersistentData().putString("RiftfallPanicSafety",reason);return reason.equals("safe");
     }
     @Override public boolean canUse(){return active()&&escapeAllowed();}

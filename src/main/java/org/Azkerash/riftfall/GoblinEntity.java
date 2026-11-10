@@ -34,6 +34,14 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     private final org.Azkerash.riftfall.behavior.EscapeSoundWait escapeSounds=new org.Azkerash.riftfall.behavior.EscapeSoundWait();
     private long hurtVoiceUntil;
     public boolean isWaitingUnderground(){return isBurrowing() && burrowProgress()>=1;}
+    public boolean isBurrowLockHidden(){return isBurrowing() && org.Azkerash.riftfall.behavior.BurrowExposure.breaksLock(burrowProgress());}
+    public boolean isFullyBuried(){return isBurrowing() && org.Azkerash.riftfall.behavior.BurrowExposure.fullyBuried(burrowProgress());}
+    @Override public boolean isPickable(){return !isFullyBuried() && super.isPickable();}
+    @Override public boolean isAttackable(){return !isFullyBuried() && super.isAttackable();}
+    @Override public boolean isPushable(){return !isFullyBuried() && super.isPushable();}
+    @Override public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source) {
+        return isFullyBuried() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY) || super.isInvulnerableTo(source);
+    }
     public void voiceStarted(java.util.UUID observer,long sequence,int duration){escapeSounds.started(observer,sequence,level().getGameTime(),duration);}
     public void voiceFinished(java.util.UUID observer,long sequence){escapeSounds.finished(observer,sequence);}
     void resetEscapeSoundHold(){escapeSounds.resetHold();}
@@ -53,7 +61,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public float burrowOffset(float partialTick){
         float progress=net.minecraft.util.Mth.lerp(Math.clamp(partialTick,0,1),previousBurrow,visualBurrow);
         if(!isBurrowing())return 0;
-        return .43F*Math.clamp(progress*8,0,1)+1.8F*Math.clamp((progress-.65F)/.35F,0,1);
+        return org.Azkerash.riftfall.behavior.BurrowExposure.offset(progress);
     }
     private org.Azkerash.riftfall.facial.FacialController face;
     @Override public org.Azkerash.riftfall.facial.FacialController facialController() { return face; }

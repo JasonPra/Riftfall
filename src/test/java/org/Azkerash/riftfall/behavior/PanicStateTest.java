@@ -45,7 +45,7 @@ class PanicStateTest {
         assertFalse(state.advanceBurrow(70,false,true,settings,false));
         assertEquals(PanicState.Stage.PANICKED,state.stage());assertEquals(0,state.progress(70,settings));
     }
-    @Test void approachingOrHittingRestartsTheFullDiggingWindow(){
+    @Test void damageOrLostSupportRestartsTheFullDiggingWindow(){
         var state=panicked();state.beginBurrow(20,true,true);
         assertFalse(state.advanceBurrow(69,false,true,settings));assertEquals(0,state.progress(69,settings));
         state.beginBurrow(70,true,true);assertFalse(state.advanceBurrow(71,true,true,settings));

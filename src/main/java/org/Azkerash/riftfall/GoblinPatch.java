@@ -9,6 +9,11 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
     public GoblinPatch(GoblinEntity goblin) { super(goblin,Factions.NEUTRAL); }
     @Override protected void initAI() {}
     @Override public void setAIAsInfantry(boolean armed) {}
+    @Override public yesman.epicfight.api.utils.AttackResult tryHurt(net.minecraft.world.damagesource.DamageSource source,float amount) {
+        if(original.isFullyBuried() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY))
+            return yesman.epicfight.api.utils.AttackResult.missed(amount);
+        return super.tryHurt(source,amount);
+    }
     @Override public void initAnimator(Animator animator) {
         // Base initialization binds held items to Tool_R/Tool_L. Without it they
         // attach to the root joint, behind the body, and ignore the casting arms.

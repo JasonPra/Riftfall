@@ -53,7 +53,7 @@ public final class ConfidenceConfig {
         PANIC_RECOVERY_TICKS=b.defineInRange("panicRecoveryTicks",60,1,1200);
         PANIC_MINIMUM=b.defineInRange("panicMinimumTicks",100,0,2400);
         PANIC_DISTANCE=b.comment("Minimum distance from every nearby threat to START digging.").defineInRange("panicEscapeDistance",12D,4D,32D);
-        PANIC_DANGER=b.comment("Cancel digging if any threat gets within this distance.").defineInRange("panicBurrowDangerDistance",3D,1D,31D);
+        PANIC_DANGER=b.comment("Legacy compatibility setting; proximity no longer cancels an ongoing dig.").defineInRange("panicBurrowDangerDistance",3D,1D,31D);
         PANIC_BURROW=b.defineInRange("panicBurrowTicks",50,10,200);
         PANIC_SPEED=b.defineInRange("panicFleeSpeed",1.5D,1D,3D);
         WOUNDED=b.defineInRange("woundedHealthFraction",.35D,0D,1D);

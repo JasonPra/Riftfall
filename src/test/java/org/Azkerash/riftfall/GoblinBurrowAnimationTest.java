@@ -18,6 +18,47 @@ class GoblinBurrowAnimationTest {
         var global=multiply(parent,local);out.put(name,global);
         for(var child:node.getAsJsonArray("children"))walk(child.getAsJsonObject(),global,channels,frame,out);
     }
+    private void bind(JsonObject node,double[][] parent,Map<String,double[][]> out){
+        String name=node.get("name").getAsString();var global=multiply(parent,matrix(node.getAsJsonArray("transform")));out.put(name,global);
+        for(var child:node.getAsJsonArray("children"))bind(child.getAsJsonObject(),global,out);
+    }
+    private double[][] inverseRigid(double[][] m){
+        double[][] inverse=new double[4][4];inverse[3][3]=1;
+        for(int r=0;r<3;r++){for(int c=0;c<3;c++)inverse[r][c]=m[c][r];for(int c=0;c<3;c++)inverse[r][3]-=inverse[r][c]*m[c][3];}
+        return inverse;
+    }
+    @Test void damageProtectionBeginsOnlyAfterTheAnimatedMeshIsBelowGround() throws Exception {
+        var armature=json("/assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature");
+        var root=armature.getAsJsonArray("hierarchy").get(0).getAsJsonObject();var names=armature.getAsJsonArray("joints");
+        Map<String,JsonObject> channels=new HashMap<>();
+        json("/assets/riftfall/animmodels/animations/biped/goblin_burrow.json").getAsJsonArray("animation")
+            .forEach(v->channels.put(v.getAsJsonObject().get("name").getAsString(),v.getAsJsonObject()));
+        var identity=new double[][]{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+        Map<String,double[][]> rest=new HashMap<>();bind(root,identity,rest);
+        var mesh=json("/assets/riftfall/animmodels/entity/goblin.json").getAsJsonObject("vertices");
+        var positions=mesh.getAsJsonObject("positions").getAsJsonArray("array");
+        var counts=mesh.getAsJsonObject("vcounts").getAsJsonArray("array");
+        var indices=mesh.getAsJsonObject("vindices").getAsJsonArray("array");
+        var weights=mesh.getAsJsonObject("weights").getAsJsonArray("array");
+        var times=channels.get("Root").getAsJsonArray("time");int protectedFrames=0;
+        for(int frame=0;frame<times.size();frame++) {
+            double progress=times.get(frame).getAsDouble()/2.5;
+            if(!org.Azkerash.riftfall.behavior.BurrowExposure.fullyBuried(progress))continue;
+            Map<String,double[][]> pose=new HashMap<>();walk(root,identity,channels,frame,pose);int influence=0;
+            for(int vertex=0;vertex<counts.size();vertex++) {
+                double height=0;
+                for(int j=0;j<counts.get(vertex).getAsInt();j++) {
+                    String joint=names.get(indices.get(influence++).getAsInt()).getAsString();
+                    double weight=weights.get(indices.get(influence++).getAsInt()).getAsDouble();
+                    var transform=multiply(pose.get(joint),inverseRigid(rest.get(joint)));
+                    height+=weight*point(transform,positions.get(vertex*3).getAsDouble(),positions.get(vertex*3+1).getAsDouble(),positions.get(vertex*3+2).getAsDouble())[2];
+                }
+                assertTrue(height<org.Azkerash.riftfall.behavior.BurrowExposure.offset((float)progress),"Protected vertex still above the ground");
+            }
+            protectedFrames++;
+        }
+        assertTrue(protectedFrames>=5);
+    }
     @Test void diggingPlantsBothKneesAndUsesAFreeHandAndDownwardKnifeInFrontOfTheBody() throws Exception {
         var root=json("/assets/epicfight/animmodels/entity/biped.json").getAsJsonObject("armature").getAsJsonArray("hierarchy").get(0).getAsJsonObject();
         var animation=json("/assets/riftfall/animmodels/animations/biped/goblin_burrow.json").getAsJsonArray("animation");
