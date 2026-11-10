@@ -219,7 +219,9 @@ final class GoblinSquadTactics {
             return plan!=null && (mob.distanceToSqr(plan.position)>2.25 || !mob.squad.clearShot());
         }
         @Override public void start() {
-            ticks=0;ready=mob.level().getGameTime()+30;mob.getNavigation().moveTo(plan.path,1.0);
+            ticks=0;ready=mob.level().getGameTime()+30;
+            if (mob.isArcher()) mob.setSprinting(true);
+            mob.getNavigation().moveTo(plan.path,1.0);
             mob.getPersistentData().putBoolean("RiftfallFormation",true);
             mob.getPersistentData().putBoolean("RiftfallHighGround",plan.position.y>mob.getTarget().getY()+.5);
         }
@@ -229,7 +231,10 @@ final class GoblinSquadTactics {
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void tick() { ticks++; }
-        @Override public void stop() { ready=mob.level().getGameTime()+50;mob.getNavigation().stop();mob.getPersistentData().putBoolean("RiftfallFormation",false); }
+        @Override public void stop() {
+            if (mob.isArcher()) mob.setSprinting(false);
+            ready=mob.level().getGameTime()+50;mob.getNavigation().stop();mob.getPersistentData().putBoolean("RiftfallFormation",false);
+        }
     }
     static class PanicRetreat extends Goal {
         final GoblinEntity mob;Plan plan;int ticks,duration;long ready;boolean organized;
@@ -255,7 +260,11 @@ final class GoblinSquadTactics {
             duration=organized?35:18+mob.getRandom().nextInt(13);
             return true;
         }
-        @Override public void start() { ticks=0;mob.getPersistentData().putBoolean("RiftfallPanicked",!organized);mob.getPersistentData().putBoolean("RiftfallRetreating",true);mob.getNavigation().moveTo(plan.path,1.0); }
+        @Override public void start() {
+            ticks=0;
+            if (mob.isArcher()) mob.setSprinting(true);
+            mob.getPersistentData().putBoolean("RiftfallPanicked",!organized);mob.getPersistentData().putBoolean("RiftfallRetreating",true);mob.getNavigation().moveTo(plan.path,1.0);
+        }
         @Override public boolean canContinueToUse() {
             return ticks<duration && validEnemy(mob,mob.getTarget()) && mob.squad.bold()==organized && !mob.getNavigation().isDone()
                 && !GoblinTactics.coverSafe(mob) && mob.distanceToSqr(plan.position)>1
@@ -264,6 +273,7 @@ final class GoblinSquadTactics {
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void tick() { ticks++; }
         @Override public void stop() {
+            if (mob.isArcher()) mob.setSprinting(false);
             ready=mob.level().getGameTime()+20+mob.getRandom().nextInt(21);mob.getNavigation().stop();
             mob.getPersistentData().putBoolean("RiftfallRetreating",false);mob.getPersistentData().putBoolean("RiftfallPanicked",false);
         }
