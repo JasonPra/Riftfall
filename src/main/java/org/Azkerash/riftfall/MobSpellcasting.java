@@ -56,6 +56,7 @@ final class MobSpellcasting {
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
+            if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,"cast")){time=34;return;}
             time=0; released=false;
             spell = mob instanceof GoblinEntity ? SpellRegistry.MAGIC_ARROW_SPELL.get() : SpellRegistry.FIREBOLT_SPELL.get();
             mob.getNavigation().stop(); mob.getPersistentData().putBoolean("RiftfallCasting",true);

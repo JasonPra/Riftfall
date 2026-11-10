@@ -109,11 +109,17 @@ final class GoblinBehavior {
             boolean defensive=id.equals("melee") && snapshot.context().get("target.distance")<=1.8;
             boolean willing=!advancing || snapshot.context().active("engage") || rearOpening || defensive || action.running() && commitments.get(id).getAsBoolean();
             if (id.equals("cautious_retreat")) willing=!snapshot.context().active("engage") && !rearOpening;
-            boolean ready=!interrupted && allowed && willing && (committedAction==null || committedAction.equals(id))
+            boolean ready=!mob.isPanting() && !interrupted && allowed && willing && (committedAction==null || committedAction.equals(id))
                 && prepared.computeIfAbsent(id,key->action.prepare());
             signals.put("ready."+id,ready?1D:0D);
             signals.put("committed."+id,ready && action.running() && commitments.get(id).getAsBoolean()?1D:0D);
         });
+        signals.put("ready.pant",mob.isPanting()?1D:0D);
+        if(mob.isPanting())executors.keySet().forEach(id->{signals.put("ready."+id,0D);signals.put("committed."+id,0D);});
+        signals.put("stamina.current",mob.staminaState().current(org.Azkerash.riftfall.stamina.StaminaConfig.maximum()));
+        signals.put("stamina.maximum",org.Azkerash.riftfall.stamina.StaminaConfig.maximum());
+        signals.put("stamina.panting",mob.isPanting()?1D:0D);
+        signals.put("stamina.regen_multiplier",org.Azkerash.riftfall.stamina.StaminaState.regenerationMultiplier(mob.isPanting(),mob.staminaFleeing(),mob.staminaConfident()));
         panic.signals(signals);
         healing.signals(signals);
         if (!mob.isRanged() && mob.getPersistentData().getBoolean("RiftfallSeekingHealing") && snapshot.targetVisible()) {
@@ -135,6 +141,7 @@ final class GoblinBehavior {
             @Override public void stop() { stopLook(); }
         });
         actions.put("interrupted",s->mob.getNavigation().stop());
+        actions.put("pant",s->{mob.setSprinting(false);mob.stopUsingItem();mob.getNavigation().stop();});
         actions.put("watch",s->{
             mob.getNavigation().stop();if (s.target()!=null) mob.getLookControl().setLookAt(s.target(),45,45);
         });

@@ -173,6 +173,8 @@ final class GoblinTactics {
                     if (path!=null) goblin.getNavigation().moveTo(path,1.1);
                     return;
                 }
+                if(!org.Azkerash.riftfall.stamina.MobStamina.spend(goblin,
+                        selected==SwordAttack.FLURRY || selected==SwordAttack.FRENZY?"flurry":"swipe"))return;
                 goblin.setSprinting(false);
                 resetAttackCooldown(); victim=target;
                 attack=selected; nextAttack=(nextAttack+1)%GoblinSwordCombat.comboLength(goblin.getMainHandItem().is(GoblinItems.SHORTSWORD.get()),goblin.getOffhandItem().getItem() instanceof net.minecraft.world.item.ShieldItem);
@@ -225,6 +227,7 @@ final class GoblinTactics {
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
+            if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,"plunge")){victim=null;ticks=32;return;}
             victim=mob.getTarget(); ticks=0; struck=false; ready=mob.level().getGameTime()+80;
             GoblinBuckler.lowerForAttack(mob,32);
             mob.getNavigation().stop(); mob.setAggressive(true);
@@ -236,6 +239,7 @@ final class GoblinTactics {
             mob.getPersistentData().putInt("RiftfallPlunges",mob.getPersistentData().getInt("RiftfallPlunges")+1);
         }
         @Override public void tick() {
+            if(victim==null)return;
             ticks++; mob.getNavigation().stop();
             if (ticks==6) {
                 mob.setDeltaMovement(launch.x,.35,launch.z); mob.setOnGround(false); mob.hasImpulse=true;
@@ -309,6 +313,7 @@ final class GoblinTactics {
                 (attack==StaffAttack.SWEEP ? GoblinAnimations.STAFF_SWEEP : GoblinAnimations.STAFF_SMASH).get());
         }
         private void beginSwing() {
+            if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,attack==StaffAttack.SWEEP?"staff_sweep":"staff_smash")){victim=null;approachTicks=40;return;}
             windingUp=true; ticks=0; ready=mob.level().getGameTime()+attack.duration+25;
             mob.getNavigation().stop();
             facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
@@ -368,6 +373,7 @@ final class GoblinTactics {
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
         @Override public void start() {
+            if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,"heal")){ticks=34;return;}
             ticks=0; mob.getNavigation().stop(); mob.getPersistentData().putBoolean("RiftfallCasting",true);
             GoblinAnimations.play(mob,GoblinAnimations.CHARGE);
             var spell=SpellRegistry.HEALING_CIRCLE_SPELL.get(); spell.playSound(spell.getCastStartSound(),mob);

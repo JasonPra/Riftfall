@@ -45,6 +45,12 @@ public final class BehaviorOverlay {
         var lines=new ArrayList<String>();var details=data.getCompound("ConfidenceDetails");
         lines.add(name+" | "+data.getString("Action"));
         lines.add(String.format(Locale.ROOT,"Confidence %.0f%% | %.1f pts | advance %.1f",data.getDouble("Confidence")*100,data.getDouble("Points"),details.getDouble("EngagePoints")));
+        if(data.getCompound("Stamina").contains("Current")){
+            var stamina=data.getCompound("Stamina");
+            int filled=(int)Math.round(10*stamina.getDouble("Current")/Math.max(1,stamina.getDouble("Maximum")));
+            lines.add("Stamina ["+"|".repeat(Math.clamp(filled,0,10))+".".repeat(10-Math.clamp(filled,0,10))+"] "+String.format(Locale.ROOT,"%.1f/%.0f | regen x%.2f%s",stamina.getDouble("Current"),stamina.getDouble("Maximum"),stamina.getDouble("RegenMultiplier"),stamina.getBoolean("Panting")?" | PANTING":""));
+            lines.add("Stamina: "+stamina.getString("LastExpense")+" | regen delay "+stamina.getInt("DelayTicks"));
+        }
         for (String key:List.of("SelfCombatStats","VisibleTargetCombatStats")) if (details.contains(key)) {
             var stats=details.getCompound(key);
             lines.add(String.format(Locale.ROOT,"%s: dmg %.1f armor %.0f tough %.0f hp %.1f",key.equals("SelfCombatStats")?"Self":"Foe",

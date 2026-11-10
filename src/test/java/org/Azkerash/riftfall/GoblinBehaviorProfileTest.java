@@ -57,6 +57,10 @@ class GoblinBehaviorProfileTest {
         signals.put("ready.seek_healing",1D);assertEquals("seek_healing",choose(signals));
         signals.put("self.interrupted",1D);assertEquals("interrupted",choose(signals));
     }
+    @Test void pantingOverridesPanicAndCommittedAttacksButNotIncomingHitStun(){
+        assertEquals("pant",choose(Map.of("ready.pant",1D,"ready.panic_escape",1D,"ready.melee",1D,"committed.melee",1D)));
+        assertEquals("interrupted",choose(Map.of("ready.pant",1D,"self.interrupted",1D)));
+    }
     @Test void everyActiveMobSkillSlotHasAnExecutableBehaviorPolicy() {
         for(var slot:org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.ACTIVE_SLOTS){
             String id=org.Azkerash.riftfall.behavior.skills.MobSkillGoal.behaviorId(slot);

@@ -21,7 +21,7 @@ final class GoblinBuckler {
 
     static void tick(GoblinEntity mob) {
         if (mob.isRanged()) return;
-        if(mob.isPanicFleeing()||mob.isBurrowing()){mob.stopUsingItem();mob.getPersistentData().putBoolean("RiftfallBucklerRaised",false);return;}
+        if(mob.isPanting()||mob.isPanicFleeing()||mob.isBurrowing()){mob.stopUsingItem();mob.getPersistentData().putBoolean("RiftfallBucklerRaised",false);return;}
         var target = mob.getTarget();
         var patch = yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(mob, GoblinPatch.class);
         boolean attacking = mob.level().getGameTime() < mob.bucklerAttackUntil || mob.grappledPlayerId() >= 0

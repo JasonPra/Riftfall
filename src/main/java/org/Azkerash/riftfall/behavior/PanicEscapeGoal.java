@@ -108,6 +108,7 @@ public final class PanicEscapeGoal extends Goal {
         }else if(now>=nextPath){
             nextPath=now+8;plan(threats,s);
         }
+        mob.setSprinting(!burrowing() && !mob.getNavigation().isDone());
         publish();
     }
     private void plan(List<Vec3> threats,PanicSettings s){
@@ -125,7 +126,7 @@ public final class PanicEscapeGoal extends Goal {
         if(best!=null){mob.getNavigation().moveTo(best,s.fleeSpeed());var end=best.getEndNode();mob.getLookControl().setLookAt(end.x,mob.getEyeY(),end.z,90,90);}
     }
     private void abort(){state.abortBurrow();visuals.abortBurrow();nextPath=0;}
-    @Override public void stop(){mob.getNavigation().stop();if(burrowing())abort();publish();}
+    @Override public void stop(){mob.setSprinting(false);mob.getNavigation().stop();if(burrowing())abort();publish();}
     private void publish(){
         boolean active=active();var data=mob.getPersistentData();
         data.putBoolean("RiftfallPanicking",active);data.putBoolean("RiftfallBurrowing",burrowing());

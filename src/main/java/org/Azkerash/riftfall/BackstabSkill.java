@@ -40,6 +40,7 @@ public final class BackstabSkill extends Skill implements MobActiveSkill {
     @Override public boolean canUse(Mob owner,LivingEntity target){
         return owner.getOffhandItem().getItem() instanceof ShieldItem && !owner.isNoAi() && BackstabSequence.canStart(owner,target);
     }
+    @Override public double staminaCost(Mob owner){return org.Azkerash.riftfall.stamina.StaminaConfig.cost("backstab");}
     @Override public Execution start(Mob owner,LivingEntity target){return BackstabSequence.begin(owner,target);}
     @Override public ResourceLocation getSkillTexture(){return ResourceLocation.fromNamespaceAndPath("epicfight","textures/gui/skills/identity/revelation.png");}
 }

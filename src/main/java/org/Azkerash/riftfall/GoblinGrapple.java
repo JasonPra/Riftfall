@@ -57,6 +57,7 @@ final class GoblinGrapple extends Goal {
         return mob.level().noCollision(mob,mob.getBoundingBox().move(backPosition(player).subtract(mob.position())));
     }
     @Override public void start() {
+        if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,"grapple")){victim=null;return;}
         victim=(ServerPlayer)mob.getTarget(); anchor=victim.position(); latchFrom=mob.position(); began=mob.level().getGameTime(); ready=began+200;
         GoblinBuckler.lowerForAttack(mob,20);
         oldGravity=mob.isNoGravity(); oldPhysics=mob.noPhysics; struggle.reset();

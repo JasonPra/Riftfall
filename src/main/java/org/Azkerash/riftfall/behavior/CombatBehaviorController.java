@@ -64,6 +64,7 @@ public final class CombatBehaviorController {
         diagnosticAction=action;nextDiagnostics=now+5;
         var data=new net.minecraft.nbt.CompoundTag();data.putLong("ServerTick",now);
         data.put("ConfidenceDetails",confidence.diagnostics());
+        data.put("Stamina",org.Azkerash.riftfall.stamina.MobStamina.diagnostics(mob));
         data.put("Notes",mob.getPersistentData().getCompound("RiftfallBehaviorNotes").copy());
         data.putInt("MemoryDurationTicks",memoryTicks);data.putLong("TargetMemoryRemainingTicks",remembered==null?0:Math.max(0,seenAt+memoryTicks-now));
         if (lastSeen!=null) { var position=new net.minecraft.nbt.CompoundTag();position.putDouble("X",lastSeen.x);position.putDouble("Y",lastSeen.y);position.putDouble("Z",lastSeen.z);data.put("LastSeenPosition",position); }

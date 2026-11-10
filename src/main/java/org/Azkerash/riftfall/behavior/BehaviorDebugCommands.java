@@ -33,6 +33,7 @@ public final class BehaviorDebugCommands {
                 factors.getAllKeys().stream().sorted().forEach(key->{ var f=factors.getCompound(key);out.accept("Factor "+key+": "+f.getDouble("Input")+" x "+f.getDouble("Weight")+" = "+f.getDouble("Points")); });
                 out.accept("Allies: "+details.get("Allies"));out.accept("Excluded candidates: "+details.get("ExcludedCandidates"));out.accept("Witnessed deaths: "+details.get("WitnessedDeaths"));
                 out.accept("Witness tuning: radius "+details.getDouble("WitnessRadius")+", duration "+details.getInt("WitnessDurationTicks")+" ticks, cap "+details.getInt("WitnessMaxStacks"));
+                out.accept("Stamina: "+data.getCompound("Stamina"));
                 out.accept("Action notes: "+data.getCompound("Notes"));
                 out.accept("Situation: "+data.getCompound("Signals"));
                 var behaviors=data.getCompound("BehaviorEvaluations");

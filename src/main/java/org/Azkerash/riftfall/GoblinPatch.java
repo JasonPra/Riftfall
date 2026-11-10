@@ -19,6 +19,7 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         // attach to the root joint, behind the body, and ignore the casting arms.
         super.initAnimator(animator);
         commonAggresiveMobAnimatorInit(animator);
+        animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.KNEEL,GoblinAnimations.PANT);
         animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.RUN,GoblinAnimations.PANIC_RUN);
         animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.BLOCK,yesman.epicfight.gameasset.Animations.BIPED_BLOCK);
         if (original.isArcher()) {
@@ -43,6 +44,10 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         org.Azkerash.riftfall.client.GoblinBurrowPlayback.update(this);
     }
     @Override public void updateMotion(boolean considerInaction) {
+        if(original.isAlive() && original.isPanting() && !isStunned()){
+            currentLivingMotion=yesman.epicfight.api.animation.LivingMotions.KNEEL;
+            currentCompositeMotion=yesman.epicfight.api.animation.LivingMotions.NONE;return;
+        }
         if(original.isBurrowing() && !isStunned()) {
             currentLivingMotion=yesman.epicfight.api.animation.LivingMotions.INACTION;
             currentCompositeMotion=yesman.epicfight.api.animation.LivingMotions.NONE;

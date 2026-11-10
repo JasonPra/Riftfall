@@ -13,6 +13,8 @@ public class Riftfall {
             org.Azkerash.riftfall.confidence.ConfidenceConfig.SPEC);
         bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Loading event)->org.Azkerash.riftfall.confidence.ConfidenceConfig.loaded(event));
         bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Reloading event)->org.Azkerash.riftfall.confidence.ConfidenceConfig.loaded(event));
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,
+            org.Azkerash.riftfall.stamina.StaminaConfig.SPEC,"riftfall-stamina-server.toml");
         BehaviorTestEntities.register(bus);
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);

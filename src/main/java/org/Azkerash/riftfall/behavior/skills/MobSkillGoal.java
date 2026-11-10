@@ -17,7 +17,9 @@ public final class MobSkillGoal extends Goal {
         var equipped=MobSkillLoadout.equipped(owner,slot);skill=equipped==null?null:MobSkillLoadout.adapter(equipped);
         return skill!=null && !owner.isNoAi() && MobSkillLoadout.ready(owner,slot) && skill.canUse(owner,owner.getTarget());
     }
-    @Override public void start(){execution=skill.start(owner,owner.getTarget());if(execution!=null)MobSkillLoadout.used(owner,slot,skill.cooldownTicks());}
+    @Override public void start(){
+        if(!org.Azkerash.riftfall.stamina.MobStamina.spend(owner,skill.staminaCost(owner),"skill "+slot.name()))return;
+        execution=skill.start(owner,owner.getTarget());if(execution!=null)MobSkillLoadout.used(owner,slot,skill.cooldownTicks());}
     @Override public boolean canContinueToUse(){return execution!=null && execution.running();}
     @Override public boolean requiresUpdateEveryTick(){return true;}
     @Override public void tick(){if(execution!=null)execution.tick();}

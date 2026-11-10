@@ -19,6 +19,8 @@ final class GoblinShieldGuard {
         if(incoming.resultType!=AttackResult.ResultType.SUCCESS || incoming.damage<=0 || !mob.isBlocking()
                 || source.getEntity()!=null && mob.isAlliedTo(source.getEntity()) || !ShieldCollisions.contact(mob,source))return incoming;
         if(!patch.isLogicalClient()) {
+            if(!org.Azkerash.riftfall.stamina.MobStamina.spend(mob,
+                    org.Azkerash.riftfall.stamina.StaminaConfig.cost("block_base")+incoming.damage*org.Azkerash.riftfall.stamina.StaminaConfig.cost("block_per_damage"),"shield block"))return incoming;
             mob.hurtCurrentlyUsedShield(incoming.damage);
             mob.playBlockedGrunt();
             mob.playSound(EpicFightSounds.CLASH.get(),1,org.Azkerash.riftfall.shield.GuardClang.pitch(mob.getRandom().nextFloat(),-.05F,.1F));
