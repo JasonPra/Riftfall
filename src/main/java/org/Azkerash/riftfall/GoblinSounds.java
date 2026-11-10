@@ -8,10 +8,10 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /** Local, positional goblin voices shared by all three variants. */
-final class GoblinSounds {
+public final class GoblinSounds {
     private static final DeferredRegister<SoundEvent> SOUNDS=DeferredRegister.create(Registries.SOUND_EVENT,Riftfall.MODID);
     static final DeferredHolder<SoundEvent,SoundEvent> LAUGH=register("goblin_laugh");
-    static final DeferredHolder<SoundEvent,SoundEvent> SCREAM=register("goblin_scream");
+    public static final DeferredHolder<SoundEvent,SoundEvent> SCREAM=register("goblin_scream");
     static final DeferredHolder<SoundEvent,SoundEvent> DEATH=register("goblin_death");
     private static DeferredHolder<SoundEvent,SoundEvent> register(String name) {
         return SOUNDS.register(name,()->SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,name)));

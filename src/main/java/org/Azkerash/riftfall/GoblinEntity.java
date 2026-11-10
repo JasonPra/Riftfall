@@ -40,7 +40,6 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public boolean isInRift(){return getPersistentData().getBoolean("RiftfallInRift");}
     public void setInRift(boolean inRift){getPersistentData().putBoolean("RiftfallInRift",inRift);}
     void panicVisuals(boolean panicked,boolean escaping,double progress){
-        if(panicked && !isPanicking()) playGoblinVoice(GoblinSounds.SCREAM.get());
         entityData.set(PANIC,!panicked?0:!escaping?3:getPersistentData().getBoolean("RiftfallBurrowing")?2:1);
         entityData.set(BURROW_PROGRESS,(int)Math.round(progress*1000));
     }
@@ -119,7 +118,12 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         return result;
     }
     @Override protected net.minecraft.sounds.SoundEvent getDeathSound() {
+        if(level().isClientSide) org.Azkerash.riftfall.client.GoblinFearAudio.stop(this);
         return GoblinSounds.DEATH.get();
+    }
+    @Override public void handleEntityEvent(byte event) {
+        if(event==3 && level().isClientSide) org.Azkerash.riftfall.client.GoblinFearAudio.stop(this);
+        super.handleEntityEvent(event);
     }
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes().add(yesman.epicfight.registry.entries.EpicFightAttributes.IMPACT,.5)
