@@ -242,3 +242,22 @@ Global settings under `[combatConfidence]`, also supported in per-species `entit
 For example, `"riftfall:goblin_archer|healingRiskPoints=30"` makes archers less willing to risk an enemy-camped circle. Entry zero disables seeking; the effective exit threshold is at least the entry threshold to avoid contradictory tuning.
 
 The overhead overlay shows `seek_healing`, a route/rejection note, remaining circle seconds, and whether the actor is moving or healing inside. `inspect` includes `Notes` and `healing.*` situation signals, including the entry/exit health thresholds, danger radius, risk threshold and whether confidence is overriding proximity. `RiftfallHealingRetreats` counts started recoveries and `RiftfallSeekingHealing` marks the active action. All transient notes/flags are cleared on load.
+
+## Goblin tactical sprinting
+
+The reusable `RegroupGoal` accepts a faction-membership predicate and movement
+settings. Goblins check once per second for a visible squadmate within 32 units.
+If the closest visible squadmate is more than 10 units away, they can sprint back
+until within 4 units. A visible enemy within 10 units prevents regrouping; routes
+must avoid passing close to a visible target. Replanning runs every 10 ticks.
+Regrouping yields to healing, retreats, committed attacks, and covering fire.
+
+Wounded warriors prefer reachable ground behind a nearby ally before falling back
+to their existing escape destination, and sprint during that withdrawal. Existing
+healing, archer repositioning, and warrior screening sprint lifecycles remain in
+place. Ordinary target approaches sprint only while moving toward a visible enemy
+more than 10 units away; squared distances avoid raycasting or square roots just
+to measure range. Archers retain their firing-position and engagement ranges.
+Sprint state is cleared on arrival, attack, interruption, or behavior exit.
+Panic already uses a configurable navigation multiplier (`panicFleeSpeed`, default
+1.5); it does not need a second, stacking sprint bonus.

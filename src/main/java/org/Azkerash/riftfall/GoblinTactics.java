@@ -51,6 +51,7 @@ final class GoblinTactics {
     static final class WarriorRetreat extends Goal {
         final GoblinEntity mob;
         Vec3 destination;
+        net.minecraft.world.level.pathfinder.Path retreatPath;
         int ticks;
         long ready;
         WarriorRetreat(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
@@ -58,7 +59,9 @@ final class GoblinTactics {
             var target=mob.getTarget();
             if (target==null || !target.isAlive() || mob.getHealth()>mob.getMaxHealth()*GoblinSquadTactics.retreatHealth(mob.behavior.confidence())
                 || mob.level().getGameTime()<ready || mob.distanceToSqr(target)>7*7) return false;
-            destination=LandRandomPos.getPosAway(mob,10,2,target.position());
+            var rally=mob.squad.retreatToAlly();
+            retreatPath=rally==null?null:rally.path();
+            destination=rally==null?LandRandomPos.getPosAway(mob,10,2,target.position()):rally.position();
             return destination!=null && destination.distanceToSqr(target.position())>mob.distanceToSqr(target);
         }
         @Override public void start() {
@@ -66,7 +69,8 @@ final class GoblinTactics {
             mob.retreatThreat=mob.getTarget(); mob.retreatCoverUntil=mob.level().getGameTime()+100;
             mob.getPersistentData().putInt("RiftfallRetreats",mob.getPersistentData().getInt("RiftfallRetreats")+1);
             mob.getPersistentData().putBoolean("RiftfallRetreating",true);
-            mob.getNavigation().moveTo(destination.x,destination.y,destination.z,1.1);
+            boolean moving=retreatPath!=null?mob.getNavigation().moveTo(retreatPath,1.1):mob.getNavigation().moveTo(destination.x,destination.y,destination.z,1.1);
+            mob.setSprinting(moving);
         }
         @Override public boolean canContinueToUse() {
             return ticks<80 && mob.getTarget()!=null && mob.getTarget().isAlive() && mob.getHealth()<mob.getMaxHealth()*.5
@@ -77,6 +81,7 @@ final class GoblinTactics {
             ticks++; mob.retreatCoverUntil=mob.level().getGameTime()+40; mob.getLookControl().setLookAt(mob.getTarget(),45,45);
         }
         @Override public void stop() {
+            mob.setSprinting(false);
             // Keep the pursuer marked briefly while the warrior finishes withdrawing or gets healed.
             mob.retreatCoverUntil=mob.level().getGameTime()+40;
             mob.getPersistentData().putInt("RiftfallLastRetreatTicks",ticks);
@@ -101,9 +106,11 @@ final class GoblinTactics {
             var target=mob.getTarget(); if (target==null) return;
             mob.getLookControl().setLookAt(target,90,90);
             if (mob.distanceToSqr(target)>20*20 || !mob.getSensing().hasLineOfSight(target)) {
-                draw=0; mob.stopUsingItem(); mob.getNavigation().moveTo(target,1.0); return;
+                draw=0; mob.stopUsingItem();
+                boolean moving=mob.getNavigation().moveTo(target,1.0);
+                mob.setSprinting(moving && mob.distanceToSqr(target)>10*10 && mob.getSensing().hasLineOfSight(target));return;
             }
-            mob.getNavigation().stop();
+            mob.setSprinting(false);mob.getNavigation().stop();
             if (cooldown>0) { cooldown--; return; }
             if (draw==0 && !mob.squad.clearShot()) return;
             if (draw==0) mob.startUsingItem(InteractionHand.MAIN_HAND);
@@ -115,7 +122,7 @@ final class GoblinTactics {
                 if (patch!=null) patch.playShootingAnimation();
             }
         }
-        @Override public void stop() { mob.stopUsingItem(); mob.setAggressive(false); draw=0; }
+        @Override public void stop() { mob.setSprinting(false);mob.stopUsingItem(); mob.setAggressive(false); draw=0; }
     }
     static boolean interrupted(GoblinEntity mob) {
         var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(mob,GoblinPatch.class);
@@ -184,6 +191,9 @@ final class GoblinTactics {
             super.tick();
             if (remaining<=0) {
                 if (!interrupted(goblin) && !closing) goblin.squad.moveWarrior();
+                var target=goblin.getTarget();
+                if (!interrupted(goblin) && target!=null && goblin.distanceToSqr(target)>10*10
+                        && goblin.getSensing().hasLineOfSight(target) && !goblin.getNavigation().isDone())goblin.setSprinting(true);
                 return;
             }
             goblin.getNavigation().stop();

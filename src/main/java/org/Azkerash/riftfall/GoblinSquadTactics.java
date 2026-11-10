@@ -133,6 +133,21 @@ final class GoblinSquadTactics {
         }
         mob.setSprinting(sprint);
     }
+    Plan retreatToAlly() {
+        var target=mob.getTarget();if(!validEnemy(mob,target))return null;
+        var allies=mob.level().getEntitiesOfClass(GoblinEntity.class,mob.getBoundingBox().inflate(16,4,16),
+            other->other!=mob && other.isAlive() && !other.isNoAi() && mob.isAlliedTo(other)
+                && !other.isBurrowing() && !other.isPanicFleeing() && mob.getSensing().hasLineOfSight(other));
+        allies.sort(Comparator.comparingDouble(other->other.distanceToSqr(mob)));
+        for(var ally:allies.stream().limit(4).toList()) {
+            var plan=near(rearSlot(target.position(),ally.position(),2,0),false);
+            if(plan==null || plan.position.distanceToSqr(target.position())<=mob.distanceToSqr(target))continue;
+            var nodes=new ArrayList<Vec3>();
+            for(int i=0;i<plan.path.getNodeCount();i++)nodes.add(Vec3.atBottomCenterOf(plan.path.getNode(i).asBlockPos()));
+            if(org.Azkerash.riftfall.behavior.HealingRouteSafety.safe(mob.position(),nodes,plan.position,List.of(target.position()),4,false))return plan;
+        }
+        return null;
+    }
     record Plan(Vec3 position,Path path) {}
     private boolean safe(BlockPos feet) {
         var level=mob.level();
@@ -223,7 +238,7 @@ final class GoblinSquadTactics {
         }
         @Override public void start() {
             ticks=0;ready=mob.level().getGameTime()+30;
-            if (mob.isArcher()) mob.setSprinting(true);
+            mob.setSprinting(mob.isArcher() || mob.distanceToSqr(mob.getTarget())>10*10);
             mob.getNavigation().moveTo(plan.path,1.0);
             mob.getPersistentData().putBoolean("RiftfallFormation",true);
             mob.getPersistentData().putBoolean("RiftfallHighGround",plan.position.y>mob.getTarget().getY()+.5);
@@ -233,9 +248,13 @@ final class GoblinSquadTactics {
                 && !GoblinTactics.coverSafe(mob);
         }
         @Override public boolean requiresUpdateEveryTick() { return true; }
-        @Override public void tick() { ticks++; }
+        @Override public void tick() {
+            ticks++;
+            var target=mob.getTarget();
+            mob.setSprinting(target!=null && !mob.getNavigation().isDone() && (mob.isArcher() || mob.distanceToSqr(target)>10*10));
+        }
         @Override public void stop() {
-            if (mob.isArcher()) mob.setSprinting(false);
+            mob.setSprinting(false);
             ready=mob.level().getGameTime()+50;mob.getNavigation().stop();mob.getPersistentData().putBoolean("RiftfallFormation",false);
         }
     }

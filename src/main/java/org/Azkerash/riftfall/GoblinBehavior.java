@@ -34,6 +34,7 @@ final class GoblinBehavior {
             (state,pos)->GoblinPanicVisuals.canDig(mob,state,pos),new GoblinPanicVisuals(mob));
         add("panic_escape",panic,()->true);
         add("seek_healing",healing,()->false);
+        add("regroup",new RegroupGoal(mob,other->other instanceof GoblinEntity goblin && !goblin.isBurrowing() && !goblin.isPanicFleeing(),32,10,4,1.05),()->false);
         if (!mob.isRanged()) {
             add("cautious_retreat",new GoblinTactics.Retreat(mob),()->false);
             add("warrior_retreat",new GoblinTactics.WarriorRetreat(mob),()->false);
@@ -81,7 +82,7 @@ final class GoblinBehavior {
             boolean combat=!id.equals("wander");
             if(escaping&&!id.equals("panic_escape")){signals.put("ready."+id,0D);signals.put("committed."+id,0D);return;}
             // Hidden targets cannot start new attacks or track through walls. Committed swings may finish naturally.
-            boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing") || id.equals("panic_escape")):
+            boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing") || id.equals("panic_escape") || id.equals("regroup")):
                 !snapshot.context().active("target.present");
             // Do not pathfind or advance idle ability cooldowns while another animation owns the action slot.
             boolean advancing=id.equals("melee") || id.equals("grapple") || id.equals("plunge");
