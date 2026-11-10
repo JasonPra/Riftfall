@@ -15,7 +15,7 @@ Existing movesets, combat tremors, held-item placement, ears and shaman helmet a
 
 The vanilla layer follows the model head; the Epic Fight layer binds this same rig to the animated `Head` joint. The body armature and existing movesets remain intact. These are separate facial pivots, not extra joints inserted into Epic Fight's body armature. The mouth panel samples the original mouth/teeth pixels directly, preserving its flat silhouette and appearance at rest. It only tilts and drops slightly when opened; no protruding chin or new row of teeth is added. Future speech code can drive the jaw without changing eye tracking or expressions.
 
-The original entity skins are used directly. The moved facial artwork is in the separate atlas area beginning at (32,0); the mouth panel samples (32,4) through (40,6), including transparency. One static material atlas supplies amber eye, dark pupil/brow and skin colors for the articulated parts. No face-frame images or modified copies of the skins are generated.
+The original entity skins are used directly. The moved facial artwork is in the separate atlas area beginning at (32,0); the mouth panel samples (33,4) through (38,5), cropped to the five visible mouth pixels and centered beneath the nose. One static material atlas supplies amber eye, dark pupil/brow and skin colors for the articulated parts. No face-frame images or modified copies of the skins are generated.
 
 ## Test commands
 
@@ -89,3 +89,5 @@ For jaw/speech integration, call `animator().jaw(0..15)` every tick from a futur
 ```
 
 To move the mouth again, update `GoblinFaceBinding.MOUTH`'s atlas `u/v` and, if needed, model bounds. The current north-face binding mirrors U to match Minecraft's original head UV orientation. Mouth UVs span exact pixel edges; transparent pixels stay transparent. At rest, one texture pixel maps to 1.1 × 1.0625 model pixels on the vanilla head. Epic Fight's different head dimensions are accounted for by the head-surface transform in `PatchedGoblinFacialLayer`.
+
+Combat render timing uses Epic Fight's fourth layer float (`partialTicks`). Its third float is head pitch and must never be used as a blend factor. Facial blends are bounded to [0,1] as a second guard against parts escaping the face during blinks. The mouth panel centers the visible fang-to-fang span; the atlas region's asymmetric transparent padding does not shift it sideways.

@@ -11,16 +11,17 @@ class GoblinFaceBindingTest {
         for(String role:new String[]{"goblin","goblin_archer","goblin_shaman"}) {
             try(var stream=getClass().getResourceAsStream("/assets/riftfall/textures/entity/"+role+".png")) {
                 var image=ImageIO.read(stream);
-                assertEquals(0xfff0e4b7,image.getRGB(panel.u()+1,panel.v()));
-                assertEquals(0xfff0e4b7,image.getRGB(panel.u()+5,panel.v()));
+                assertEquals(0xfff0e4b7,image.getRGB(panel.u(),panel.v()));
+                assertEquals(0xfff0e4b7,image.getRGB(panel.u()+panel.width()-1,panel.v()));
                 assertEquals(0,image.getRGB(panel.u()+1,panel.v()+1)>>>24,"Transparent row must stay transparent");
             }
         }
         assertEquals(1.1F,Math.abs(panel.xAt(33)-panel.xAt(34)),.00001);
         assertEquals(1.0625F,panel.yAt(5)-panel.yAt(4),.00001);
-        assertEquals(3.3F,panel.xAt(33),.00001,"Match the original north-face UV orientation");
-        assertEquals(.625F,panel.uLeft());assertEquals(.5F,panel.uRight());
-        assertEquals(.0625F,panel.v0());assertEquals(.09375F,panel.v1());
+        assertEquals(2.75F,panel.xAt(33),.00001,"Match the original north-face UV orientation");
+        assertEquals(38/64F,panel.uLeft());assertEquals(33/64F,panel.uRight());
+        assertEquals(0,(panel.xAt(panel.u())+panel.xAt(panel.u()+panel.width()))/2,.00001,"Visible mouth must be centered");
+        assertEquals(.0625F,panel.v0());assertEquals(5/64F,panel.v1());
     }
     @Test void epicFightMouthPlacementMatchesTheActualSkinnedHeadSurface() throws Exception {
         try(var stream=getClass().getResourceAsStream("/assets/riftfall/animmodels/entity/goblin.json")) {

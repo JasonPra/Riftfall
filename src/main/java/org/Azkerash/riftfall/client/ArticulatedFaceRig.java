@@ -68,5 +68,5 @@ public final class ArticulatedFaceRig {
     private boolean stern(FaceFrame frame){return frame.expression()==FaceExpression.NEUTRAL || frame.expression()==FaceExpression.ANGRY;}
     private float closure(FaceFrame frame,FacialRigPose pose){return Math.max(pose.lidClosure(),stern(frame)?style.restingLidClosure():0);}
     private float browAngle(FaceFrame frame,FacialRigPose pose){return pose.browAngle()+(stern(frame)?style.restingBrowAngle():0);}
-    private static float mix(float a,float b,float t) {return a+(b-a)*t;}
+    private static float mix(float a,float b,float t) {return FacialRigPose.interpolate(a,b,t);}
 }

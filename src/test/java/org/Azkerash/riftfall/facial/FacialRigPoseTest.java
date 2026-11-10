@@ -26,4 +26,16 @@ class FacialRigPoseTest {
             var frame=new FaceFrame(expression,blink,x,-x,jaw);assertEquals(frame,FaceFrame.unpack(frame.pack()));
         }
     }
+    @Test void blinkInterpolationCannotThrowEyelidsOutsideTheirPoseRange() {
+        for(var expression:FaceExpression.values())for(int before=0;before<3;before++)for(int after=0;after<3;after++) {
+            var a=FacialRigPose.from(new FaceFrame(expression,before,0,0));
+            var b=FacialRigPose.from(new FaceFrame(expression,after,0,0));
+            for(float progress:new float[]{-90,-15,0,.25F,.5F,1,15,90,Float.NaN,Float.NEGATIVE_INFINITY,Float.POSITIVE_INFINITY}) {
+                float closure=FacialRigPose.interpolate(a.lidClosure(),b.lidClosure(),progress);
+                assertTrue(closure>=0 && closure<=1,"Eyelid escaped on "+expression+" at "+progress);
+            }
+        }
+        assertEquals(.25F,FacialRigPose.interpolate(0,1,.25F));
+        assertEquals(0,FacialRigPose.interpolate(0,1,-15));assertEquals(1,FacialRigPose.interpolate(0,1,15));
+    }
 }
