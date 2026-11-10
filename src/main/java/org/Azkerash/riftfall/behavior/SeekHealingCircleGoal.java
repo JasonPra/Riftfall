@@ -111,8 +111,10 @@ public final class SeekHealingCircleGoal extends Goal {
             && level.noCollision(mob,mob.getBoundingBox().move(Vec3.atBottomCenterOf(pos).subtract(mob.position())));
     }
     private void move() {
-        if (inCircle()) mob.getNavigation().stop();
-        else if (path!=null) mob.getNavigation().moveTo(path,1.1);
+        if (inCircle()) {
+            mob.setSprinting(false);
+            mob.getNavigation().stop();
+        } else mob.setSprinting(path!=null && mob.getNavigation().moveTo(path,1.1));
     }
     @Override public void start() {
         running=true;mob.getPersistentData().putInt("RiftfallHealingRetreats",mob.getPersistentData().getInt("RiftfallHealingRetreats")+1);mob.getPersistentData().putBoolean("RiftfallRetreating",true);
@@ -120,11 +122,14 @@ public final class SeekHealingCircleGoal extends Goal {
     }
     @Override public boolean requiresUpdateEveryTick() { return true; }
     @Override public void tick() {
-        if (inCircle()) mob.getNavigation().stop();
+        if (inCircle()) {
+            mob.setSprinting(false);
+            mob.getNavigation().stop();
+        } else if (mob.getNavigation().isDone()) mob.setSprinting(false);
         var target=mob.getTarget();if (target!=null) mob.getLookControl().setLookAt(target,45,45);
     }
     @Override public void stop() {
-        running=false;nextPlan=0;mob.getNavigation().stop();circle=null;path=null;
+        running=false;nextPlan=0;mob.setSprinting(false);mob.getNavigation().stop();circle=null;path=null;
         mob.getPersistentData().putBoolean("RiftfallRetreating",false);mob.getPersistentData().putBoolean("RiftfallSeekingHealing",false);
     }
     public void signals(Map<String,Double> signals) {
