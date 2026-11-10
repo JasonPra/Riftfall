@@ -6,5 +6,9 @@
   "goblin_scream": {
     "subtitle": "subtitles.riftfall.goblin_scream",
     "sounds": [{ "name": "riftfall:entity/goblin/scream", "attenuation_distance": 16 }]
+  },
+  "goblin_death": {
+    "subtitle": "subtitles.riftfall.goblin_death",
+    "sounds": [{ "name": "riftfall:entity/goblin/death", "attenuation_distance": 16 }]
   }
 }

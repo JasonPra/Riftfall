@@ -119,7 +119,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         return result;
     }
     @Override protected net.minecraft.sounds.SoundEvent getDeathSound() {
-        return tickCount>=nextVoiceTick ? GoblinSounds.SCREAM.get() : null;
+        return GoblinSounds.DEATH.get();
     }
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes().add(yesman.epicfight.registry.entries.EpicFightAttributes.IMPACT,.5)
