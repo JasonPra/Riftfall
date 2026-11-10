@@ -125,9 +125,24 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         return result;
     }
     @Override protected net.minecraft.sounds.SoundEvent getHurtSound(net.minecraft.world.damagesource.DamageSource source) {
-        // The slowest hurt pitch is 1.2x: allow the whole recording plus a short delivery margin.
-        if(!level().isClientSide && !isSilent())hurtVoiceUntil=level().getGameTime()+68;
-        return GoblinSounds.HURT.get();
+        // NeoForge can invoke this hook for a completely shield-blocked hit. The
+        // client damage animation also invokes it independently of health loss.
+        return null;
+    }
+    @Override protected void actuallyHurt(net.minecraft.world.damagesource.DamageSource source,float amount) {
+        float before=getHealth();
+        super.actuallyHurt(source,amount);
+        if(!level().isClientSide && isAlive() && !isSilent()) {
+            if(getHealth()<before) {
+                // Reductions, absorption and cancellation have already been applied.
+                playSound(GoblinSounds.HURT.get(),getSoundVolume(),getVoicePitch());
+                hurtVoiceUntil=level().getGameTime()+68;
+            }else {
+                // The client slices a random half-second from the existing scream in memory.
+                playSound(GoblinSounds.GRUNT.get(),getSoundVolume(),.55F+getRandom().nextFloat()*.2F);
+                hurtVoiceUntil=Math.max(hurtVoiceUntil,level().getGameTime()+24);
+            }
+        }
     }
     @Override protected net.minecraft.sounds.SoundEvent getDeathSound() {
         if(level().isClientSide) org.Azkerash.riftfall.client.GoblinFearAudio.stop(this);

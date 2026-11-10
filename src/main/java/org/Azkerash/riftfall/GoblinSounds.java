@@ -13,6 +13,7 @@ public final class GoblinSounds {
     static final DeferredHolder<SoundEvent,SoundEvent> LAUGH=register("goblin_laugh");
     public static final DeferredHolder<SoundEvent,SoundEvent> SCREAM=register("goblin_scream");
     static final DeferredHolder<SoundEvent,SoundEvent> HURT=register("goblin_hurt");
+    public static final DeferredHolder<SoundEvent,SoundEvent> GRUNT=register("goblin_grunt");
     static final DeferredHolder<SoundEvent,SoundEvent> DEATH=register("goblin_death");
     private static DeferredHolder<SoundEvent,SoundEvent> register(String name) {
         return SOUNDS.register(name,()->SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,name)));

@@ -63,3 +63,7 @@ The same keys are supported in `entityOverrides`, e.g. `riftfall:goblin_archer|p
 ## Validation
 
 The pure tests cover sustained entry, recovery hysteresis, full animation duration, last-tick interruption, environment restrictions that preserve fear, per-species tuning, policy priority and facial override precedence. Native tests cover natural player-driven panic/fleeing/escape, in-rift fallback with a scared face, mid-dig flag changes, approach and damage interruption, unsupported terrain, archers, shaman exemption and a non-player hostile enemy. Terrain checks cover natural soft blocks, low-hardness crafted blocks, hard rock and thin dirt over stone. Pose tests verify planted knees, ground-level hand strokes and a downward-facing knife. A native fault-injection check suppresses the initial server animation message and verifies that both warriors and archers recover the actual client digging clip from synchronized state.
+
+## Hurt and blocked-hit voices
+
+A surviving goblin plays the high-pitched hurt scream only when its health actually decreases after damage reductions. Fully blocked, fully absorbed and otherwise zero-health-damage hits use a low grunt instead. Shield damage is blocked before health is changed; no damage-and-heal workaround is used. The grunt streams a random half-second PCM window from the existing scream recording at 0.55–0.75 pitch, with short edge fades. No additional recording or generated audio asset is needed. Lethal hits use the separate death sound.
