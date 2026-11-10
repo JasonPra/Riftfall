@@ -5,11 +5,13 @@ import yesman.epicfight.api.animation.Pose;
 /** Small local jitters, never a displacement of the body or a camera shake. */
 final class GoblinCombatTremor {
     static float multiplier(float confidence) {
-        return 2F-1.65F*Math.clamp(confidence,0F,1F);
+        float confidenceLevel=Math.clamp(confidence,0F,1F);
+        float uncertainty=1F-confidenceLevel;
+        return 2F-1.65F*confidenceLevel+2F*uncertainty*uncertainty*uncertainty;
     }
-    static void apply(Pose pose,float seconds,int entityId,boolean attacking,float confidence) {
+    static void apply(Pose pose,float seconds,int entityId,boolean attacking,float confidence,boolean panicked) {
         float phase=entityId*1.618F;
-        float fear=multiplier(confidence);
+        float fear=multiplier(confidence)*(panicked?1.5F:1F);
         float strength=(attacking ? .65F : 1F)*fear;
         rotate(pose,"Head",wave(seconds,phase,29)*1.1F*fear,wave(seconds,phase+2,37)*1.4F*fear,wave(seconds,phase+4,23)*.9F*fear);
         for (int side=0;side<2;side++) {

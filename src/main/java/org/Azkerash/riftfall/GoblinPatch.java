@@ -35,8 +35,8 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         super.poseTick(animation,pose,elapsedTime,partialTick);
         if (!original.isAlive() || original.isNoAi() || isStunned()) return;
         boolean action=animation instanceof yesman.epicfight.api.animation.types.ActionAnimation;
-        if (original.isAggressive() || action)
-            GoblinCombatTremor.apply(pose,(original.tickCount+partialTick)/20F,original.getId(),action,original.tremorConfidence(partialTick));
+        if (original.isAggressive() || original.isPanicking() || action)
+            GoblinCombatTremor.apply(pose,(original.tickCount+partialTick)/20F,original.getId(),action,original.tremorConfidence(partialTick),original.isPanicking());
     }
     @Override public void postTickClient() {
         super.postTickClient();
