@@ -35,6 +35,10 @@ final class GoblinBehavior {
         add("panic_escape",panic,()->true);
         add("seek_healing",healing,()->false);
         add("regroup",new RegroupGoal(mob,other->other instanceof GoblinEntity goblin && !goblin.isBurrowing() && !goblin.isPanicFleeing(),32,10,4,1.05),()->false);
+        for(var slot:org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.ACTIVE_SLOTS){
+            var skillGoal=new org.Azkerash.riftfall.behavior.skills.MobSkillGoal(mob,slot);
+            add(org.Azkerash.riftfall.behavior.skills.MobSkillGoal.behaviorId(slot),skillGoal,skillGoal::committed);
+        }
         if (!mob.isRanged()) {
             add("rear_approach",new GoblinRearAmbush(mob),()->false);
             add("cautious_retreat",new GoblinTactics.Retreat(mob),()->false);
@@ -60,9 +64,16 @@ final class GoblinBehavior {
     }
     private void sense(CombatSituation snapshot,Map<String,Double> signals) {
         situation=snapshot;
+        if(!mob.isRanged() && mob.getOffhandItem().getItem() instanceof net.minecraft.world.item.ShieldItem
+                && !mob.getPersistentData().getBoolean("RiftfallBackstabGranted")) {
+            var slot=yesman.epicfight.skill.SkillSlots.IDENTITY;
+            if(org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.equipped(mob,slot)==null)
+                org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.equip(mob,slot,RiftfallSkills.BACKSTAB.get());
+            mob.getPersistentData().putBoolean("RiftfallBackstabGranted",true);
+        }
         panic.observe(snapshot);
         boolean rearOpening=snapshot.targetVisible() && GoblinRearAmbush.opening(mob);
-        boolean committedAmbush=List.of("grapple","plunge","melee").stream().anyMatch(id->
+        boolean committedAmbush=List.of("grapple","skill_identity","plunge","melee").stream().anyMatch(id->
             executors.containsKey(id) && executors.get(id).running() && commitments.get(id).getAsBoolean());
         boolean escaping=panic.active()&&panic.escapeAllowed()&&!rearOpening&&!committedAmbush;
         if (!snapshot.targetVisible()) {
@@ -94,7 +105,7 @@ final class GoblinBehavior {
             boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing") || id.equals("panic_escape") || id.equals("regroup")):
                 !snapshot.context().active("target.present");
             // Do not pathfind or advance idle ability cooldowns while another animation owns the action slot.
-            boolean advancing=id.equals("melee") || id.equals("grapple") || id.equals("plunge");
+            boolean advancing=id.equals("melee") || id.equals("grapple") || (id.equals("skill_identity") && org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.equipped(mob,yesman.epicfight.skill.SkillSlots.IDENTITY)==RiftfallSkills.BACKSTAB.get()) || id.equals("plunge");
             boolean defensive=id.equals("melee") && snapshot.context().get("target.distance")<=1.8;
             boolean willing=!advancing || snapshot.context().active("engage") || rearOpening || defensive || action.running() && commitments.get(id).getAsBoolean();
             if (id.equals("cautious_retreat")) willing=!snapshot.context().active("engage") && !rearOpening;

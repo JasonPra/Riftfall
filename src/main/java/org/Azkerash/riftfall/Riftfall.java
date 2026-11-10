@@ -16,6 +16,7 @@ public class Riftfall {
         BehaviorTestEntities.register(bus);
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
+        RiftfallSkills.SKILLS.register(bus);
         GoblinSounds.register(bus);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(GoblinSwordCombat::presets);
         GoblinCombatRegistries.MOVESETS.register(bus);
@@ -29,6 +30,9 @@ public class Riftfall {
         NeoForge.EVENT_BUS.register(MobSpellcasting.class);
         NeoForge.EVENT_BUS.register(GoblinTactics.class);
         NeoForge.EVENT_BUS.register(GoblinWeaponAttacks.class);
+        NeoForge.EVENT_BUS.register(BackstabSequence.class);
+        NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.class);
+        NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.behavior.skills.MobSkillCommands.class);
         GoblinFlurryStun.register();
         NeoForge.EVENT_BUS.register(GoblinHostility.class);
         NeoForge.EVENT_BUS.register(GoblinGrapple.class);

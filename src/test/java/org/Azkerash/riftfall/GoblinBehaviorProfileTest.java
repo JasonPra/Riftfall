@@ -57,6 +57,14 @@ class GoblinBehaviorProfileTest {
         signals.put("ready.seek_healing",1D);assertEquals("seek_healing",choose(signals));
         signals.put("self.interrupted",1D);assertEquals("interrupted",choose(signals));
     }
+    @Test void everyActiveMobSkillSlotHasAnExecutableBehaviorPolicy() {
+        for(var slot:org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.ACTIVE_SLOTS){
+            String id=org.Azkerash.riftfall.behavior.skills.MobSkillGoal.behaviorId(slot);
+            assertEquals(id,choose(Map.of("ready."+id,1D)),slot.name());
+        }
+        assertEquals("seek_healing",choose(Map.of("ready.seek_healing",1D,"ready.skill_identity",1D)));
+        assertEquals("skill_identity",choose(Map.of("ready.skill_identity",1D,"ready.melee",1D,"target.unaware",1D)));
+    }
     @Test void lostSightUsesMemoryInsteadOfLaunchingNewAttacks() {
         assertEquals("search",choose(Map.of("target.remembered",1D)));
         assertEquals("idle",choose(Map.of("target.remembered",1D,"self.melee_role",1D,"engage",0D)));

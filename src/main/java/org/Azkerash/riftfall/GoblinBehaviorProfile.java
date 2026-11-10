@@ -14,6 +14,11 @@ final class GoblinBehaviorProfile {
         rules.add(rule("cautious_retreat",300,Map.of("fear",50D)));
         rules.add(new BehaviorRule("watch",100,Map.of("fear",20D),c->c.active("self.melee_role") && c.active("target.visible") && !c.active("engage") && !c.active("target.unaware")));
         rules.add(rule("grapple",400,Map.of("confidence",20D)));
+        rules.add(rule("skill_identity",410,Map.of("confidence",20D)));
+        rules.add(rule("skill_dodge",600,Map.of("fear",20D)));
+        rules.add(rule("skill_guard",420,Map.of("fear",20D)));
+        rules.add(rule("skill_weapon_innate",400,Map.of("confidence",20D)));
+        rules.add(rule("skill_mover",350,Map.of("confidence",20D)));
         rules.add(rule("plunge",350,Map.of("confidence",20D)));
         rules.add(rule("rear_approach",320,Map.of("fear",20D)));
         rules.add(rule("staff",500,Map.of("target.exposed",40D)));

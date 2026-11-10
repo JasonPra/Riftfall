@@ -14,7 +14,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** Living humanoids: the shaman is a separate entity type, never an undead caster. */
-public final class GoblinEntity extends Monster implements net.minecraft.world.entity.monster.RangedAttackMob, org.Azkerash.riftfall.confidence.ConfidenceParticipant, org.Azkerash.riftfall.facial.FacialParticipant {
+public final class GoblinEntity extends Monster implements org.Azkerash.riftfall.behavior.skills.BehaviorSkillUser, net.minecraft.world.entity.monster.RangedAttackMob, org.Azkerash.riftfall.confidence.ConfidenceParticipant, org.Azkerash.riftfall.facial.FacialParticipant {
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> GRAPPLED_PLAYER =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> ESCAPE_PROGRESS =

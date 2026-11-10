@@ -267,11 +267,11 @@ Panic already uses a configurable navigation multiplier (`panicFleeSpeed`, defau
 `TargetAwareness.facingAway` measures horizontal attention with a dot product and
 rejects ambiguous side-on positions. Goblin warriors publish `target.unaware` only
 for a visible, living player within 16 units whose attention faces away from them.
-This temporarily permits melee, grapple and plunge actions even below their normal
+This temporarily permits melee, grapple, equipped Backstab and plunge actions even below their normal
 confidence engagement threshold; it does not change confidence points.
 
 The `rear_approach` executor sprints toward a reachable point behind that player,
-replanning every eight ticks. It yields to a ready grapple or high-ground plunge,
+replanning every eight ticks. It yields to a ready grapple, shield Backstab or high-ground plunge,
 or ordinary melee once close. If the player looks back, visibility is lost, or the
 route fails, the uncommitted rush stops and normal decisions resume. Healing,
 wounded-warrior retreat, and interruption retain their higher priorities.
@@ -279,5 +279,8 @@ wounded-warrior retreat, and interruption retain their higher priorities.
 An unwatched opening may temporarily override panic flight while preserving the
 fear expression. Already-started burrowing is excluded. Committed grapples, leaps
 and swings finish through their existing lifecycle and interruption rules.
+Shielded warriors use `skill_identity` for their learned Epic Fight Backstab.
+The five reusable active-skill executors and extension API are documented in
+[mob-skills.md](mob-skills.md).
 Shield-equipped warriors still cannot grapple; the existing grapple cooldown,
 player restrictions, struggle mechanic and high-ground leap requirements remain.

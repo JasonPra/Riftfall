@@ -24,6 +24,7 @@ final class GoblinGrapple extends Goal {
                 net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
         }
     }
+    static boolean restrained(ServerPlayer player) { return ACTIVE.containsKey(player.getUUID()); }
     static final int DURATION=80;
     final GoblinEntity mob;
     final GrappleStruggle struggle=new GrappleStruggle();
@@ -43,7 +44,7 @@ final class GoblinGrapple extends Goal {
     @Override public boolean canUse() {
         if (shieldEquipped() || !(mob.getTarget() instanceof ServerPlayer player) || player.isCreative() || player.isSpectator()
             || !player.isAlive() || player.isPassenger() || player.isInWaterOrBubble() || !player.onGround()
-            || ACTIVE.containsKey(player.getUUID()) || !mob.onGround() || GoblinTactics.interrupted(mob)
+            || BackstabSequence.captured(player) || ACTIVE.containsKey(player.getUUID()) || !mob.onGround() || GoblinTactics.interrupted(mob)
             || mob.level().getGameTime()<ready || mob.isAlliedTo(player)) return false;
         Vec3 offset=mob.position().subtract(player.position());
         return offset.horizontalDistanceSqr()<1.5*1.5 && Math.abs(offset.y)<.6 && isBehind(player.getLookAngle(),offset)

@@ -6,10 +6,13 @@ import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-/** Shared, read-only reach prediction for any Epic Fight-equipped mob and attack. */
+/** Shared, read-only reach prediction for Epic Fight-equipped attackers and attacks. */
 public final class WeaponReach {
     /** Checks the equipped collider along the planned swing without playing it or dealing damage. */
     public static boolean canContact(Mob attacker,LivingEntity target,AttackAnimation animation) {
+        return canContact((LivingEntity)attacker,target,animation);
+    }
+    public static boolean canContact(LivingEntity attacker,LivingEntity target,AttackAnimation animation) {
         if (target==null || !target.isAlive() || attacker.level()!=target.level()) return false;
         var patch=EpicFightCapabilities.getEntityPatch(attacker,LivingEntityPatch.class);
         if (patch==null) return false;
