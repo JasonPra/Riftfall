@@ -30,6 +30,9 @@ public final class ConfidenceConfig {
     private static volatile org.Azkerash.riftfall.behavior.HealingRetreatSettings healing=org.Azkerash.riftfall.behavior.HealingRetreatSettings.defaults();
     private static final ModConfigSpec.DoubleValue HEAL_ENTRY,HEAL_EXIT,HEAL_RADIUS,HEAL_DANGER,HEAL_RISK;
     private static volatile Settings current=defaults();
+    private static volatile org.Azkerash.riftfall.behavior.PanicSettings panic=org.Azkerash.riftfall.behavior.PanicSettings.defaults();
+    private static final ModConfigSpec.DoubleValue PANIC_ENTRY,PANIC_RECOVERY,PANIC_DISTANCE,PANIC_DANGER,PANIC_SPEED;
+    private static final ModConfigSpec.IntValue PANIC_ENTRY_TICKS,PANIC_RECOVERY_TICKS,PANIC_MINIMUM,PANIC_BURROW;
     static {
         var defaults=defaults();var b=new ModConfigSpec.Builder();b.push("combatConfidence");
         UNITS=b.comment("Entity ID=confidence points. Only allied, alive, available nearby units contribute; the observer never counts itself.")
@@ -44,13 +47,22 @@ public final class ConfidenceConfig {
         HEAL_RADIUS=b.defineInRange("healingSearchRadius",24D,1D,64D);
         HEAL_DANGER=b.defineInRange("healingDangerDistance",5D,0D,32D);
         HEAL_RISK=b.defineInRange("healingRiskPoints",25D,-1000D,1000D);
+        PANIC_ENTRY=b.comment("Raw points needed to enter panic after a sustained threat. Shamans do not panic.").defineInRange("panicEntryPoints",-15D,-1000D,1000D);
+        PANIC_RECOVERY=b.defineInRange("panicRecoveryPoints",5D,-1000D,1000D);
+        PANIC_ENTRY_TICKS=b.defineInRange("panicEntryTicks",20,1,1200);
+        PANIC_RECOVERY_TICKS=b.defineInRange("panicRecoveryTicks",60,1,1200);
+        PANIC_MINIMUM=b.defineInRange("panicMinimumTicks",100,0,2400);
+        PANIC_DISTANCE=b.comment("Minimum distance from every nearby threat to START digging.").defineInRange("panicEscapeDistance",12D,4D,32D);
+        PANIC_DANGER=b.comment("Cancel digging if any threat gets within this distance.").defineInRange("panicBurrowDangerDistance",3D,1D,31D);
+        PANIC_BURROW=b.defineInRange("panicBurrowTicks",50,10,200);
+        PANIC_SPEED=b.defineInRange("panicFleeSpeed",1.5D,1D,3D);
         WOUNDED=b.defineInRange("woundedHealthFraction",.35D,0D,1D);
         VULNERABLE=b.defineInRange("vulnerableTargetHealthFraction",.30D,0D,1D);
         RETREATING=b.comment("Multiplier applied to the contribution of an ally that is retreating.").defineInRange("retreatingAllyMultiplier",.25D,0D,1D);
         WITNESS_DURATION=b.defineInRange("witnessDurationTicks",200,0,72000);
         WITNESS_CAP=b.defineInRange("witnessMaxStacks",3,0,32);
         WITNESS_RADIUS=b.defineInRange("witnessRadius",24D,0D,128D);
-        OVERRIDES=b.comment("Observer entity ID|key=value. Keys: factor.<name>, unit.<ally ID>, normalizationPoints, boldPoints, health fractions, retreatingAllyMultiplier, witnessRadius, witnessDurationTicks, witnessMaxStacks.")
+        OVERRIDES=b.comment("Observer entity ID|key=value. Keys: factor.<name>, unit.<ally ID>, normalizationPoints, boldPoints, health fractions, retreatingAllyMultiplier, witnessRadius, witnessDurationTicks, witnessMaxStacks, panicEntryPoints, panicRecoveryPoints, panicEntryTicks, panicRecoveryTicks, panicMinimumTicks, panicEscapeDistance, panicBurrowDangerDistance, panicBurrowTicks, panicFleeSpeed.")
             .defineListAllowEmpty("entityOverrides",List.<String>of(),()->"riftfall:behavior_tester|factor.self.witnessed_ally_death=-8",ConfidenceConfig::validOverride);
         b.pop();SPEC=b.build();
     }
@@ -93,6 +105,9 @@ public final class ConfidenceConfig {
             values.getOrDefault("healingExitHealthFraction",base.exitHealth()),values.getOrDefault("healingSearchRadius",base.searchRadius()),
             values.getOrDefault("healingDangerDistance",base.dangerDistance()),values.getOrDefault("healingRiskPoints",base.riskPoints()));
     }
+    public static org.Azkerash.riftfall.behavior.PanicSettings panicSettingsFor(String id) {
+        return panic.overrides(overrides.getOrDefault(id,Map.of()));
+    }
     public static double engagePointsFor(String id) { return overrides.getOrDefault(id,Map.of()).getOrDefault("engagePoints",engagePoints); }
     public static Settings settingsFor(String id) { return forEntity(id,current); }
     public static double maxWitnessRadius() {
@@ -105,6 +120,8 @@ public final class ConfidenceConfig {
         if (event.getConfig().getSpec()==SPEC) {
             current=new Settings(new ConfidenceProfile(parse(UNITS.get()),withStatusDefaults(parse(FACTORS.get())),SCALE.get()),BOLD.get(),WOUNDED.get(),VULNERABLE.get(),RETREATING.get());
             engagePoints=ENGAGE.get();
+            panic=new org.Azkerash.riftfall.behavior.PanicSettings(PANIC_ENTRY.get(),Math.max(PANIC_ENTRY.get()+.01,PANIC_RECOVERY.get()),
+                PANIC_ENTRY_TICKS.get(),PANIC_RECOVERY_TICKS.get(),PANIC_MINIMUM.get(),PANIC_DISTANCE.get(),Math.min(PANIC_DANGER.get(),PANIC_DISTANCE.get()-.01),PANIC_BURROW.get(),PANIC_SPEED.get());
             healing=new org.Azkerash.riftfall.behavior.HealingRetreatSettings(HEAL_ENTRY.get(),HEAL_EXIT.get(),HEAL_RADIUS.get(),HEAL_DANGER.get(),HEAL_RISK.get());
             witness=new WitnessSettings(WITNESS_RADIUS.get(),WITNESS_DURATION.get(),WITNESS_CAP.get());
             Map<String,Map<String,Double>> parsed=new LinkedHashMap<>();

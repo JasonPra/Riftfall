@@ -19,7 +19,8 @@ public final class FaceAnimator {
     private double x,y;
     public FaceAnimator(FacialProfile profile,long seed) { this.profile=profile;random=new Random(seed); }
     private int interval(int min,int max) { return min+random.nextInt(max-min+1); }
-    public FaceFrame update(long tick,Input input) {
+    public FaceFrame update(long tick,Input input) { return update(tick,input,null); }
+    public FaceFrame update(long tick,Input input,FaceExpression automaticExpression) {
         boolean tracking=input.targetId()>=0;
         if (tracking) {
             if (input.targetId()!=lastTarget) surprisedUntil=tick+profile.surpriseTicks();
@@ -42,7 +43,7 @@ public final class FaceAnimator {
         int blink=forcedBlink>=0?forcedBlink:blinkAge<0 || blinkAge>=blinkEnd?0:
             blinkAge<profile.blinkHalfTicks() || blinkAge>=closeEnd?1:2;
         FaceExpression expression=cycle?FaceExpression.values()[(int)(Math.floorDiv(tick,40)%FaceExpression.values().length)]:
-            forcedExpression!=null?forcedExpression:tracking?(tick<surprisedUntil?FaceExpression.SURPRISED:profile.combat()):profile.idle();
+            forcedExpression!=null?forcedExpression:automaticExpression!=null?automaticExpression:tracking?(tick<surprisedUntil?FaceExpression.SURPRISED:profile.combat()):profile.idle();
         return new FaceFrame(expression,blink,(int)Math.round(x*50),(int)Math.round(y*100),talking?(int)Math.round((Math.sin(tick*1.1)+1)*6):forcedJaw);
     }
     public void expression(FaceExpression expression) { forcedExpression=expression;cycle=false; }

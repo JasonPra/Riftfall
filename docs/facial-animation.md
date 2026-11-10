@@ -9,7 +9,7 @@ The shared `facial` package handles presentation state, blinking, idle glances, 
 - Idle eyes wander in small glances rather than moving in synchronization with every other mob.
 - When aggroed, eyes track the **visible combat target's eye position**, using angles relative to the mob's current head yaw and pitch. An already aligned head naturally has centered pupils. Eye travel is limited and smoothed.
 - Acquiring a new visible combat target briefly selects surprised (one second), then the profile's combat expression (angry by default). Brief occlusion does not repeatedly retrigger surprise; losing the target returns to idle presentation.
-- Scared and uncertain expressions can be previewed now. Their fear/confidence behavior hooks are deliberately deferred; choosing a scared face does not start fleeing or create a fear variable.
+- Scared is selected automatically while a goblin is panicking, including when the in-rift flag blocks escape. Uncertain remains available for previews. Choosing a face manually does not itself change combat behavior; see [panic integration](panic-escape.md).
 
 Existing movesets, combat tremors, held-item placement, ears and shaman helmet are preserved. The face is a named `ModelPart` hierarchy: left/right sockets, flat eye whites, independently sliding pupils, upper eyelids, brows, and a small hinged mouth panel. No spheres or rotating eyeballs are used. Pupils are bounded inside the square whites and continue tracking behind closed lids. Frame interpolation smooths the motion between server ticks.
 

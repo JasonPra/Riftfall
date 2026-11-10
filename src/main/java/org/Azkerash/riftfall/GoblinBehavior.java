@@ -16,6 +16,7 @@ final class GoblinBehavior {
     private final Map<String,BooleanSupplier> commitments=new HashMap<>();
     private final LookAtPlayerGoal look;
     private final SeekHealingCircleGoal healing;
+    private final PanicEscapeGoal panic;
     private boolean looking;
     private CombatSituation situation;
     private long nextSearchPath;
@@ -28,6 +29,10 @@ final class GoblinBehavior {
         look=new LookAtPlayerGoal(mob,Player.class,8);
         healing=new SeekHealingCircleGoal(mob,()->ConfidenceConfig.healingSettingsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()),
             ()->situation==null?0:situation.confidence().points(),caster->caster instanceof GoblinEntity shaman && shaman.isShaman() && mob.isAlliedTo(shaman));
+        panic=new PanicEscapeGoal(mob,()->ConfidenceConfig.panicSettingsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()),
+            ()->!mob.isShaman(),()->!mob.isInRift(),()->GoblinTactics.interrupted(mob),
+            state->state.is(GoblinPanicVisuals.BURROWABLE),new GoblinPanicVisuals(mob));
+        add("panic_escape",panic,()->true);
         add("seek_healing",healing,()->false);
         if (!mob.isRanged()) {
             add("cautious_retreat",new GoblinTactics.Retreat(mob),()->false);
@@ -53,6 +58,8 @@ final class GoblinBehavior {
     }
     private void sense(CombatSituation snapshot,Map<String,Double> signals) {
         situation=snapshot;
+        panic.observe(snapshot);
+        boolean escaping=panic.active()&&panic.escapeAllowed();
         if (!snapshot.targetVisible()) {
             mob.getPersistentData().putBoolean("RiftfallFlanking",false);
             mob.getPersistentData().putBoolean("RiftfallScreening",false);
@@ -63,7 +70,7 @@ final class GoblinBehavior {
         signals.put("cover.safe",GoblinTactics.coverSafe(mob)?1D:0D);
         signals.put("target.exposed",snapshot.targetVisible() && GoblinTactics.exposedToStaff(snapshot.target())?1D:0D);
         Map<String,Boolean> prepared=new HashMap<>();String committed=null;
-        if (!interrupted) for (var entry:executors.entrySet()) {
+        if (!interrupted && !escaping) for (var entry:executors.entrySet()) {
             if (entry.getValue().running() && commitments.get(entry.getKey()).getAsBoolean()) {
                 boolean continuing=entry.getValue().prepare();prepared.put(entry.getKey(),continuing);
                 if (continuing) { committed=entry.getKey();break; }
@@ -72,8 +79,9 @@ final class GoblinBehavior {
         String committedAction=committed;
         executors.forEach((id,action)-> {
             boolean combat=!id.equals("wander");
+            if(escaping&&!id.equals("panic_escape")){signals.put("ready."+id,0D);signals.put("committed."+id,0D);return;}
             // Hidden targets cannot start new attacks or track through walls. Committed swings may finish naturally.
-            boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing")):
+            boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing") || id.equals("panic_escape")):
                 !snapshot.context().active("target.present");
             // Do not pathfind or advance idle ability cooldowns while another animation owns the action slot.
             boolean advancing=id.equals("melee") || id.equals("grapple") || id.equals("plunge");
@@ -85,11 +93,12 @@ final class GoblinBehavior {
             signals.put("ready."+id,ready?1D:0D);
             signals.put("committed."+id,ready && action.running() && commitments.get(id).getAsBoolean()?1D:0D);
         });
+        panic.signals(signals);
         healing.signals(signals);
         if (!mob.isRanged() && mob.getPersistentData().getBoolean("RiftfallSeekingHealing") && snapshot.targetVisible()) {
             mob.retreatThreat=snapshot.target();mob.retreatCoverUntil=mob.level().getGameTime()+40;
         }
-        var notes=new net.minecraft.nbt.CompoundTag();if (healing.wanted()) notes.putString("healing",healing.reason());
+        var notes=new net.minecraft.nbt.CompoundTag();if(panic.active())notes.putString("panic",mob.isInRift()?"scared; escape blocked inside rift; ordinary retreat/regroup":panic.burrowing()?"burrowing; interruptible until complete":"fleeing to find safe burrow ground");if (healing.wanted()) notes.putString("healing",healing.reason());
         mob.getPersistentData().put("RiftfallBehaviorNotes",notes);
         var result=snapshot.confidence();var data=mob.getPersistentData();
         data.putDouble("RiftfallConfidence",result.value());data.putDouble("RiftfallConfidencePoints",result.points());

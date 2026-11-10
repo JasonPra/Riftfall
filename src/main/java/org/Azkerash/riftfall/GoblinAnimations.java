@@ -11,10 +11,16 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public final class GoblinAnimations {
-    public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, GRAPPLE_RELEASE;
+    public static AnimationAccessor<ActionAnimation> CHARGE, RELEASE, RECOVER, GRAPPLE_RELEASE, BURROW;
+    public static AnimationAccessor<yesman.epicfight.api.animation.types.StaticAnimation> PANIC_RUN;
     public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, SWORD_SWIPE, SWORD_REVERSE, FRENZY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
+            PANIC_RUN=builder.nextAccessor("biped/goblin_panic_run",a->new yesman.epicfight.api.animation.types.StaticAnimation(.08F,true,a,Armatures.BIPED));
+            BURROW=builder.nextAccessor("biped/goblin_burrow",a->new ActionAnimation(.08F,a,Armatures.BIPED)
+                .addStateRemoveOld(EntityState.TURNING_LOCKED,true)
+                .addProperty(yesman.epicfight.api.animation.property.AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER,
+                    (animation,patch,speed,elapsed,partial)->speed*50F/(patch.getOriginal() instanceof GoblinEntity goblin?goblin.burrowDuration():50)));
             GRAPPLE_RELEASE=builder.nextAccessor("biped/goblin_grapple_release",a->new ActionAnimation(.05F,a,Armatures.BIPED));
             GRAPPLE=builder.nextAccessor("biped/goblin_grapple",GoblinWeaponAttacks::grapple);
             BACKSWING=builder.nextAccessor("biped/goblin_backswing",a->GoblinWeaponAttacks.animation(a,

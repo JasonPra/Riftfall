@@ -74,4 +74,11 @@ class FaceAnimatorTest {
         assertThrows(IllegalArgumentException.class,()->normal.withBlinkTiming(0,2));
         assertThrows(IllegalArgumentException.class,()->normal.withBlinkTiming(30,2));
     }
+    @Test void behavioralFearOverridesCombatExpressionWithoutReplacingTrackingOrPreviewControls() {
+        var animator=new FaceAnimator(FacialProfile.defaults(),9);var target=new FaceAnimator.Input(4,35,0);
+        var scared=animator.update(0,target,FaceExpression.SCARED);assertEquals(FaceExpression.SCARED,scared.expression());assertTrue(scared.gazeX()>0);
+        animator.expression(FaceExpression.NEUTRAL);assertEquals(FaceExpression.NEUTRAL,animator.update(1,target,FaceExpression.SCARED).expression());
+        animator.reset();assertEquals(FaceExpression.SCARED,animator.update(2,FaceAnimator.Input.IDLE,FaceExpression.SCARED).expression());
+        assertEquals(FaceExpression.ANGRY,animator.update(40,target).expression());
+    }
 }

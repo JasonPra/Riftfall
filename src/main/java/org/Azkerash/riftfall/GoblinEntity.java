@@ -23,6 +23,29 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> FACE=
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> PANIC=
+        net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> BURROW_PROGRESS=
+        net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> BURROW_DURATION=
+        net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
+    private float previousBurrow,visualBurrow;
+    public int burrowDuration(){return entityData.get(BURROW_DURATION);}
+    void burrowDuration(int ticks){entityData.set(BURROW_DURATION,ticks);}
+    public boolean isPanicking(){return entityData.get(PANIC)>0;}
+    public boolean isPanicFleeing(){return entityData.get(PANIC)==1;}
+    public boolean isBurrowing(){return entityData.get(PANIC)==2;}
+    public boolean isInRift(){return getPersistentData().getBoolean("RiftfallInRift");}
+    public void setInRift(boolean inRift){getPersistentData().putBoolean("RiftfallInRift",inRift);}
+    void panicVisuals(boolean panicked,boolean escaping,double progress){
+        entityData.set(PANIC,!panicked?0:!escaping?3:getPersistentData().getBoolean("RiftfallBurrowing")?2:1);
+        entityData.set(BURROW_PROGRESS,(int)Math.round(progress*1000));
+    }
+    public float burrowOffset(float partialTick){
+        float progress=net.minecraft.util.Mth.lerp(Math.clamp(partialTick,0,1),previousBurrow,visualBurrow);
+        if(!isBurrowing())return 0;
+        return .43F*Math.clamp(progress*8,0,1)+1.8F*Math.clamp((progress-.65F)/.35F,0,1);
+    }
     private org.Azkerash.riftfall.facial.FacialController face;
     @Override public org.Azkerash.riftfall.facial.FacialController facialController() { return face; }
     @Override public org.Azkerash.riftfall.facial.FaceFrame facialFrame() { return org.Azkerash.riftfall.facial.FaceFrame.unpack(entityData.get(FACE)); }
@@ -35,7 +58,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     GoblinBehavior behavior;
     @Override public org.Azkerash.riftfall.confidence.CombatConfidenceController confidenceController() { return behavior.confidence; }
     @Override protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder); builder.define(GRAPPLED_PLAYER,-1); builder.define(ESCAPE_PROGRESS,0); builder.define(CONFIDENCE,50);builder.define(FACE,org.Azkerash.riftfall.facial.FaceFrame.NEUTRAL.pack());
+        super.defineSynchedData(builder); builder.define(GRAPPLED_PLAYER,-1); builder.define(ESCAPE_PROGRESS,0); builder.define(CONFIDENCE,50);builder.define(FACE,org.Azkerash.riftfall.facial.FaceFrame.NEUTRAL.pack());builder.define(PANIC,0);builder.define(BURROW_PROGRESS,0);builder.define(BURROW_DURATION,50);
     }
     public float tremorConfidence(float partialTick) {
         return level().isClientSide ? net.minecraft.util.Mth.lerp(partialTick,previousVisualConfidence,visualConfidence)
@@ -47,7 +70,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     public GoblinEntity(EntityType<? extends GoblinEntity> type, Level level) {
         super(type,level);
         xpReward=isShaman()?12:5;
-        face=new org.Azkerash.riftfall.facial.FacialController(this,org.Azkerash.riftfall.facial.FacialProfile.defaults().withBlinkTiming(2,2),packed->entityData.set(FACE,packed));
+        face=new org.Azkerash.riftfall.facial.FacialController(this,org.Azkerash.riftfall.facial.FacialProfile.defaults().withBlinkTiming(2,2),packed->entityData.set(FACE,packed),()->isPanicking()?org.Azkerash.riftfall.facial.FaceExpression.SCARED:null);
         setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:GoblinItems.SHORTSWORD.get()));
         setDropChance(EquipmentSlot.MAINHAND,0);
     }
@@ -105,7 +128,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
         // Update the old default without overwriting deliberately customized speeds.
         var speed=getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed!=null && Math.abs(speed.getBaseValue()-.28)<.00001) speed.setBaseValue(.23);
-        for (String key:java.util.List.of("RiftfallRetreating","RiftfallCoveringRetreat","RiftfallPanicked",
+        for (String key:java.util.List.of("RiftfallRetreating","RiftfallCoveringRetreat","RiftfallPanicked","RiftfallPanicking","RiftfallBurrowing","RiftfallBurrowProgress","RiftfallPanicEscapeAllowed","RiftfallPanicSafety","RiftfallBurrowDuration",
                 "RiftfallFormation","RiftfallHighGround","RiftfallFlanking","RiftfallScreening","RiftfallCasting",
                 "RiftfallStaffAttack","RiftfallStaffApproaching","RiftfallSeekingHealing","RiftfallBehaviorNotes","RiftfallBehavior")) getPersistentData().remove(key);
         var scale=getAttribute(Attributes.SCALE);
@@ -126,6 +149,7 @@ public final class GoblinEntity extends Monster implements net.minecraft.world.e
     @Override public void tick() {
         super.tick();
         if (level().isClientSide) {
+            previousBurrow=visualBurrow;visualBurrow=entityData.get(BURROW_PROGRESS)/1000F;
             previousVisualConfidence=visualConfidence;
             visualConfidence+=(entityData.get(CONFIDENCE)/100F-visualConfidence)*.15F;
         }

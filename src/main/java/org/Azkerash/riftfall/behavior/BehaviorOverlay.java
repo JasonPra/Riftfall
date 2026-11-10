@@ -59,6 +59,8 @@ public final class BehaviorOverlay {
         var signals=data.getCompound("Signals");if (signals.getDouble("healing.circle_available")>0)
             lines.add(String.format(Locale.ROOT,"Healing circle %.1fs | %s",signals.getDouble("healing.remaining_ticks")/20,
                 signals.getDouble("healing.in_circle")>0?"healing inside":"moving to heal"));
+        if(signals.getDouble("panic.active")>0)lines.add(signals.getDouble("panic.escape_allowed")==0?"Panic: scared; escape blocked in rift":
+            signals.getDouble("panic.burrowing")>0?String.format(Locale.ROOT,"Burrowing %.0f%% | threat gap %.1f",signals.getDouble("panic.progress")*100,signals.getDouble("panic.distance")):"Panic: fleeing to safe dig ground");
         var memories=details.getList("WitnessedDeaths",10);
         for (int i=0;i<memories.size();i++) lines.add(String.format(Locale.ROOT,"Loss memory %.1fs",memories.getCompound(i).getLong("RemainingTicks")/20D));
         if (data.getLong("TargetMemoryRemainingTicks")>0 && data.getCompound("Signals").getDouble("target.visible")==0)

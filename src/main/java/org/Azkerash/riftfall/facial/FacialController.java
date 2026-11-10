@@ -10,9 +10,14 @@ public final class FacialController {
     private final Mob mob;
     private final FaceAnimator animator;
     private final IntConsumer sync;
+    private final java.util.function.Supplier<FaceExpression> expressionSource;
     private FaceFrame frame=FaceFrame.NEUTRAL;
     private FaceAnimator.Input lastInput=FaceAnimator.Input.IDLE;
     public FacialController(Mob mob,FacialProfile profile,IntConsumer sync) {
+        this(mob,profile,sync,()->null);
+    }
+    public FacialController(Mob mob,FacialProfile profile,IntConsumer sync,java.util.function.Supplier<FaceExpression> expressionSource) {
+        this.expressionSource=java.util.Objects.requireNonNull(expressionSource);
         this.mob=java.util.Objects.requireNonNull(mob);this.sync=java.util.Objects.requireNonNull(sync);
         animator=new FaceAnimator(profile,mob.getUUID().getMostSignificantBits()^mob.getUUID().getLeastSignificantBits());
     }
@@ -26,7 +31,7 @@ public final class FacialController {
             double pitch=-Math.toDegrees(Math.atan2(direction.y,Math.sqrt(direction.horizontalDistanceSqr())));
             input=new FaceAnimator.Input(target.getId(),Mth.wrapDegrees((float)(yaw-mob.getYHeadRot())),pitch-mob.getXRot());
         }
-        lastInput=input;frame=animator.update(mob.tickCount,input);sync.accept(frame.pack());
+        lastInput=input;frame=animator.update(mob.tickCount,input,expressionSource.get());sync.accept(frame.pack());
     }
     public FaceAnimator.Input input() { return lastInput; }
     public FaceAnimator animator() { return animator; }

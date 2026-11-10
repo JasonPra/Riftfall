@@ -8,6 +8,7 @@ public final class EntityConfidenceTuning {
         if (!Double.isFinite(value)) return false;
         if (key.startsWith("factor.")) return key.substring(7).matches("[a-z0-9_.:-]+") && value>=-1000 && value<=1000;
         if (key.startsWith("unit.")) return key.substring(5).matches("[a-z0-9_.-]+:[a-z0-9/._-]+") && value>=0 && value<=1000;
+        if (org.Azkerash.riftfall.behavior.PanicSettings.validOverride(key,value)) return true;
         return switch (key) {
             case "normalizationPoints" -> value>=1 && value<=10000;
             case "healingEntryHealthFraction","healingExitHealthFraction" -> value>=0 && value<=1;

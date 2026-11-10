@@ -14,6 +14,7 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
         // attach to the root joint, behind the body, and ignore the casting arms.
         super.initAnimator(animator);
         commonAggresiveMobAnimatorInit(animator);
+        animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.RUN,GoblinAnimations.PANIC_RUN);
         animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.BLOCK,yesman.epicfight.gameasset.Animations.BIPED_BLOCK);
         if (original.isArcher()) {
             animator.addLivingAnimation(yesman.epicfight.api.animation.LivingMotions.AIM,yesman.epicfight.gameasset.Animations.BIPED_BOW_AIM);
@@ -22,7 +23,7 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
     }
     @Override public yesman.epicfight.api.utils.math.OpenMatrix4f getModelMatrix(float partialTick) {
         float scale=original.getScale();
-        return super.getModelMatrix(partialTick).scale(scale,scale,scale);
+        return super.getModelMatrix(partialTick).scale(scale,scale,scale).translate(0,-original.burrowOffset(partialTick),0);
     }
     @Override public void poseTick(yesman.epicfight.api.animation.types.DynamicAnimation animation,
             yesman.epicfight.api.animation.Pose pose,float elapsedTime,float partialTick) {
@@ -34,6 +35,10 @@ public final class GoblinPatch extends HumanoidMobPatch<GoblinEntity> {
     }
     @Override public void updateMotion(boolean considerInaction) { if (original.isArcher()) commonAggressiveRangedMobUpdateMotion(considerInaction);
         else commonAggressiveMobUpdateMotion(considerInaction);
+        if(original.isPanicFleeing() && !isStunned() && original.getDeltaMovement().horizontalDistanceSqr()>.0001) {
+            currentLivingMotion=yesman.epicfight.api.animation.LivingMotions.RUN;
+            currentCompositeMotion=yesman.epicfight.api.animation.LivingMotions.NONE;return;
+        }
         if (original.isAlive() && original.isBlocking() && !getEntityState().inaction())
             currentCompositeMotion = yesman.epicfight.api.animation.LivingMotions.BLOCK;
     }
