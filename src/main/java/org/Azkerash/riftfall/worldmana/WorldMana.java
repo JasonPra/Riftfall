@@ -14,7 +14,7 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.registries.*;
 import org.Azkerash.riftfall.Riftfall;
 
-/** Loaded-chunk mana bookkeeping. No world generation, forced loads or offline catch-up. */
+/** Loaded-chunk mana with full-height geyser contributions. No forced loads or offline catch-up. */
 public final class WorldMana {
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS=DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES,Riftfall.MODID);
     public static final DeferredHolder<AttachmentType<?>,AttachmentType<ChunkMana>> MANA=ATTACHMENTS.register("ambient_mana",()->AttachmentType.builder(ChunkMana::new).serialize(ChunkMana.CODEC).build());
@@ -22,13 +22,14 @@ public final class WorldMana {
     private static final class Tracked {
         final LevelChunk chunk;
         long settled;
-        Tracked(LevelChunk chunk,long tick){this.chunk=chunk;settled=tick;}
+        final double geyserContribution;
+        Tracked(LevelChunk chunk,long tick,double geyserContribution){this.chunk=chunk;settled=tick;this.geyserContribution=geyserContribution;}
         void settle(long now){
             long elapsed=Math.max(0,now-settled);settled=now;
-            if(chunk.getData(MANA).regenerate(elapsed)>0)chunk.setUnsaved(true);
+            if(chunk.getData(MANA).regenerate(elapsed,geyserContribution)>0)chunk.setUnsaved(true);
         }
     }
-    public static void register(IEventBus bus){ATTACHMENTS.register(bus);NeoForge.EVENT_BUS.register(WorldMana.class);NeoForge.EVENT_BUS.register(WorldManaCommands.class);}
+    public static void register(IEventBus bus){ATTACHMENTS.register(bus);NeoForge.EVENT_BUS.register(WorldMana.class);NeoForge.EVENT_BUS.register(WorldManaCommands.class);NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.worldmana.geysers.GeyserCommands.class);}
     private static ServerLevel server(LevelChunk chunk){
         if(!(chunk.getLevel() instanceof ServerLevel level)||!level.getServer().isSameThread())throw new IllegalStateException("Chunk mana must be accessed on the server thread");
         return level;
@@ -37,14 +38,17 @@ public final class WorldMana {
         var level=server(chunk);var tracked=LOADED.getOrDefault(level,Map.of()).get(chunk.getPos().toLong());
         if(tracked!=null)tracked.settle(level.getGameTime());return chunk.getData(MANA);
     }
-    public static ChunkMana.Snapshot inspect(LevelChunk chunk){return settled(chunk).snapshot();}
+    public static ChunkMana.Snapshot inspect(LevelChunk chunk){
+        var mana=settled(chunk);var level=server(chunk);var tracked=LOADED.getOrDefault(level,Map.of()).get(chunk.getPos().toLong());
+        return mana.snapshot(tracked==null?0:tracked.geyserContribution);
+    }
     public static double add(LevelChunk chunk,double amount){double accepted=settled(chunk).add(amount);if(accepted>0)chunk.setUnsaved(true);return accepted;}
     public static double extract(LevelChunk chunk,double amount){double taken=settled(chunk).extract(amount);if(taken>0)chunk.setUnsaved(true);return taken;}
     public static boolean tryExtract(LevelChunk chunk,double amount){boolean taken=settled(chunk).tryExtract(amount);if(taken&&amount>0)chunk.setUnsaved(true);return taken;}
     @SubscribeEvent public static void loaded(ChunkEvent.Load event){
         if(!(event.getLevel() instanceof ServerLevel level)||!(event.getChunk() instanceof LevelChunk chunk))return;
         boolean existed=chunk.hasData(MANA);chunk.getData(MANA);if(!existed)chunk.setUnsaved(true);
-        LOADED.computeIfAbsent(level,k->new HashMap<>()).putIfAbsent(chunk.getPos().toLong(),new Tracked(chunk,level.getGameTime()));
+        LOADED.computeIfAbsent(level,k->new HashMap<>()).putIfAbsent(chunk.getPos().toLong(),new Tracked(chunk,level.getGameTime(),org.Azkerash.riftfall.worldmana.geysers.GeyserRegions.get(level).discover(chunk.getPos().x,chunk.getPos().z).map(g->g.outputAt(chunk.getPos().x,chunk.getPos().z)).orElse(0.0)));
     }
     @SubscribeEvent public static void unloaded(ChunkEvent.Unload event){
         if(!(event.getLevel() instanceof ServerLevel level))return;var chunks=LOADED.get(level);if(chunks==null)return;

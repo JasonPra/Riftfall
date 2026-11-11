@@ -4,4 +4,4 @@ Every loaded full chunk has an independent, persistent `riftfall:ambient_mana` a
 
 Server-thread APIs in `WorldMana` provide inspection, capped addition, bounded extraction and all-or-nothing extraction. Operators can inspect their current loaded chunk with `/riftfall ambient inspect`.
 
-The geyser, ley-line and crystal prototypes have been removed. Legacy attachment data preserves the saved mana amount while ignoring former crystal bonuses. Old ley-line saved-data files are unused; this change does not delete world files.
+The old geyser, ley-line and crystal prototypes were removed. Full-height regional geysers are now implemented separately; see [geyser-regions.md](geyser-regions.md). Their distributed contribution is added to the ordinary 0.50/second rate. Legacy attachment data preserves the saved mana amount while ignoring former crystal bonuses. Old ley-line saved-data files are unused; this change does not delete world files.
