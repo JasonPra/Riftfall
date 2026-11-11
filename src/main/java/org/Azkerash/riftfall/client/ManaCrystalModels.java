@@ -28,7 +28,7 @@ import org.Azkerash.riftfall.crystals.*;
 public final class ManaCrystalModels {
     private record Surface(BlockState state,BakedModel model){}
     private record Neighbor(CrystalTier tier,int surfaces,int layers,Direction primary){}
-    private record Mesh(List<Surface> surfaces,BlockPos pos,CrystalTier tier,int faces,Neighbor[] neighbors,Map<Integer,CrystalTier> materials){}
+    private record Mesh(List<Surface> surfaces,BlockPos pos,CrystalTier tier,int faces,Neighbor[] neighbors,Map<Integer,CrystalTier> materials,List<BakedQuad> occluders){}
     private static final ModelProperty<Mesh> SURFACES=new ModelProperty<>();
     private static ModelResourceLocation junction(CrystalTier tier,int corner){return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/mana_crystals/"+tier.id()+"_junction_"+corner));}
     private static ModelResourceLocation edge(CrystalTier tier,int layer,int side){return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/mana_crystals/"+tier.id()+"_"+layer+"_join_"+side));}
@@ -103,23 +103,20 @@ public final class ManaCrystalModels {
         private final Surface[][][][] corners;
         SurfaceModel(Surface[][][][] parts,Surface[][] junctions,Surface[][][][] corners,TextureAtlasSprite[][] textures){super(parts[0][Direction.UP.ordinal()][0][0].model());this.parts=parts;this.junctions=junctions;this.corners=corners;this.textures=textures;}
         @Override public ModelData getModelData(BlockAndTintGetter level,BlockPos pos,BlockState state,ModelData incoming){
-            int mask=ManaCrystalBlock.surfaceMask(level,pos,state),layers=state.getValue(ManaCrystalBlock.LAYERS);var primary=state.getValue(ManaCrystalBlock.FACING);
-            var surfaces=new ArrayList<Surface>(Integer.bitCount(mask));
-            for(var face:Direction.values())if(CrystalSurfaceConnections.includes(mask,face)){
-                int growth=face==primary?layers:(layers+1)/2;
-                surfaces.add(parts[state.getValue(ManaCrystalBlock.VARIANT)][face.ordinal()][growth-1][edgeJoins(level,pos,face)]);
-            }
-            for(int i=0;i<4;i++){
-                var side=CrystalSurfaceConnections.tangent(primary,i);var adjacent=pos.relative(side);var other=level.getBlockState(adjacent);
-                if(other.getBlock() instanceof ManaCrystalBlock&&other.getValue(ManaCrystalBlock.FACING)!=primary&&pos.compareTo(adjacent)<0)surfaces.add(corners[primary.ordinal()][layers-1][i][0]);
-                var around=adjacent.relative(primary.getOpposite());var wrapped=level.getBlockState(around);
-                if(wrapped.getBlock() instanceof ManaCrystalBlock&&CrystalSurfaceConnections.includes(ManaCrystalBlock.surfaceMask(level,around,wrapped),side)&&pos.compareTo(around)<0)surfaces.add(corners[primary.ordinal()][layers-1][i][1]);
-            }
-            if(layers==8){
-                var cache=new HashMap<CrystalSurfaceConnections.Offset,Integer>();cache.put(new CrystalSurfaceConnections.Offset(0,0,0),mask);
-                java.util.function.Function<CrystalSurfaceConnections.Offset,Integer> mature=offset->cache.computeIfAbsent(offset,key->{var adjacent=pos.offset(key.x(),key.y(),key.z());var other=level.getBlockState(adjacent);return ManaCrystalBlock.adult(other)?ManaCrystalBlock.surfaceMask(level,adjacent,other):0;});
-                for(var face:Direction.values())if(CrystalSurfaceConnections.includes(mask,face)){
-                    int corners=CrystalSurfaceConnections.junctionCorners(face,mature);for(int corner=0;corner<4;corner++)if((corners&(1<<corner))!=0)surfaces.add(junctions[face.ordinal()][corner]);
+            int mask=ManaCrystalBlock.surfaceMask(level,pos,state);var surfaces=surfaces(level,pos,state);
+            var occluders=new ArrayList<BakedQuad>();
+            // Lower positions own overlaps. Reconstruct their geometry without recursively asking for model data.
+            for(int dx=-1;dx<=1;dx++)for(int dy=-1;dy<=1;dy++)for(int dz=-1;dz<=1;dz++){
+                if(dx==0&&dy==0&&dz==0)continue;
+                var neighborPos=pos.offset(dx,dy,dz);var neighbor=level.getBlockState(neighborPos);
+                if(neighbor.isSolidRender(level,neighborPos)){
+                    for(var face:Direction.values()){var solid=CrystalNeighborFaces.solidFace(face,dx,dy,dz);if(solid!=null)occluders.add(solid);}continue;
+                }
+                if(pos.compareTo(neighborPos)<=0||!(neighbor.getBlock() instanceof ManaCrystalBlock))continue;
+                for(var surface:sharedSurfaces(level,neighborPos,neighbor))for(int bucket=0;bucket<7;bucket++){
+                    for(var quad:surface.model().getQuads(surface.state(),bucket==6?null:Direction.values()[bucket],RandomSource.create(neighbor.getSeed(neighborPos)),ModelData.EMPTY,RenderType.translucent())){
+                        var clipped=CrystalNeighborFaces.mask(quad,dx,dy,dz);if(clipped!=null)occluders.add(clipped);
+                    }
                 }
             }
             var tier=((ManaCrystalBlock)state.getBlock()).tier();var neighbors=new Neighbor[6];var palette=new CrystalTier[6];boolean mixed=false;
@@ -137,7 +134,34 @@ public final class ManaCrystalModels {
                 }
             }
             var materials=mixed?fragmentMaterials(surfaces,state.getSeed(pos),pos,tier,palette):Map.<Integer,CrystalTier>of();
-            return incoming.derive().with(SURFACES,new Mesh(List.copyOf(surfaces),pos.immutable(),tier,mask,neighbors,materials)).build();
+            return incoming.derive().with(SURFACES,new Mesh(List.copyOf(surfaces),pos.immutable(),tier,mask,neighbors,materials,List.copyOf(occluders))).build();
+        }
+        private List<Surface> surfaces(BlockAndTintGetter level,BlockPos pos,BlockState state){
+            int mask=ManaCrystalBlock.surfaceMask(level,pos,state),layers=state.getValue(ManaCrystalBlock.LAYERS);var primary=state.getValue(ManaCrystalBlock.FACING);
+            var surfaces=new ArrayList<Surface>(Integer.bitCount(mask));
+            for(var face:Direction.values())if(CrystalSurfaceConnections.includes(mask,face)){
+                int growth=face==primary?layers:(layers+1)/2;
+                surfaces.add(parts[state.getValue(ManaCrystalBlock.VARIANT)][face.ordinal()][growth-1][edgeJoins(level,pos,face)]);
+            }
+            surfaces.addAll(sharedSurfaces(level,pos,state));
+            if(layers==8){
+                var cache=new HashMap<CrystalSurfaceConnections.Offset,Integer>();cache.put(new CrystalSurfaceConnections.Offset(0,0,0),mask);
+                java.util.function.Function<CrystalSurfaceConnections.Offset,Integer> mature=offset->cache.computeIfAbsent(offset,key->{var adjacent=pos.offset(key.x(),key.y(),key.z());var other=level.getBlockState(adjacent);return ManaCrystalBlock.adult(other)?ManaCrystalBlock.surfaceMask(level,adjacent,other):0;});
+                for(var face:Direction.values())if(CrystalSurfaceConnections.includes(mask,face)){
+                    int corners=CrystalSurfaceConnections.junctionCorners(face,mature);for(int corner=0;corner<4;corner++)if((corners&(1<<corner))!=0)surfaces.add(junctions[face.ordinal()][corner]);
+                }
+            }
+            return surfaces;
+        }
+        private List<Surface> sharedSurfaces(BlockAndTintGetter level,BlockPos pos,BlockState state){
+            var surfaces=new ArrayList<Surface>();var primary=state.getValue(ManaCrystalBlock.FACING);int layers=state.getValue(ManaCrystalBlock.LAYERS);
+            for(int i=0;i<4;i++){
+                var side=CrystalSurfaceConnections.tangent(primary,i);var adjacent=pos.relative(side);var other=level.getBlockState(adjacent);
+                if(other.getBlock() instanceof ManaCrystalBlock&&other.getValue(ManaCrystalBlock.FACING)!=primary&&pos.compareTo(adjacent)<0)surfaces.add(corners[primary.ordinal()][layers-1][i][0]);
+                var around=adjacent.relative(primary.getOpposite());var wrapped=level.getBlockState(around);
+                if(wrapped.getBlock() instanceof ManaCrystalBlock&&CrystalSurfaceConnections.includes(ManaCrystalBlock.surfaceMask(level,around,wrapped),side)&&pos.compareTo(around)<0)surfaces.add(corners[primary.ordinal()][layers-1][i][1]);
+            }
+            return surfaces;
         }
         /** Only actual neighboring crystals need seam buds; solid contacts alone need no rim. */
         private static int edgeJoins(BlockAndTintGetter level,BlockPos pos,Direction face){
@@ -191,8 +215,10 @@ public final class ManaCrystalModels {
                 var quad=CrystalCoreLighting.core(raw)?CrystalCoreLighting.fullbright(raw):raw;
                 quads.add(new BakedQuad(quad.getVertices(),fragment(part,quad),quad.getDirection(),quad.getSprite(),quad.isShade(),quad.hasAmbientOcclusion()));
             }
-            var visible=CrystalQuadUnion.clean(quads,quad->edgePriority(quad,mesh));
-            var result=new ArrayList<BakedQuad>(visible.size());for(var quad:visible)result.add(material(quad,mesh));return result;
+            if(quads.isEmpty())return List.of();
+            quads.addAll(mesh.occluders());
+            var visible=CrystalQuadUnion.clean(quads,quad->quad.getTintIndex()==CrystalNeighborFaces.MASK_ID?Integer.MAX_VALUE:edgePriority(quad,mesh));
+            var result=new ArrayList<BakedQuad>(visible.size());for(var quad:visible)if(quad.getTintIndex()!=CrystalNeighborFaces.MASK_ID)result.add(material(quad,mesh));return result;
         }
 
         /** Higher-tier material wins competing coplanar edge pieces; never biases unrelated depth. */

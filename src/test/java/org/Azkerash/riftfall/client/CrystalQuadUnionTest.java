@@ -18,6 +18,20 @@ class CrystalQuadUnionTest {
         var low=quad(0,0,1,1,.1,0);var high=quad(0,0,1,1,.1,7);
         for(var input:List.of(List.of(low,high),List.of(high,low))){var result=CrystalQuadUnion.clean(input,BakedQuad::getTintIndex);assertEquals(1,result.size());assertSame(high,result.getFirst());}
     }
+    @Test void sharedCornerFromAnotherBlockClipsOnlyTheDuplicateStrip(){
+        var neighbor=quad(.9375,.2,1.0625,.8,.1,7);var mask=CrystalNeighborFaces.mask(neighbor,-1,0,0);assertNotNull(mask);
+        var own=quad(0,.2,.125,.8,.1,0);
+        var result=CrystalQuadUnion.clean(List.of(own,mask),q->q.getTintIndex()==CrystalNeighborFaces.MASK_ID?Integer.MAX_VALUE:0);
+        var rendered=result.stream().filter(q->q.getTintIndex()!=CrystalNeighborFaces.MASK_ID).toList();
+        assertEquals(.0625*.6,area(rendered),1e-6);assertEquals(.125*.6,area(List.of(neighbor)),1e-6);
+        for(var q:rendered)for(int v=0;v<4;v++)assertTrue(Float.intBitsToFloat(q.getVertices()[v*8])>=.0625-1e-6);
+        assertNull(CrystalNeighborFaces.mask(neighbor,-3,0,0));
+    }
+    @Test void sharedPiecesDoNotFightWithTheStoneSupportFace(){
+        var own=quad(.9,.2,1.1,.8,0,7);var solid=CrystalNeighborFaces.solidFace(Direction.UP,0,-1,0);assertNotNull(solid);
+        var result=CrystalQuadUnion.clean(List.of(own,solid),q->q.getTintIndex()==CrystalNeighborFaces.MASK_ID?Integer.MAX_VALUE:0);
+        assertEquals(.1*.6,area(result.stream().filter(q->q.getTintIndex()!=CrystalNeighborFaces.MASK_ID).toList()),1e-6);
+    }
     @Test void equalTierFacesHaveDeterministicOwnership(){
         var first=quad(0,0,1,1,.1,3);var second=quad(0,0,1,1,.1,3);
         for(int i=0;i<10;i++)assertSame(first,CrystalQuadUnion.clean(List.of(first,second),BakedQuad::getTintIndex).getFirst());

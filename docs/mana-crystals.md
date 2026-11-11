@@ -60,3 +60,5 @@ Mixing includes adjacent growth on different support faces and growth wrapped ar
 At floor/wall and convex-corner contacts, one endpoint owns small prisms that overlap the two cells by one pixel. Each new shared prism gets a stable 50/50 choice between the adjacent tier colors; shell and core agree. Geometry on unsupported open edges is not filled with a rim.
 
 Body presets use explicit model variants; cached edge meshes are composed directly, avoiding the repeated loading of large multipart selectors for each saved preset state. Edge-bud heights remain staggered at maturity rather than all hitting the same height cap.
+
+Shared-corner overlap cleanup also compares neighboring block meshes. A stable positional owner keeps each coplanar surface once, clipping duplicate regions from the other mesh. Temporary neighbor masks never render; color mixing and shared shapes are preserved without depth bias.
