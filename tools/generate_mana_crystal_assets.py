@@ -6,7 +6,7 @@ COLORS={'red':0xB94D57,'orange':0xCB8450,'yellow':0xD0BB67,'green':0x619A72,'cya
 GLOW={'red':0xFF4764,'orange':0xFF953F,'yellow':0xFFE35C,'green':0x68F18C,'cyan':0x5CE9FF,'blue':0x6C9EFF,'violet':0xC28AFF,'white':0xF0FCFF}
 def write(path,data):
  p=ROOT/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(data,indent=2)+'\n')
-def texture(path,color,cut=False,core=False):
+def texture(path,color,cut=False,core=False,large=False):
  r,g,b=(color>>16)&255,(color>>8)&255,color&255;noise=random.Random(41);raw=bytearray()
  for y in range(32):
   raw.append(0)
@@ -25,6 +25,7 @@ def texture(path,color,cut=False,core=False):
     # Denser cloudy mineral towards the lower face, without bright facet stripes.
     base=y/31
     factor=.94+cloud;alpha=max(205,min(250,round(218+base*23+cloud*55)))
+    if large:alpha-=round(40*max(0,1-base/.30)**2)
    for value in (r,g,b):raw.append(max(0,min(255,round(value*factor+12))))
    raw.append(alpha)
  def chunk(tag,data):return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
@@ -46,6 +47,9 @@ def geometry(name,elements):
  for element in elements:
   shell=copy.deepcopy(element);matrix=shell.pop('_matrix',False);edge=shell.pop('_edge',False);shell['shade']=True
   for face in shell['faces'].values():face['tintindex']=-1 if matrix else part_id|(1048576 if edge else 0)
+  if not edge and element['to'][1]-element['from'][1]>=6:
+   for side,face in shell['faces'].items():
+    face['texture']='#large_crystal';face['uv']=[0,0,16,1] if side=='up' else [0,15,16,16] if side=='down' else [0,0,16,16]
   shells.append(shell)
   if matrix:
    part_id+=1
@@ -131,17 +135,18 @@ for corner in range(4):
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
+ texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_large.png'),color,large=True)
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_core.png'),GLOW[tier],core=True)
- for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
+ for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core','large_crystal':f'riftfall:block/{tier}_mana_crystal_large'}})
  variants={}
  for layer in range(1,9):
   models=[]
   for variant in range(6):
    name=f'{tier}_{layer}'+('_wild'if variant==1 else f'_preset_{variant}' if variant>1 else '')
-   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
+   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core','large_crystal':f'riftfall:block/{tier}_mana_crystal_large'}})
    models.append(f'riftfall:block/mana_crystals/{name}')
-  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
+  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core','large_crystal':f'riftfall:block/{tier}_mana_crystal_large'}})
   for facing,rotation in rotations.items():
    for variant,model in enumerate(models):variants[f'facing={facing},layers={layer},variant={variant}']={'model':model,**rotation}
  write(Path('assets/riftfall/blockstates')/(block+'.json'),{'variants':variants})

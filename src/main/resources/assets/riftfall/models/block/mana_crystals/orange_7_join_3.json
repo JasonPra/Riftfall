@@ -3,6 +3,7 @@
   "render_type": "minecraft:translucent",
   "textures": {
     "crystal": "riftfall:block/orange_mana_crystal",
-    "core": "riftfall:block/orange_mana_crystal_core"
+    "core": "riftfall:block/orange_mana_crystal_core",
+    "large_crystal": "riftfall:block/orange_mana_crystal_large"
   }
 }

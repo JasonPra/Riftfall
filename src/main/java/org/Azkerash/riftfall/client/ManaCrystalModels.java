@@ -35,8 +35,8 @@ public final class ManaCrystalModels {
     @SubscribeEvent public static void additional(ModelEvent.RegisterAdditional event){for(var tier:CrystalTier.values()){for(int corner=0;corner<4;corner++)event.register(junction(tier,corner));for(int layer=1;layer<=8;layer++)for(int side=0;side<4;side++)event.register(edge(tier,layer,side));}}
     @SubscribeEvent public static void baked(ModelEvent.ModifyBakingResult event){
         var registry=event.getModels();
-        TextureAtlasSprite[][] textures=new TextureAtlasSprite[8][2];
-        for(var tier:CrystalTier.values())for(int layer=0;layer<2;layer++)textures[tier.ordinal()][layer]=event.getTextureGetter().apply(new Material(TextureAtlas.LOCATION_BLOCKS,ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/"+tier.id()+"_mana_crystal"+(layer==1?"_core":""))));
+        TextureAtlasSprite[][] textures=new TextureAtlasSprite[8][3];
+        for(var tier:CrystalTier.values())for(int layer=0;layer<3;layer++)textures[tier.ordinal()][layer]=event.getTextureGetter().apply(new Material(TextureAtlas.LOCATION_BLOCKS,ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/"+tier.id()+"_mana_crystal"+(layer==1?"_core":layer==2?"_large":""))));
         for(var tier:CrystalTier.values()){
             var block=ManaCrystals.block(tier);
             BakedModel[][][] joinsModels=new BakedModel[6][8][4];
@@ -224,7 +224,7 @@ public final class ManaCrystalModels {
         /** Higher-tier material wins competing coplanar edge pieces; never biases unrelated depth. */
         private int edgePriority(BakedQuad quad,Mesh mesh){return mesh.materials().getOrDefault(quad.getTintIndex(),mesh.tier()).ordinal()+(CrystalCoreLighting.core(quad)?16:0);}
         private BakedQuad material(BakedQuad quad,Mesh mesh){
-            var selected=mesh.materials().getOrDefault(quad.getTintIndex(),mesh.tier());var target=textures[selected.ordinal()][CrystalCoreLighting.core(quad)?1:0];var sprite=quad.getSprite();var data=quad.getVertices();
+            var selected=mesh.materials().getOrDefault(quad.getTintIndex(),mesh.tier());var target=textures[selected.ordinal()][CrystalCoreLighting.core(quad)?1:quad.getSprite().contents().name().getPath().endsWith("_mana_crystal_large")?2:0];var sprite=quad.getSprite();var data=quad.getVertices();
             if(sprite!=target){data=data.clone();int stride=data.length/4;for(int vertex=0;vertex<4;vertex++){int offset=vertex*stride;data[offset+4]=Float.floatToRawIntBits(target.getU(sprite.getUOffset(Float.intBitsToFloat(data[offset+4]))));data[offset+5]=Float.floatToRawIntBits(target.getV(sprite.getVOffset(Float.intBitsToFloat(data[offset+5]))));}}
             return new BakedQuad(data,-1,quad.getDirection(),target,quad.isShade(),quad.hasAmbientOcclusion());
         }

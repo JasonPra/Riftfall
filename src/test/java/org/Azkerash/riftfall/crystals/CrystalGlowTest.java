@@ -89,5 +89,22 @@ class CrystalGlowTest {
             }
         }
     }
+    @Test void largeCrystalTipsAreMoreTransparentWhileBasesKeepTheirDensity()throws Exception{
+        for(var tier:CrystalTier.values())try(var a=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png");var b=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal_large.png")){
+            var normal=ImageIO.read(a);var large=ImageIO.read(b);
+            for(int x=0;x<32;x++){
+                assertEquals((normal.getRGB(x,0)>>>24)-40,large.getRGB(x,0)>>>24);
+                for(int y=10;y<32;y++)assertEquals(normal.getRGB(x,y),large.getRGB(x,y));
+            }
+        }
+        for(int layer=1;layer<=8;layer++)for(int preset=0;preset<6;preset++)for(var value:model("template_"+layer+"_"+preset).getAsJsonArray("elements")){
+            var e=value.getAsJsonObject();if(!e.get("shade").getAsBoolean())continue;
+            double height=e.getAsJsonArray("to").get(1).getAsDouble()-e.getAsJsonArray("from").get(1).getAsDouble();
+            if(e.getAsJsonObject("faces").getAsJsonObject("up").get("texture").getAsString().equals("#large_crystal")){
+                assertTrue(height>=6);assertEquals(1,e.getAsJsonObject("faces").getAsJsonObject("up").getAsJsonArray("uv").get(3).getAsInt());
+                assertEquals(16,e.getAsJsonObject("faces").getAsJsonObject("north").getAsJsonArray("uv").get(3).getAsInt());
+            }
+        }
+    }
     private double luminance(int rgb){return .2126*((rgb>>16)&255)+.7152*((rgb>>8)&255)+.0722*(rgb&255);}
 }

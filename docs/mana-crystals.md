@@ -62,3 +62,5 @@ At floor/wall and convex-corner contacts, one endpoint owns small prisms that ov
 Body presets use explicit model variants; cached edge meshes are composed directly, avoiding the repeated loading of large multipart selectors for each saved preset state. Edge-bud heights remain staggered at maturity rather than all hitting the same height cap.
 
 Shared-corner overlap cleanup also compares neighboring block meshes. A stable positional owner keeps each coplanar surface once, clipping duplicate regions from the other mesh. Temporary neighbor masks never render; color mixing and shared shapes are preserved without depth bias.
+
+Larger prisms (at least six pixels tall) use a separate shell texture with a gentle transparency increase over the upper 30% of their length. Side UVs span each prism so the fade follows its tip, including tilted and wall-mounted crystals; top facets sample the clearer tip and bases retain the original density. Small buds keep their smoky texture.
