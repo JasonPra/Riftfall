@@ -22,6 +22,7 @@ public class Riftfall {
         BehaviorTestEntities.register(bus);
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
+        org.Azkerash.riftfall.worldmana.WorldMana.register(bus);
         RiftfallSkills.SKILLS.register(bus);
         GoblinSounds.register(bus);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(GoblinSwordCombat::presets);
