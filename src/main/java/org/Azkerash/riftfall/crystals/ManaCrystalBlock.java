@@ -36,6 +36,26 @@ public final class ManaCrystalBlock extends Block implements SimpleWaterloggedBl
             };
         }
     }
+    @Override public void animateTick(BlockState state,Level level,BlockPos pos,RandomSource random){
+        // Vanilla invokes this only near the client camera; no server ticking or packets.
+        if(random.nextInt(18)!=0)return;
+        int mask=surfaceMask(level,pos,state);int selected=random.nextInt(Integer.bitCount(mask));Direction face=state.getValue(FACING);
+        for(var candidate:Direction.values())if(CrystalSurfaceConnections.includes(mask,candidate)&&selected--==0){face=candidate;break;}
+        int layers=state.getValue(LAYERS);double height=(face==state.getValue(FACING)?layers:(layers+1)/2)/8.0;
+        double u=.15+random.nextDouble()*.7,v=.15+random.nextDouble()*.7,w=.08+random.nextDouble()*height*.85;
+        double x=u,y=w,z=v;
+        switch(face){
+            case DOWN->y=1-w;
+            case NORTH->{y=v;z=1-w;}
+            case SOUTH->{y=v;z=w;}
+            case WEST->{x=1-w;y=u;z=v;}
+            case EAST->{x=w;y=u;z=v;}
+            default->{}
+        }
+        int color=tier.color();
+        level.addParticle(CrystalParticles.SPARKLE.get(),pos.getX()+x,pos.getY()+y,pos.getZ()+z,
+            .3+.7*((color>>16)&255)/255.0,.3+.7*((color>>8)&255)/255.0,.3+.7*(color&255)/255.0);
+    }
     @Override protected MapCodec<? extends Block> codec(){return Block.CODEC;}
     public CrystalTier tier(){return tier;}
     public static boolean adult(BlockState state){return state.getBlock() instanceof ManaCrystalBlock&&state.getValue(LAYERS)==8;}

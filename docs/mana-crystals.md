@@ -53,3 +53,7 @@ Crystals can be placed and spread into source or flowing water on valid stone/or
 Corner color contacts follow the same convex-wrap checks as surface connections, including clusters diagonally around a shared support block. A direct neighbor takes precedence over a corner neighbor. Root strips retain a continuous narrow shared seam but have staggered outer edges rather than a broad straight shelf; adult packing only widens crystal prisms, leaving the seed bed unchanged.
 
 Seed-bed cleanup runs once during chunk mesh rebuilding. Coplanar faces pointing in the same direction are partitioned so each overlapping area has one owner, including multipart roots and multiple solid contacts. It preserves the union of the bed surfaces and their texture coordinates without depth offsets, tier render priority, or removing distinct prism faces.
+
+## Sparkles
+
+Crystals emit occasional stationary, fullbright star-shaped flashes tinted toward their tier color. Flashes last 8–14 ticks, quickly brighten and fade, and can appear on floors, walls, ceilings and waterlogged clusters. Spawning uses nearby client animation ticks and respects particle settings; it adds no server ticking or network packets.
