@@ -8,83 +8,40 @@
   "elements": [
     {
       "from": [
-        8,
+        12.65625,
         0,
-        0
+        6.15625
       ],
       "to": [
-        16,
-        1.2,
-        16
+        14.34375,
+        2.52,
+        7.84375
       ],
       "faces": {
         "north": {
           "texture": "#crystal",
-          "cullface": "north",
-          "tintindex": -1
+          "tintindex": 1078
         },
         "south": {
           "texture": "#crystal",
-          "cullface": "south",
-          "tintindex": -1
+          "tintindex": 1078
         },
         "east": {
           "texture": "#crystal",
-          "cullface": "east",
-          "tintindex": -1
+          "tintindex": 1078
         },
         "west": {
           "texture": "#crystal",
-          "tintindex": -1
+          "tintindex": 1078
         },
         "up": {
           "texture": "#crystal",
-          "tintindex": -1
+          "tintindex": 1078
         },
         "down": {
           "texture": "#crystal",
           "cullface": "down",
-          "tintindex": -1
-        }
-      },
-      "shade": true
-    },
-    {
-      "from": [
-        9,
-        0.4,
-        5.5
-      ],
-      "to": [
-        16,
-        2.52,
-        9.5
-      ],
-      "faces": {
-        "north": {
-          "texture": "#crystal",
-          "tintindex": 1100
-        },
-        "south": {
-          "texture": "#crystal",
-          "tintindex": 1100
-        },
-        "east": {
-          "texture": "#crystal",
-          "cullface": "east",
-          "tintindex": 1100
-        },
-        "west": {
-          "texture": "#crystal",
-          "tintindex": 1100
-        },
-        "up": {
-          "texture": "#crystal",
-          "tintindex": 1100
-        },
-        "down": {
-          "texture": "#crystal",
-          "tintindex": 1100
+          "tintindex": 1078
         }
       },
       "shade": true
@@ -103,28 +60,28 @@
       "faces": {
         "north": {
           "texture": "#crystal",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "south": {
           "texture": "#crystal",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "east": {
           "texture": "#crystal",
           "cullface": "east",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "west": {
           "texture": "#crystal",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "up": {
           "texture": "#crystal",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "down": {
           "texture": "#crystal",
-          "tintindex": 1049677
+          "tintindex": 1049655
         }
       },
       "shade": true
@@ -143,28 +100,28 @@
       "faces": {
         "north": {
           "texture": "#crystal",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "south": {
           "texture": "#crystal",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "east": {
           "texture": "#crystal",
           "cullface": "east",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "west": {
           "texture": "#crystal",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "up": {
           "texture": "#crystal",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "down": {
           "texture": "#crystal",
-          "tintindex": 1049678
+          "tintindex": 1049656
         }
       },
       "shade": true
@@ -183,67 +140,67 @@
       "faces": {
         "north": {
           "texture": "#crystal",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "south": {
           "texture": "#crystal",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "east": {
           "texture": "#crystal",
           "cullface": "east",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "west": {
           "texture": "#crystal",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "up": {
           "texture": "#crystal",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "down": {
           "texture": "#crystal",
-          "tintindex": 1049679
+          "tintindex": 1049657
         }
       },
       "shade": true
     },
     {
       "from": [
-        10.2,
-        1.142,
-        6.46
+        13.06125,
+        0.8819999999999999,
+        6.56125
       ],
       "to": [
-        14.8,
-        2.2656,
-        8.54
+        13.93875,
+        2.2176,
+        7.43875
       ],
       "faces": {
         "north": {
           "texture": "#core",
-          "tintindex": 1100
+          "tintindex": 1078
         },
         "south": {
           "texture": "#core",
-          "tintindex": 1100
+          "tintindex": 1078
         },
         "east": {
           "texture": "#core",
-          "tintindex": 1100
+          "tintindex": 1078
         },
         "west": {
           "texture": "#core",
-          "tintindex": 1100
+          "tintindex": 1078
         },
         "up": {
           "texture": "#core",
-          "tintindex": 1100
+          "tintindex": 1078
         },
         "down": {
           "texture": "#core",
-          "tintindex": 1100
+          "tintindex": 1078
         }
       },
       "shade": false,
@@ -267,27 +224,27 @@
       "faces": {
         "north": {
           "texture": "#core",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "south": {
           "texture": "#core",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "east": {
           "texture": "#core",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "west": {
           "texture": "#core",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "up": {
           "texture": "#core",
-          "tintindex": 1049677
+          "tintindex": 1049655
         },
         "down": {
           "texture": "#core",
-          "tintindex": 1049677
+          "tintindex": 1049655
         }
       },
       "shade": false,
@@ -311,27 +268,27 @@
       "faces": {
         "north": {
           "texture": "#core",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "south": {
           "texture": "#core",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "east": {
           "texture": "#core",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "west": {
           "texture": "#core",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "up": {
           "texture": "#core",
-          "tintindex": 1049678
+          "tintindex": 1049656
         },
         "down": {
           "texture": "#core",
-          "tintindex": 1049678
+          "tintindex": 1049656
         }
       },
       "shade": false,
@@ -355,27 +312,27 @@
       "faces": {
         "north": {
           "texture": "#core",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "south": {
           "texture": "#core",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "east": {
           "texture": "#core",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "west": {
           "texture": "#core",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "up": {
           "texture": "#core",
-          "tintindex": 1049679
+          "tintindex": 1049657
         },
         "down": {
           "texture": "#core",
-          "tintindex": 1049679
+          "tintindex": 1049657
         }
       },
       "shade": false,

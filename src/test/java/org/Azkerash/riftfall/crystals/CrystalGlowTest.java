@@ -49,5 +49,22 @@ class CrystalGlowTest {
             }assertEquals(3,count);
         }
     }
+    @Test void youngEdgeBudsTouchNeighboringYoungAndAdultCrystals()throws Exception{
+        for(int layer=1;layer<=8;layer++)for(int neighborLayer:new int[]{1,8})for(int side=0;side<4;side++){
+            int boundaryAxis=side%2==0?2:0,tangentAxis=boundaryAxis==0?2:0;boolean positive=side==1||side==2;
+            for(var value:model("template_"+layer+"_join_"+side).getAsJsonArray("elements")){
+                var e=value.getAsJsonObject();if(!e.get("shade").getAsBoolean())continue;
+                int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if((id&1048576)==0)continue;
+                assertEquals(positive?16:0,e.getAsJsonArray(positive?"to":"from").get(boundaryAxis).getAsDouble());
+                boolean touching=false;
+                for(var other:model("template_"+neighborLayer+"_join_"+((side+2)%4)).getAsJsonArray("elements")){
+                    var b=other.getAsJsonObject();if(!b.get("shade").getAsBoolean())continue;
+                    int otherId=b.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if((otherId&1048576)==0)continue;
+                    boolean overlap=true;for(int axis:new int[]{tangentAxis,1})overlap&=Math.max(e.getAsJsonArray("from").get(axis).getAsDouble(),b.getAsJsonArray("from").get(axis).getAsDouble())<Math.min(e.getAsJsonArray("to").get(axis).getAsDouble(),b.getAsJsonArray("to").get(axis).getAsDouble());
+                    touching|=overlap;
+                }assertTrue(touching,"Shared-edge buds must meet across different growth stages");
+            }
+        }
+    }
     private double luminance(int rgb){return .2126*((rgb>>16)&255)+.7152*((rgb>>8)&255)+.0722*(rgb&255);}
 }

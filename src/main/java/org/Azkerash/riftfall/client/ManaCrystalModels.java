@@ -135,35 +135,15 @@ public final class ManaCrystalModels {
             }
             var quads=new ArrayList<BakedQuad>();
             for(var part:mesh.surfaces())for(var raw:part.model().getQuads(part.state(),side,random,ModelData.EMPTY,renderType)){
-                if(side!=null&&coveredRoot(raw,side,mesh))continue;
                 var quad=CrystalCoreLighting.core(raw)?CrystalCoreLighting.fullbright(raw):raw;
                 quads.add(new BakedQuad(quad.getVertices(),fragment(part,quad),quad.getDirection(),quad.getSprite(),quad.isShade(),quad.hasAmbientOcclusion()));
             }
-            for(var boundary:Direction.values()){
-                var neighbor=mesh.neighbors()[boundary.ordinal()];if(neighbor==null)continue;int common=mesh.faces()&neighbor.surfaces();
-                for(var growth:Direction.values())if(growth.getAxis()!=boundary.getAxis()&&CrystalSurfaceConnections.includes(common,growth)){
-                    int layer=neighbor.primary()==growth?neighbor.layers():(neighbor.layers()+1)/2;quads.add(CrystalBorderMask.make(boundary,growth,Math.min(1.2,layer*.6)/16,textures[mesh.tier().ordinal()][0]));
-                }
-            }
-            var visible=CrystalQuadUnion.clean(quads,quad->quad.getTintIndex()==CrystalBorderMask.ID?Integer.MAX_VALUE:edgePriority(quad,mesh));
-            var result=new ArrayList<BakedQuad>(visible.size());for(var quad:visible)if(quad.getTintIndex()!=CrystalBorderMask.ID)result.add(material(quad,mesh));return result;
+            var visible=CrystalQuadUnion.clean(quads,quad->edgePriority(quad,mesh));
+            var result=new ArrayList<BakedQuad>(visible.size());for(var quad:visible)result.add(material(quad,mesh));return result;
         }
+
         /** Higher-tier material wins competing coplanar edge pieces; never biases unrelated depth. */
         private int edgePriority(BakedQuad quad,Mesh mesh){return mesh.materials().getOrDefault(quad.getTintIndex(),mesh.tier()).ordinal()+(CrystalCoreLighting.core(quad)?16:0);}
-        /** Hide only boundary faces demonstrably covered by the neighbor's continuous mineral root. */
-        private boolean coveredRoot(BakedQuad quad,Direction side,Mesh mesh){
-            var neighbor=mesh.neighbors()[side.ordinal()];if(neighbor==null)return false;
-            int common=mesh.faces()&neighbor.surfaces();var vertices=quad.getVertices();int stride=vertices.length/4;
-            for(var surface:Direction.values())if(surface.getAxis()!=side.getAxis()&&CrystalSurfaceConnections.includes(common,surface)){
-                int growth=neighbor.primary()==surface?neighbor.layers():(neighbor.layers()+1)/2;double thickness=Math.min(1.2,growth*.6)/16.0;boolean covered=true;
-                for(int vertex=0;vertex<4;vertex++){
-                    double x=Float.intBitsToFloat(vertices[vertex*stride]),y=Float.intBitsToFloat(vertices[vertex*stride+1]),z=Float.intBitsToFloat(vertices[vertex*stride+2]);
-                    double boundary=distance(side,x,y,z),root=distance(surface.getOpposite(),x,y,z);
-                    if(Math.abs(boundary)>1e-5||root< -1e-5||root>thickness+1e-5){covered=false;break;}
-                }if(covered)return true;
-            }return false;
-        }
-        private static double distance(Direction side,double x,double y,double z){return switch(side){case DOWN->y;case UP->1-y;case NORTH->z;case SOUTH->1-z;case WEST->x;case EAST->1-x;};}
         private BakedQuad material(BakedQuad quad,Mesh mesh){
             var selected=mesh.materials().getOrDefault(quad.getTintIndex(),mesh.tier());var target=textures[selected.ordinal()][CrystalCoreLighting.core(quad)?1:0];var sprite=quad.getSprite();var data=quad.getVertices();
             if(sprite!=target){data=data.clone();int stride=data.length/4;for(int vertex=0;vertex<4;vertex++){int offset=vertex*stride;data[offset+4]=Float.floatToRawIntBits(target.getU(sprite.getUOffset(Float.intBitsToFloat(data[offset+4]))));data[offset+5]=Float.floatToRawIntBits(target.getV(sprite.getVOffset(Float.intBitsToFloat(data[offset+5]))));}}

@@ -62,7 +62,9 @@ def geometry(name,elements):
   cores.append(core)
  write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':True,'textures':{'particle':'#crystal'},'elements':shells+cores})
 def column(x,z,w,d,height,h,axis=None,angle=0):
- base=min(1.25,h*.20);top=max(base+.25,height*h)
+ scale=.3+.7*h/16
+ x+=w*(1-scale)/2;z+=d*(1-scale)/2;w*=scale;d*=scale
+ base=min(1.25,h*.20) if axis and h>=6 else 0;top=max(base+.25,height*h)
  if axis and h>=6:
   half=(w if axis=='z'else d)/2;theta=math.radians(abs(angle))
   top=min(top,base+(h-base-half*math.sin(theta))/math.cos(theta))
@@ -72,7 +74,7 @@ def column(x,z,w,d,height,h,axis=None,angle=0):
 for layer in range(1,9):
  h=layer*2
  for variant in range(2):
-  elements=[box([3,0,4],[12,min(1.2,h*.3),12],matrix=True),box([6,0,2],[10,min(1.4,h*.35),13],matrix=True)]
+  elements=[]
   if variant==0:
    columns=[(6,6,4.5,4,1,None,0),(3,5,4,4,.86,'z',-22.5),(8,4,3.5,4,.77,'x',22.5),(4,9,3,3,.52,'z',22.5),(10,9,2,2,.38,None,0)]
   else:
@@ -83,7 +85,7 @@ for layer in range(1,9):
   geometry(f'template_{layer}_{variant}',elements)
  # North-facing root/column slice. Rotate these vertices BEFORE the attachment rotation:
  # this preserves exact tangent directions even on walls and ceilings.
- join=[box([0,0,0],[16,min(1.2,h*.3),8],matrix=True),box([5.5,min(.4,h*.1),0],[9.5,h*.42,7])]
+ join=[column(5.5,1,3,3,.42,h)]
  # Actual shared seams carry small daughter crystals across the full edge.
  for x,height in [(1,.25),(6,.22),(11,.24)]:join.append(box([x,.1,0],[x+3,min(h,1.2+h*height,4),3],edge=True))
  for side in range(4):

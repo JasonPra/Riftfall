@@ -82,10 +82,10 @@ class CrystalTest {
             assertEquals(layer>=3?(variant==0?3:4):0,tilted);
         }
     }
-    @Test void connectionsHaveBroadMatchingRootsAndTierTextureInheritance()throws Exception{
+    @Test void connectionsHaveIndividualPrismsAndTierTextureInheritance()throws Exception{
         for(int layer=1;layer<=8;layer++){
             var model=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_join_0.json");var root=model.getAsJsonArray("elements").get(0).getAsJsonObject();
-            assertEquals(0,root.getAsJsonArray("from").get(2).getAsDouble());assertEquals(16,root.getAsJsonArray("to").get(0).getAsDouble()-root.getAsJsonArray("from").get(0).getAsDouble(),"Roots must cover junction corners, not leave a four-block square hole");
+            for(var value:model.getAsJsonArray("elements")){var prism=value.getAsJsonObject();assertTrue(prism.getAsJsonArray("to").get(0).getAsDouble()-prism.getAsJsonArray("from").get(0).getAsDouble()<=4,"No broad backing plate");assertTrue(prism.getAsJsonArray("to").get(2).getAsDouble()-prism.getAsJsonArray("from").get(2).getAsDouble()<=4,"No broad backing plate");}
             for(var tier:CrystalTier.values())for(String suffix:List.of("","_wild","_join_0","_join_1","_join_2","_join_3")){
                 var child=json("assets/riftfall/models/block/mana_crystals/"+tier.id()+"_"+layer+suffix+".json");assertTrue(child.get("parent").getAsString().contains("template_"+layer));assertEquals("riftfall:block/"+tier.id()+"_mana_crystal",child.getAsJsonObject("textures").get("crystal").getAsString());
             }
