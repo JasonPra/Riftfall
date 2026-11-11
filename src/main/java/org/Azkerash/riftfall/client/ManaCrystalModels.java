@@ -61,6 +61,12 @@ public final class ManaCrystalModels {
                 }
                 surfaces.add(part);
             }
+            var beds=new ArrayList<CrystalBedModel>();
+            for(int i=0;i<surfaces.size();i++){
+                var part=surfaces.get(i);var bed=new CrystalBedModel(part.model(),part.state(),state.getSeed(pos));
+                beds.add(bed);surfaces.set(i,new Surface(part.state(),bed));
+            }
+            CrystalBedModel.clean(beds);
             var tier=((ManaCrystalBlock)state.getBlock()).tier();var neighbors=new Neighbor[6];boolean mixed=false,adjacentCrystal=false;
             for(var direction:Direction.values()){
                 var adjacent=pos.relative(direction);var other=level.getBlockState(adjacent);
