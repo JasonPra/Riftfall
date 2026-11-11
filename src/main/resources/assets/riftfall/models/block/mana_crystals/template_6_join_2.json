@@ -20,31 +20,31 @@
       "faces": {
         "north": {
           "texture": "#crystal",
-          "tintindex": 1174
+          "tintindex": -1
         },
         "south": {
           "texture": "#crystal",
           "cullface": "south",
-          "tintindex": 1174
+          "tintindex": -1
         },
         "east": {
           "texture": "#crystal",
           "cullface": "east",
-          "tintindex": 1174
+          "tintindex": -1
         },
         "west": {
           "texture": "#crystal",
           "cullface": "west",
-          "tintindex": 1174
+          "tintindex": -1
         },
         "up": {
           "texture": "#crystal",
-          "tintindex": 1174
+          "tintindex": -1
         },
         "down": {
           "texture": "#crystal",
           "cullface": "down",
-          "tintindex": 1174
+          "tintindex": -1
         }
       },
       "shade": true
@@ -132,58 +132,14 @@
     },
     {
       "from": [
-        0.65,
-        0.144,
-        8.65
+        7.46,
+        2.024,
+        10.2
       ],
       "to": [
-        15.35,
-        1.056,
-        15.35
-      ],
-      "faces": {
-        "north": {
-          "texture": "#core",
-          "tintindex": 1174
-        },
-        "south": {
-          "texture": "#core",
-          "tintindex": 1174
-        },
-        "east": {
-          "texture": "#core",
-          "tintindex": 1174
-        },
-        "west": {
-          "texture": "#core",
-          "tintindex": 1174
-        },
-        "up": {
-          "texture": "#core",
-          "tintindex": 1174
-        },
-        "down": {
-          "texture": "#core",
-          "tintindex": 1174
-        }
-      },
-      "shade": false,
-      "neoforge_data": {
-        "block_light": 15,
-        "sky_light": 15,
-        "ambient_occlusion": false
-      }
-    },
-    {
-      "from": [
-        7.15,
-        0.8500000000000001,
-        9.65
-      ],
-      "to": [
-        9.85,
-        4.59,
-        15.35
+        9.54,
+        4.4832,
+        14.8
       ],
       "faces": {
         "north": {
@@ -220,14 +176,14 @@
     },
     {
       "from": [
-        4.54,
-        0.3168,
-        12.65
+        4.72,
+        0.9239999999999999,
+        12.96
       ],
       "to": [
-        6.46,
+        6.28,
         2.3232,
-        15.35
+        15.04
       ],
       "faces": {
         "north": {

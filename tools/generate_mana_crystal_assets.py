@@ -19,17 +19,17 @@ def texture(path,color,cut=False,core=False):
     factor=.95+.035*math.sin(x*.9)+.025*math.cos(y*.65)+noise.uniform(-.015,.015);alpha=255
    else:
     cloud=.12*math.sin(x*.62+y*.27)+.08*math.sin(y*.81-x*.21)+noise.uniform(-.06,.06)
-    factor=.89+cloud+(.09 if x%11 in (2,3) else 0);alpha=max(90,min(155,round(120+cloud*75)))
+    factor=.89+cloud+(.09 if x%11 in (2,3) else 0);alpha=max(165,min(225,round(198+cloud*80)))
    for value in (r,g,b):raw.append(max(0,min(255,round(value*factor+12))))
    raw.append(alpha)
  def chunk(tag,data):return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
  data=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',32,32,8,6,0,0,0))+chunk(b'IDAT',zlib.compress(bytes(raw)))+chunk(b'IEND',b'')
  p=ROOT/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
-def box(a,b):
+def box(a,b,matrix=False,edge=False):
  faces={side:{'texture':'#crystal'}for side in ('north','south','east','west','up','down')}
  for side,axis,value in [('west',0,0),('east',0,16),('down',1,0),('up',1,16),('north',2,0),('south',2,16)]:
   if (a[axis] if value==0 else b[axis])==value:faces[side]['cullface']=side
- return {'from':a,'to':b,'faces':faces}
+ return {'from':a,'to':b,'faces':faces,'_matrix':matrix,'_edge':edge}
 # Photo reference: Naica's intergrown gypsum columns. Keep blunt Minecraft prisms,
 # varied lengths and lean, and broad roots only where an actual neighboring cluster exists.
 rotations={'up':{},'down':{'x':180},'north':{'x':90},'east':{'x':90,'y':90},'south':{'x':90,'y':180},'west':{'x':90,'y':270}}
@@ -39,17 +39,20 @@ def geometry(name,elements):
  global part_id
  shells=[];cores=[]
  for element in elements:
-  shell=copy.deepcopy(element);shell['shade']=True
-  for face in shell['faces'].values():face['tintindex']=part_id
+  shell=copy.deepcopy(element);matrix=shell.pop('_matrix',False);edge=shell.pop('_edge',False);shell['shade']=True
+  for face in shell['faces'].values():face['tintindex']=-1 if matrix else part_id|(1048576 if edge else 0)
   shells.append(shell)
-  core=copy.deepcopy(element)
+  if matrix:
+   part_id+=1
+   continue
+  core=copy.deepcopy(shell)
   for axis in range(3):
-   span=element['to'][axis]-element['from'][axis];inset=min(span*(.12 if axis==1 else .18),.45 if axis==1 else .65)
-   core['from'][axis]+=inset;core['to'][axis]-=inset
+   span=element['to'][axis]-element['from'][axis];inset=min(span*.24,1.2)
+   core['from'][axis]+=span*.35 if axis==1 else inset;core['to'][axis]-=min(span*.12,.65) if axis==1 else inset
   core['shade']=False
   # NeoForge 1.21.1 uses ExtraFaceData (vanilla light_emission is not supported here).
   core['neoforge_data']={'block_light':15,'sky_light':15,'ambient_occlusion':False}
-  for face in core['faces'].values():face['texture']='#core';face['tintindex']=part_id;face.pop('cullface',None)
+  for face in core['faces'].values():face['texture']='#core';face['tintindex']=part_id|(1048576 if edge else 0);face.pop('cullface',None)
   part_id+=1
   cores.append(core)
  write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':True,'textures':{'particle':'#crystal'},'elements':shells+cores})
@@ -64,18 +67,18 @@ def column(x,z,w,d,height,h,axis=None,angle=0):
 for layer in range(1,9):
  h=layer*2
  for variant in range(2):
-  elements=[box([3,0,4],[12,min(1.2,h*.3),12]),box([6,0,2],[10,min(1.4,h*.35),13])]
+  elements=[box([3,0,4],[12,min(1.2,h*.3),12],matrix=True),box([6,0,2],[10,min(1.4,h*.35),13],matrix=True)]
   if variant==0:
    columns=[(6,6,4.5,4,1,None,0),(3,5,4,4,.86,'z',-22.5),(8,4,3.5,4,.77,'x',22.5),(4,9,3,3,.52,'z',22.5),(10,9,2,2,.38,None,0)]
   else:
    columns=[(6,6,4.5,4.5,.95,'z',22.5),(8,4,3.5,4,.92,'x',22.5),(3,8,3.5,3,.65,'z',-22.5),(8,10,3,3,.46,'x',-22.5),(4,3,2.5,3,.34,None,0)]
   for x,z,w,d,height,axis,angle in columns:elements.append(column(x,z,w,d,height,h,axis,angle))
   # Small offset daughter growths share the larger column's root, not a regular row of posts.
-  elements.extend([box([2,0,6],[5,min(h*.32,4),9]),box([9,0,3],[12,min(h*.28,3.5),6])])
+  elements.extend([box([.5,0,6],[3.5,min(h*.25,4),9],edge=True),box([12.5,0,7],[15.5,min(h*.22,3.5),10],edge=True)] if variant==0 else [box([6,0,.5],[9,min(h*.25,4),3.5],edge=True),box([7,0,12.5],[10,min(h*.22,3.5),15.5],edge=True)])
   geometry(f'template_{layer}_{variant}',elements)
  # North-facing root/column slice. Rotate these vertices BEFORE the attachment rotation:
  # this preserves exact tangent directions even on walls and ceilings.
- join=[box([0,0,0],[16,min(1.2,h*.3),8]),box([5.5,min(.4,h*.1),0],[9.5,h*.42,7]),box([9,0,0],[12,h*.22,4])]
+ join=[box([0,0,0],[16,min(1.2,h*.3),8],matrix=True),box([5.5,min(.4,h*.1),0],[9.5,h*.42,7]),box([9,0,0],[12,h*.22,4])]
  for side in range(4):
   elements=[]
   for element in join:
@@ -85,7 +88,7 @@ for layer in range(1,9):
      rx,rz=x,z
      for _ in range(side):rx,rz=16-rz,rx
      corners.append((rx,rz))
-   elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)]))
+   elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)],matrix=element.get('_matrix',False)))
   geometry(f'template_{layer}_join_{side}',elements)
 # Only complete mature 2x2x2 junctions use these short intergrown branches.
 # They join at the shared corner, with no full-width sheet or floating cap.
@@ -101,7 +104,7 @@ for corner in range(4):
   elements.append(box([min(x for x,z in points),a[1],min(z for x,z in points)],[max(x for x,z in points),b[1],max(z for x,z in points)]))
  geometry(f'template_junction_{corner}',elements)
 # Each endpoint owns half of one clear air block; the opposite endpoint supplies the other half.
-bridge_elements=[box([5,6,5],[10,14,10]),box([6,12,6],[11,21,11]),box([6.5,19,6.5],[9.5,24,9.5])]
+bridge_elements=[box([5.5,6,5.5],[10.5,14,10.5]),box([5.75,12,5.75],[10.25,21,10.25]),box([6,19,6],[10,24,10])]
 # Geometry may overhang, but UVs must remain inside the sprite's atlas rectangle.
 for element in bridge_elements:
  for face in element['faces'].values():face['uv']=[0,0,16,16]

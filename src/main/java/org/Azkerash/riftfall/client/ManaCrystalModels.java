@@ -92,8 +92,8 @@ public final class ManaCrystalModels {
             var tier=((ManaCrystalBlock)state.getBlock()).tier();var neighbors=new Neighbor[6];var palette=new CrystalTier[6];boolean mixed=false;
             for(var direction:Direction.values()){
                 var adjacent=pos.relative(direction);var other=level.getBlockState(adjacent);
-                if(other.getBlock() instanceof ManaCrystalBlock crystal){neighbors[direction.ordinal()]=new Neighbor(crystal.tier(),ManaCrystalBlock.surfaceMask(level,adjacent,other),other.getValue(ManaCrystalBlock.LAYERS),other.getValue(ManaCrystalBlock.FACING));palette[direction.ordinal()]=crystal.tier();mixed|=crystal.tier()!=tier;}
-                else if(CrystalSurfaceConnections.includes(bridgeMask,direction)){var remote=level.getBlockState(pos.relative(direction,2));palette[direction.ordinal()]=((ManaCrystalBlock)remote.getBlock()).tier();mixed|=palette[direction.ordinal()]!=tier;}
+                if(other.getBlock() instanceof ManaCrystalBlock crystal){neighbors[direction.ordinal()]=new Neighbor(crystal.tier(),ManaCrystalBlock.surfaceMask(level,adjacent,other),other.getValue(ManaCrystalBlock.LAYERS),other.getValue(ManaCrystalBlock.FACING));palette[direction.ordinal()]=(mask&neighbors[direction.ordinal()].surfaces())!=0?crystal.tier():null;mixed|=palette[direction.ordinal()]!=null&&crystal.tier()!=tier;}
+
             }
             var materials=mixed?fragmentMaterials(surfaces,state.getSeed(pos),pos,tier,palette):Map.<Integer,CrystalTier>of();
             return incoming.derive().with(SURFACES,new Mesh(List.copyOf(surfaces),pos.immutable(),tier,mask,neighbors,materials)).build();
@@ -107,9 +107,9 @@ public final class ManaCrystalModels {
             var bounds=new HashMap<Integer,Bounds>();
             for(int bucket=0;bucket<7;bucket++){
                 var random=RandomSource.create(seed);Direction side=bucket==6?null:Direction.values()[bucket];
-                for(var surface:surfaces)for(var quad:surface.model().getQuads(surface.state(),side,random,ModelData.EMPTY,RenderType.translucent()))bounds.computeIfAbsent(fragment(surface,quad),id->new Bounds()).add(quad);
+                for(var surface:surfaces)for(var quad:surface.model().getQuads(surface.state(),side,random,ModelData.EMPTY,RenderType.translucent())){int id=fragment(surface,quad);if(id>=0&&((id/6)&1048576)!=0)bounds.computeIfAbsent(id,key->new Bounds()).add(quad);}
             }
-            var selected=new HashMap<Integer,CrystalTier>();bounds.forEach((id,b)->{var material=CrystalFragmentColors.choose(own,palette,new CrystalFragmentColors.Bounds(b.x0,b.y0,b.z0,b.x1,b.y1,b.z1),pos.asLong()^((long)id*0x9e3779b97f4a7c15L));if(material!=own)selected.put(id,material);});return Map.copyOf(selected);
+            var selected=new HashMap<Integer,CrystalTier>();bounds.forEach((id,b)->{var material=CrystalFragmentColors.choose(own,palette,new CrystalFragmentColors.Bounds(b.x0,b.y0,b.z0,b.x1,b.y1,b.z1),pos.asLong()^((long)id*0x9e3779b97f4a7c15L));if(material!=own)selected.put(id,material);});if(selected.size()>2){var ids=new ArrayList<>(selected.keySet());ids.sort(Integer::compare);for(int i=2;i<ids.size();i++)selected.remove(ids.get(i));}return Map.copyOf(selected);
         }
         @Override public List<BakedQuad> getQuads(BlockState state,Direction side,RandomSource random,ModelData data,RenderType renderType){
             var mesh=data.get(SURFACES);
@@ -125,8 +125,14 @@ public final class ManaCrystalModels {
                 var quad=CrystalCoreLighting.core(raw)?CrystalCoreLighting.fullbright(raw):raw;
                 quads.add(new BakedQuad(quad.getVertices(),fragment(part,quad),quad.getDirection(),quad.getSprite(),quad.isShade(),quad.hasAmbientOcclusion()));
             }
-            var visible=CrystalQuadUnion.clean(quads,quad->edgePriority(quad,mesh));
-            var result=new ArrayList<BakedQuad>(visible.size());for(var quad:visible)result.add(material(quad,mesh));return result;
+            for(var boundary:Direction.values()){
+                var neighbor=mesh.neighbors()[boundary.ordinal()];if(neighbor==null)continue;int common=mesh.faces()&neighbor.surfaces();
+                for(var growth:Direction.values())if(growth.getAxis()!=boundary.getAxis()&&CrystalSurfaceConnections.includes(common,growth)){
+                    int layer=neighbor.primary()==growth?neighbor.layers():(neighbor.layers()+1)/2;quads.add(CrystalBorderMask.make(boundary,growth,Math.min(1.2,layer*.6)/16,textures[mesh.tier().ordinal()][0]));
+                }
+            }
+            var visible=CrystalQuadUnion.clean(quads,quad->quad.getTintIndex()==CrystalBorderMask.ID?Integer.MAX_VALUE:edgePriority(quad,mesh));
+            var result=new ArrayList<BakedQuad>(visible.size());for(var quad:visible)if(quad.getTintIndex()!=CrystalBorderMask.ID)result.add(material(quad,mesh));return result;
         }
         /** Higher-tier material wins competing coplanar edge pieces; never biases unrelated depth. */
         private int edgePriority(BakedQuad quad,Mesh mesh){return mesh.materials().getOrDefault(quad.getTintIndex(),mesh.tier()).ordinal()+(CrystalCoreLighting.core(quad)?16:0);}

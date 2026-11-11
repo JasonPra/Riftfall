@@ -38,7 +38,7 @@ class CrystalTest {
     @Test void texturePixelsAreSmokyTranslucentAcrossAllEightColors()throws Exception{
         for(var tier:CrystalTier.values())try(var stream=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png")){
             assertNotNull(stream);var image=ImageIO.read(stream);assertEquals(32,image.getWidth());Set<Integer> colors=new HashSet<>();
-            for(int y=0;y<32;y++)for(int x=0;x<32;x++){int pixel=image.getRGB(x,y);assertTrue((pixel>>>24)>=90&&(pixel>>>24)<=155);colors.add(pixel&0xffffff);}assertTrue(colors.size()>20);
+            for(int y=0;y<32;y++)for(int x=0;x<32;x++){int pixel=image.getRGB(x,y);assertTrue((pixel>>>24)>=165&&(pixel>>>24)<=225);colors.add(pixel&0xffffff);}assertTrue(colors.size()>20);
         }
     }
     @Test void multipartModelsSelectRealNeighborConnectionsOnEveryAttachmentFace()throws Exception{
