@@ -66,5 +66,15 @@ class CrystalGlowTest {
             }
         }
     }
+    @Test void budsFormConnectedClumpsAtEveryGrowthStage()throws Exception{
+        for(int layer=1;layer<=8;layer++)for(String suffix:List.of("_0","_1","_join_0","_join_1","_join_2","_join_3")){
+            var prisms=new ArrayList<JsonObject>();for(var value:model("template_"+layer+suffix).getAsJsonArray("elements")){var e=value.getAsJsonObject();if(e.get("shade").getAsBoolean())prisms.add(e);}
+            var reached=new HashSet<Integer>();reached.add(0);boolean changed=true;
+            while(changed){changed=false;for(int a=0;a<prisms.size();a++)if(reached.contains(a))for(int b=0;b<prisms.size();b++)if(!reached.contains(b)){
+                boolean touching=true;for(int axis=0;axis<3;axis++)touching&=Math.max(prisms.get(a).getAsJsonArray("from").get(axis).getAsDouble(),prisms.get(b).getAsJsonArray("from").get(axis).getAsDouble())<=Math.min(prisms.get(a).getAsJsonArray("to").get(axis).getAsDouble(),prisms.get(b).getAsJsonArray("to").get(axis).getAsDouble())+1e-6;
+                if(touching){reached.add(b);changed=true;}
+            }}assertEquals(prisms.size(),reached.size(),"No isolated buds at layer "+layer+suffix);
+        }
+    }
     private double luminance(int rgb){return .2126*((rgb>>16)&255)+.7152*((rgb>>8)&255)+.0722*(rgb&255);}
 }

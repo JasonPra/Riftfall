@@ -82,12 +82,18 @@ for layer in range(1,9):
   for x,z,w,d,height,axis,angle in columns:elements.append(column(x,z,w,d,height,h,axis,angle))
   # Small offset daughter growths share the larger column's root, not a regular row of posts.
   elements.extend([box([.5,0,6],[3.5,min(h,1.2+h*.25,4),9],edge=True),box([12.5,0,7],[15.5,min(h,1.2+h*.22,3.5),10],edge=True)] if variant==0 else [box([6,0,.5],[9,min(h,1.2+h*.25,4),3.5],edge=True),box([7,0,12.5],[10,min(h,1.2+h*.22,3.5),15.5],edge=True)])
+  # Overlapping short prisms form a branching clump, never a continuous sheet.
+  for cx,cz,fraction in [(4.5,7.5,.21),(8,7.5,.29),(11,8,.23),(7.5,10.5,.18),(7.5,4.5,.25)]:
+   elements.append(box([cx-2,0,cz-2],[cx+2,min(h,1+h*fraction,5),cz+2]))
   geometry(f'template_{layer}_{variant}',elements)
  # North-facing root/column slice. Rotate these vertices BEFORE the attachment rotation:
  # this preserves exact tangent directions even on walls and ceilings.
  join=[column(5.5,1,3,3,.42,h)]
  # Actual shared seams carry small daughter crystals across the full edge.
  for x,height in [(1,.25),(6,.22),(11,.24)]:join.append(box([x,.1,0],[x+3,min(h,1.2+h*height,4),3],edge=True))
+ # Staggered small pillars link the edge buds back into the central clump.
+ for cx,cz,fraction in [(3.5,3.5,.22),(5.5,5,.27),(8,3,.24),(8,5.5,.3),(10.5,5,.2),(12,3.5,.26)]:
+  join.append(box([cx-1.6,0,cz-1.75],[cx+1.6,min(h,1+h*fraction,5),cz+1.75]))
  for side in range(4):
   elements=[]
   for element in join:

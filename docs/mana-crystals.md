@@ -50,3 +50,5 @@ Each layer drops one raw crystal of its tier (a mature cluster drops eight). Raw
 Nearby crystals occasionally emit small, stationary, fullbright glints in their tier highlight color. Custom four-point star glints have a near-white center, a rapid flare and a short fade over 8–14 ticks. Their increased size and frequency make them visible as sparkles rather than faint dots. Floor, wall and ceiling growths all sparkle; this uses vanilla client display ticks and particle settings without server tasks or network packets.
 
 Growth models consist entirely of individual prisms, including connected edges. Exposed stone remains visible between young buds; growth enlarges those buds instead of filling a rectangular backing sheet.
+
+Short, overlapping prisms form branching clumps behind the visible buds. Staggered edge pillars connect those clumps to the neighboring blocks, including mixed growth stages, without a continuous backing plane.
