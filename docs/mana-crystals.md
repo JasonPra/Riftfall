@@ -45,3 +45,7 @@ Mining away seed stock already removes its ability to propagate higher tiers. Ex
 ## Harvesting and cutting
 
 Each layer drops one raw crystal of its tier (a mature cluster drops eight). Raw items can be planted again. Stonecutting a raw crystal produces one cut crystal, permanently converting it into a crafting material with no planting or refinement behavior. The `riftfall:cut_mana_crystals` item tag provides an integration point for future crafting. Memory crystals are outside this feature.
+
+## Sparkles
+
+Nearby crystals occasionally emit small, stationary, fullbright glints in their tier highlight color. Each glint grows and fades over 12–24 ticks. Floor, wall and ceiling growths all sparkle; this uses vanilla client display ticks and particle settings without server tasks or network packets.
