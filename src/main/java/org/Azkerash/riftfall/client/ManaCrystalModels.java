@@ -103,7 +103,27 @@ public final class ManaCrystalModels {
                 var random=RandomSource.create(seed);Direction side=bucket==6?null:Direction.values()[bucket];
                 for(var surface:surfaces)for(var quad:surface.model().getQuads(surface.state(),side,random,ModelData.EMPTY,RenderType.translucent())){int id=fragment(surface,quad);if(id>=0&&((id/6)&1048576)!=0)bounds.computeIfAbsent(id,key->new Bounds()).add(quad);}
             }
-            var selected=new HashMap<Integer,CrystalTier>();bounds.forEach((id,b)->{var material=CrystalFragmentColors.choose(own,palette,new CrystalFragmentColors.Bounds(b.x0,b.y0,b.z0,b.x1,b.y1,b.z1),pos.asLong()^((long)id*0x9e3779b97f4a7c15L));if(material!=own)selected.put(id,material);});if(selected.size()>2){var ids=new ArrayList<>(selected.keySet());ids.sort(Integer::compare);for(int i=2;i<ids.size();i++)selected.remove(ids.get(i));}return Map.copyOf(selected);
+            var selected=new HashMap<Integer,CrystalTier>();
+            // Each differently colored shared edge gets one visible daughter prism,
+            // with a chance of a second. Never recolor the central columns or root.
+            for(int side=0;side<6;side++){
+                if(palette[side]==null||palette[side]==own)continue;
+                var edgePalette=new CrystalTier[6];edgePalette[side]=palette[side];var candidates=new ArrayList<Integer>();
+                for(var entry:bounds.entrySet()){
+                    var b=entry.getValue();var box=new CrystalFragmentColors.Bounds(b.x0,b.y0,b.z0,b.x1,b.y1,b.z1);
+                    if(CrystalFragmentColors.choose(own,edgePalette,box,0,1)!=own)candidates.add(entry.getKey());
+                }
+                candidates.sort(Integer::compare);if(candidates.isEmpty())continue;
+                int first=Math.floorMod(pos.asLong()^((long)side*0x9e3779b97f4a7c15L),candidates.size());
+                selected.put(candidates.get(first),palette[side]);
+                for(int n=1;n<candidates.size();n++){
+                    int id=candidates.get((first+n)%candidates.size());if(selected.containsKey(id))continue;
+                    var b=bounds.get(id);var box=new CrystalFragmentColors.Bounds(b.x0,b.y0,b.z0,b.x1,b.y1,b.z1);
+                    if(CrystalFragmentColors.choose(own,edgePalette,box,pos.asLong()^((long)id*0x9e3779b97f4a7c15L))!=own)selected.put(id,palette[side]);
+                    break;
+                }
+            }
+            return Map.copyOf(selected);
         }
         @Override public List<BakedQuad> getQuads(BlockState state,Direction side,RandomSource random,ModelData data,RenderType renderType){
             var mesh=data.get(SURFACES);

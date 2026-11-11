@@ -37,5 +37,17 @@ class CrystalGlowTest {
             }assertEquals(2,eligible);
         }
     }
+    @Test void everySharedEdgeHasSmallMixableDaughterCrystals()throws Exception{
+        for(int layer=1;layer<=8;layer++)for(int side=0;side<4;side++){
+            int count=0;
+            for(var value:model("template_"+layer+"_join_"+side).getAsJsonArray("elements")){
+                var e=value.getAsJsonObject();if(!e.get("shade").getAsBoolean())continue;
+                int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if(id<0||(id&1048576)==0)continue;
+                count++;for(int axis=0;axis<3;axis++)assertTrue(e.getAsJsonArray("to").get(axis).getAsDouble()-e.getAsJsonArray("from").get(axis).getAsDouble()<=4);
+                int axis=side%2==0?2:0;boolean positive=side==1||side==2;
+                assertTrue(positive?e.getAsJsonArray("from").get(axis).getAsDouble()>=12:e.getAsJsonArray("to").get(axis).getAsDouble()<=4);
+            }assertEquals(3,count);
+        }
+    }
     private double luminance(int rgb){return .2126*((rgb>>16)&255)+.7152*((rgb>>8)&255)+.0722*(rgb&255);}
 }

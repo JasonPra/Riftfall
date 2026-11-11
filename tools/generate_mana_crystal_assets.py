@@ -79,11 +79,13 @@ for layer in range(1,9):
    columns=[(6,6,4.5,4.5,.95,'z',22.5),(8,4,3.5,4,.92,'x',22.5),(3,8,3.5,3,.65,'z',-22.5),(8,10,3,3,.46,'x',-22.5),(4,3,2.5,3,.34,None,0)]
   for x,z,w,d,height,axis,angle in columns:elements.append(column(x,z,w,d,height,h,axis,angle))
   # Small offset daughter growths share the larger column's root, not a regular row of posts.
-  elements.extend([box([.5,0,6],[3.5,min(h*.25,4),9],edge=True),box([12.5,0,7],[15.5,min(h*.22,3.5),10],edge=True)] if variant==0 else [box([6,0,.5],[9,min(h*.25,4),3.5],edge=True),box([7,0,12.5],[10,min(h*.22,3.5),15.5],edge=True)])
+  elements.extend([box([.5,0,6],[3.5,min(h,1.2+h*.25,4),9],edge=True),box([12.5,0,7],[15.5,min(h,1.2+h*.22,3.5),10],edge=True)] if variant==0 else [box([6,0,.5],[9,min(h,1.2+h*.25,4),3.5],edge=True),box([7,0,12.5],[10,min(h,1.2+h*.22,3.5),15.5],edge=True)])
   geometry(f'template_{layer}_{variant}',elements)
  # North-facing root/column slice. Rotate these vertices BEFORE the attachment rotation:
  # this preserves exact tangent directions even on walls and ceilings.
- join=[box([0,0,0],[16,min(1.2,h*.3),8],matrix=True),box([5.5,min(.4,h*.1),0],[9.5,h*.42,7]),box([9,0,0],[12,h*.22,4])]
+ join=[box([0,0,0],[16,min(1.2,h*.3),8],matrix=True),box([5.5,min(.4,h*.1),0],[9.5,h*.42,7])]
+ # Actual shared seams carry small daughter crystals across the full edge.
+ for x,height in [(1,.25),(6,.22),(11,.24)]:join.append(box([x,.1,0],[x+3,min(h,1.2+h*height,4),3],edge=True))
  for side in range(4):
   elements=[]
   for element in join:
@@ -93,7 +95,7 @@ for layer in range(1,9):
      rx,rz=x,z
      for _ in range(side):rx,rz=16-rz,rx
      corners.append((rx,rz))
-   elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)],matrix=element.get('_matrix',False)))
+   elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)],matrix=element.get('_matrix',False),edge=element.get('_edge',False)))
   geometry(f'template_{layer}_join_{side}',elements)
 # Only complete mature 2x2x2 junctions use these vertical intergrown columns crowded toward their shared center.
 # They join at the shared corner, with no full-width sheet or floating cap.
