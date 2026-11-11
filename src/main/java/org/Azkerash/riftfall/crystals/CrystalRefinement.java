@@ -16,6 +16,7 @@ import org.Azkerash.riftfall.worldmana.geysers.*;
 /** Chunk batches, never per-crystal tickers. Unloaded ledgers update without accessing terrain. */
 public final class CrystalRefinement {
     private static final Map<ServerLevel,Map<Long,LevelChunk>> LOADED=new IdentityHashMap<>();
+    private static final Map<ServerLevel,Map<Long,LevelChunk>> PENDING=new IdentityHashMap<>();
     public static void register(){NeoForge.EVENT_BUS.register(CrystalRefinement.class);GeyserLedger.simulation((level,region,ticks,mana,cap,regen)->RefinementStore.get(level).advance(region,ticks,mana,cap,regen));}
     private static Map<Long,CrystalTier> adults(LevelChunk chunk){
         Map<Long,CrystalTier> result=new TreeMap<>();var p=chunk.getPos();var cursor=new BlockPos.MutableBlockPos();var sections=chunk.getSections();
@@ -71,6 +72,9 @@ public final class CrystalRefinement {
     }
     @SubscribeEvent(priority=EventPriority.LOW) public static void loaded(ChunkEvent.Load event){
         if(!(event.getLevel() instanceof ServerLevel level)||!(event.getChunk() instanceof LevelChunk chunk))return;
+        PENDING.computeIfAbsent(level,k->new HashMap<>()).put(chunk.getPos().toLong(),chunk);
+    }
+    private static void ready(ServerLevel level,LevelChunk chunk){
         ManaCrystalBlock.refreshConnections(chunk);
         var cp=chunk.getPos();var field=GeyserRegions.get(level).discover(cp.x,cp.z);if(field.isEmpty())return;
         // Catch up existing records before adding newly discovered crystals: no retroactive refinement.
@@ -81,17 +85,22 @@ public final class CrystalRefinement {
         store.prepare(entry.region);addNew(entry,adults(chunk));store.setDirty();LOADED.computeIfAbsent(level,k->new HashMap<>()).put(cp.toLong(),chunk);
     }
     @SubscribeEvent(priority=EventPriority.HIGH) public static void unloaded(ChunkEvent.Unload event){
-        if(!(event.getLevel() instanceof ServerLevel level)||!(event.getChunk() instanceof LevelChunk chunk))return;var chunks=LOADED.get(level);if(chunks==null||chunks.remove(chunk.getPos().toLong())==null)return;
+        if(!(event.getLevel() instanceof ServerLevel level)||!(event.getChunk() instanceof LevelChunk chunk))return;var pending=PENDING.get(level);if(pending!=null)pending.remove(chunk.getPos().toLong());var chunks=LOADED.get(level);if(chunks==null||chunks.remove(chunk.getPos().toLong())==null)return;
         synchronize(level,chunk,false);
     }
     @SubscribeEvent(priority=EventPriority.LOW) public static void tick(LevelTickEvent.Post event){
-        if(!(event.getLevel() instanceof ServerLevel level)||level.getGameTime()%20!=0)return;
+        if(!(event.getLevel() instanceof ServerLevel level))return;
+        var pending=PENDING.get(level);if(pending!=null){
+            var ready=new ArrayList<LevelChunk>();var iterator=pending.values().iterator();while(iterator.hasNext()){var chunk=iterator.next();var cp=chunk.getPos();if(level.getChunkSource().getChunkNow(cp.x,cp.z)==chunk){ready.add(chunk);iterator.remove();}}
+            for(var chunk:ready)ready(level,chunk);
+        }
+        if(level.getGameTime()%20!=0)return;
         // WorldMana settles every discovered geyser, including entirely unloaded ones, first.
         var chunks=LOADED.get(level);if(chunks!=null){applying=true;try{var store=RefinementStore.get(level);for(var chunk:chunks.values()){var entry=store.entries.get(chunk.getPos().toLong());if(entry!=null){apply(level,chunk,entry);store.setDirty();}}}finally{applying=false;}}
     }
     @SubscribeEvent(priority=EventPriority.HIGH) public static void stopping(ServerStoppingEvent event){
-        LOADED.forEach((level,chunks)->{GeyserLedger.get(level).settleAll(level);chunks.values().forEach(chunk->synchronize(level,chunk,true));});LOADED.clear();
+        LOADED.forEach((level,chunks)->{GeyserLedger.get(level).settleAll(level);chunks.values().forEach(chunk->synchronize(level,chunk,true));});LOADED.clear();PENDING.clear();
     }
-    @SubscribeEvent public static void levelUnloaded(LevelEvent.Unload event){if(event.getLevel() instanceof ServerLevel level)LOADED.remove(level);}
+    @SubscribeEvent public static void levelUnloaded(LevelEvent.Unload event){if(event.getLevel() instanceof ServerLevel level){LOADED.remove(level);PENDING.remove(level);}}
     private CrystalRefinement(){}
 }

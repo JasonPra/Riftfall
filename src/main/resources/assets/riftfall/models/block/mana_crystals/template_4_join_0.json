@@ -8,12 +8,12 @@
   "elements": [
     {
       "from": [
-        4,
+        0,
         0,
         0
       ],
       "to": [
-        12,
+        16,
         1.2,
         8
       ],
@@ -26,10 +26,12 @@
           "texture": "#crystal"
         },
         "east": {
-          "texture": "#crystal"
+          "texture": "#crystal",
+          "cullface": "east"
         },
         "west": {
-          "texture": "#crystal"
+          "texture": "#crystal",
+          "cullface": "west"
         },
         "up": {
           "texture": "#crystal"
