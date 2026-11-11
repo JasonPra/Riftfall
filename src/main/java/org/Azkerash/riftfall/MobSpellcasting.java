@@ -48,11 +48,10 @@ final class MobSpellcasting {
             spell=mob instanceof GoblinEntity ? SpellRegistry.MAGIC_ARROW_SPELL.get() : SpellRegistry.FIREBOLT_SPELL.get();
             level=Math.min(spell.getMaxLevel(),Math.max(1,mob.getPersistentData().getInt("RiftfallSpellLevel")));
             MobMana.describe(mob,spell,level);
-            if(!MobMana.canCast(mob,spell,level))return false;
             var target=mob.getTarget();
             return intelligentLiving(mob) && target!=null && target.isAlive() && !mob.isAlliedTo(target)
                 && (!(mob instanceof GoblinEntity goblin) || mob.distanceToSqr(target)>=Math.pow(goblin.squad.panicRange(),2) || GoblinTactics.coverSafe(goblin))
-                && mob.distanceToSqr(target)<24*24 && mob.getSensing().hasLineOfSight(target) && mob.hurtTime==0;
+                && mob.distanceToSqr(target)<24*24 && mob.getSensing().hasLineOfSight(target) && mob.hurtTime==0 && MobMana.canCast(mob,spell,level);
         }
         @Override public boolean canContinueToUse() {
             return time<windup+14 && mob.getTarget()!=null && mob.getTarget().isAlive() && !mob.isAlliedTo(mob.getTarget())

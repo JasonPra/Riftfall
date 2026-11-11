@@ -57,7 +57,7 @@ public final class BehaviorOverlay {
         if(data.getCompound("Mana").contains("Current")){
             var mana=data.getCompound("Mana");
             lines.add(String.format(Locale.ROOT,"Mana %.1f/%.0f | regen %.2f/s (x%.2f) | delay %dt",mana.getDouble("Current"),mana.getDouble("Maximum"),mana.getDouble("RegenPerSecond"),mana.getDouble("RegenMultiplier"),mana.getInt("DelayTicks")));
-            lines.add("Mana: "+mana.getString("LastExpense"));
+            lines.add("Mana: "+mana.getString("LastExpense")+(mana.getBoolean("Recovering")?" | CASTING LOCKED: refill to full":""));
             var costs=mana.getCompound("SpellCosts");costs.getAllKeys().stream().sorted().forEach(key->lines.add(key+": "+costs.getInt(key)+" mana"));
         }
         for (String key:List.of("SelfCombatStats","VisibleTargetCombatStats")) if (details.contains(key)) {

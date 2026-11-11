@@ -4,7 +4,7 @@ Every `Mob` exposes `ManaUser`. The server allocates its mana state when casting
 
 `MobMana.data(mob)` initializes/accesses the pool. `MobMana.canCast(mob, spell, level)` checks affordability; call `MobMana.spend(...)` once at release, after pre-cast conditions succeed. Offensive and healing spells use the same pool. Interrupted wind-ups cost no mana. Mobs that already implement Iron's native casting retain their AI; add-ons must call the shared spending API when integrating that AI. No second automatic charge is injected into other mods' spells.
 
-Goblin shamans and opted-in pillager casting now use this API. Spell costs come from `AbstractSpell.getManaCost(level)`, including Iron's spell configuration. Casting and healing no longer spend stamina. Sprinting, physical attacks and shield use still do. Unaffordable spells cannot start or release, leaving the existing positioning and staff behaviors available.
+Goblin shamans and opted-in pillager casting now use this API. Spell costs come from `AbstractSpell.getManaCost(level)`, including Iron's spell configuration. Casting and healing no longer spend stamina. Sprinting, physical attacks and shield use still do. Unaffordable spells cannot start or release, leaving the existing positioning and staff behaviors available. Reaching zero mana latches a casting lock until the pool refills to its current full capacity. An otherwise-valid, needed cast that cannot be afforded also starts recovery, covering fractional leftovers. Goals check targeting/healing need and cooldown before requesting mana, so unused candidate spells do not trigger it. A spell costing more than the maximum capacity is rejected without repeatedly locking other usable spells. Recovery state survives save/load, and capacity-changing equipment affects the full-refill threshold.
 
 ## Balance and equipment
 
@@ -29,7 +29,7 @@ A third-party effect explicitly coded for `Player` (such as a key binding, playe
 Operator commands:
 
 - `/riftfall behavior debug on`: live behavior, confidence, stamina and active mana diagnostics above nearby entities.
-- `/riftfall mana inspect <entity>`: current/max mana, effective regeneration, delay, last expense and known spell costs. Inspecting a non-caster initializes its pool for testing.
+- `/riftfall mana inspect <entity>`: current/max mana, effective regeneration, delay, recharge-lock state, last expense and known spell costs. Inspecting a non-caster initializes its pool for testing.
 - `/riftfall mana set <entity> <amount>`: set a test balance, capped at current capacity.
 - `/riftfall equipment inspect <entity>`: list Curios slots and equipped stacks.
 - `/riftfall equipment curio <entity> <slot> <index> <item>`: equip a Curio, or use `minecraft:air` to clear it. Index starts at zero. Item components are supported.

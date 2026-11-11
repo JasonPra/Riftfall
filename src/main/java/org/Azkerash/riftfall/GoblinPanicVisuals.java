@@ -31,6 +31,9 @@ final class GoblinPanicVisuals implements PanicEscapeGoal.Visuals {
         mob.getPersistentData().putInt("RiftfallBurrowDuration",duration);
         GoblinAnimations.play(mob,GoblinAnimations.BURROW);
     }
+    @Override public boolean prepareEscape(){
+        return !mob.loot().hasLoot() || org.Azkerash.riftfall.loot.EscapedGoblinStash.get(mob.getServer()).store(mob);
+    }
     @Override public boolean readyToEscape(){return mob.escapeSoundsFinished();}
     @Override public void abortBurrow(){mob.resetEscapeSoundHold();GoblinAnimations.play(mob,GoblinAnimations.RECOVER);}
     @Override public void dig(BlockState ground){

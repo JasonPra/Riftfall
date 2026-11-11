@@ -31,6 +31,7 @@ final class GoblinBehaviorProfile {
         rules.add(rule("bow",140,Map.of("confidence",10D,"cover.safe",200D)));
         rules.add(rule("melee",150,Map.of("confidence",20D)));
         rules.add(new BehaviorRule("search",50,Map.of("confidence",5D),c->c.active("target.remembered") && (!c.active("self.melee_role") || c.active("engage"))));
+        rules.add(rule("loot",30,Map.of()));
         rules.add(rule("wander",10,Map.of()));
         rules.add(new BehaviorRule("idle",0,Map.of(),c->true));
         return new BehaviorEngine(rules,2);

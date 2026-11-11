@@ -19,6 +19,8 @@ public final class PanicEscapeGoal extends Goal {
         void abortBurrow();
         void dig(BlockState ground);
         default boolean readyToEscape(){return true;}
+        /** Owner may preserve the entity before removal; false keeps it in the world. */
+        default boolean prepareEscape(){return true;}
     }
     private final PathfinderMob mob;
     private final Supplier<PanicSettings> tuning;
@@ -91,8 +93,10 @@ public final class PanicEscapeGoal extends Goal {
         long now=mob.level().getGameTime();var s=tuning.get();var threats=threats();boolean safe=safe(threats,!burrowing());
         if(burrowing()){
             mob.getNavigation().stop();mob.setDeltaMovement(0,mob.getDeltaMovement().y,0);
+            boolean allowed=escapeAllowed();
             boolean ready=state.progress(now,s)>=1 && visuals.readyToEscape();
-            if(state.advanceBurrow(now,safe,escapeAllowed(),s,ready)){
+            if(ready && allowed && (state.stage()==PanicState.Stage.UNDERGROUND || safe))ready=visuals.prepareEscape();
+            if(state.advanceBurrow(now,safe,allowed,s,ready)){
                 // Last-moment checks run before discard, including the owner's in-rift restriction.
                 mob.getPersistentData().putBoolean("RiftfallEscaped",true);mob.discard();return;
             }

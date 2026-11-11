@@ -97,7 +97,7 @@ final class GoblinTactics {
         int draw,cooldown;
         Bow(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
-            return mob.isArcher() && mob.getMainHandItem().is(net.minecraft.world.item.Items.BOW)
+            return mob.isArcher() && mob.getMainHandItem().getItem() instanceof net.minecraft.world.item.BowItem
                 && mob.getTarget()!=null && mob.getTarget().isAlive() && !mob.isAlliedTo(mob.getTarget());
         }
         @Override public boolean canContinueToUse() { return canUse(); }
@@ -360,7 +360,6 @@ final class GoblinTactics {
         Heal(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
             var spell=SpellRegistry.HEALING_CIRCLE_SPELL.get();MobMana.describe(mob,spell,1);
-            if(!MobMana.canCast(mob,spell,1))return false;
             if (mob.level().getGameTime()<mob.getPersistentData().getLong("RiftfallNextHeal") || mob.hurtTime>0
                 || mob.getTarget()!=null && mob.distanceToSqr(mob.getTarget())<Math.pow(mob.squad.panicRange(),2) && !coverSafe(mob) || !SpellRegistry.HEALING_CIRCLE_SPELL.get().isEnabled()) return false;
             recipient=mob.level().getEntitiesOfClass(LivingEntity.class,mob.getBoundingBox().inflate(10),
@@ -368,7 +367,7 @@ final class GoblinTactics {
                 .stream().min(Comparator.<LivingEntity>comparingInt(g->g instanceof GoblinEntity goblin
                     && !goblin.isRanged() && goblin.getPersistentData().getBoolean("RiftfallRetreating") ? 0 : 1)
                     .thenComparingDouble(g->g.getHealth()/g.getMaxHealth())).orElse(null);
-            return recipient!=null;
+            return recipient!=null && MobMana.canCast(mob,spell,1);
         }
         @Override public boolean canContinueToUse() {
             return ticks<windup+14 && !MobMana.hurtInterrupts(mob,SpellRegistry.HEALING_CIRCLE_SPELL.get()) && recipient!=null && recipient.isAlive() && mob.distanceToSqr(recipient)<12*12

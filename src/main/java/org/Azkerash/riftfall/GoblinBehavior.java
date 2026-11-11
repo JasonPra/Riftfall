@@ -56,6 +56,7 @@ final class GoblinBehavior {
                 add("cast",MobSpellcasting.castingAction(mob),()->true);
             }
         }
+        add("loot",new org.Azkerash.riftfall.loot.GoblinLootGoal(mob),()->false);
         add("wander",new WaterAvoidingRandomStrollGoal(mob,.8),()->false);
     }
     private ConfidenceConfig.Settings settings() { return confidence.settings(); }
@@ -95,7 +96,7 @@ final class GoblinBehavior {
         }
         String committedAction=committed;
         executors.forEach((id,action)-> {
-            boolean combat=!id.equals("wander");
+            boolean combat=!id.equals("wander") && !id.equals("loot");
             // An unwatched opening temporarily overrides flight; a latched grapple or airborne leap finishes normally.
             if(id.equals("panic_escape") && (rearOpening || committedAmbush)) {
                 signals.put("ready."+id,0D);signals.put("committed."+id,0D);return;

@@ -3,6 +3,7 @@ package org.Azkerash.riftfall.mana;
 public final class ManaState {
     public final ManaBudget budget=new ManaBudget();
     public boolean initialized;
+    public double loadingMaximum;
     public double configuredBase=Double.NaN;
     public String lastExpense="none";
 }

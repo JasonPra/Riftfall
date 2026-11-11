@@ -33,13 +33,13 @@ public final class MobMana {
         if(!state.initialized){state.initialized=true;if(!(mob instanceof IMagicEntity))magic.setMana((float)maximum(mob));}
         return magic;
     }
-    public static double maximum(Mob mob){return mob.getAttributeValue(AttributeRegistry.MAX_MANA);}
+    public static double maximum(Mob mob){return Math.max(mob.getAttributeValue(AttributeRegistry.MAX_MANA),active(mob)?state(mob).loadingMaximum:0);}
     public static double regeneration(Mob mob){return ManaConfig.profile(mob).regeneration()*mob.getAttributeValue(AttributeRegistry.MANA_REGEN);}
-    public static boolean canCast(Mob mob,AbstractSpell spell,int level){return spell.isEnabled()&&state(mob).budget.canSpend(Math.min(data(mob).getMana(),maximum(mob)),spell.getManaCost(level));}
+    public static boolean canCast(Mob mob,AbstractSpell spell,int level){return spell.isEnabled()&&state(mob).budget.request(Math.min(data(mob).getMana(),maximum(mob)),maximum(mob),spell.getManaCost(level));}
     /** Charge once at release, after pre-cast conditions pass. Interrupted wind-ups spend no mana. */
     public static boolean spend(Mob mob,AbstractSpell spell,int level){
         var magic=data(mob);magic.setMana((float)Math.clamp(magic.getMana(),0,maximum(mob)));var state=state(mob);int cost=spell.getManaCost(level);
-        if(!spell.isEnabled()||!state.budget.canSpend(magic.getMana(),cost))return false;
+        if(!spell.isEnabled()||!state.budget.request(magic.getMana(),maximum(mob),cost))return false;
         magic.setMana((float)state.budget.spend(magic.getMana(),cost,ManaConfig.delay()));
         state.lastExpense=spell.getSpellId()+" level "+level+" (-"+cost+")";return true;
     }
@@ -55,6 +55,7 @@ public final class MobMana {
         var d=new CompoundTag();if(!active(mob))return d;var magic=data(mob);
         if(!Double.isNaN(state(mob).configuredBase))d.putDouble("ConfiguredBase",state(mob).configuredBase);
         d.putDouble("Current",magic.getMana());d.putDouble("Maximum",maximum(mob));d.putDouble("RegenPerSecond",regeneration(mob));
+        state(mob).budget.observe(magic.getMana(),maximum(mob));d.putBoolean("Recovering",state(mob).budget.recovering());
         d.putDouble("RegenMultiplier",mob.getAttributeValue(AttributeRegistry.MANA_REGEN));d.putInt("DelayTicks",state(mob).budget.delay());d.putString("LastExpense",state(mob).lastExpense);
         var costs=mob.getPersistentData().getCompound("RiftfallManaCosts");d.put("SpellCosts",costs.copy());return d;
     }
@@ -63,14 +64,15 @@ public final class MobMana {
     }
     @SubscribeEvent(priority=EventPriority.LOWEST) public static void tick(EntityTickEvent.Post event){
         if(!(event.getEntity() instanceof Mob mob)||mob.level().isClientSide||!mob.isAlive()||!active(mob))return;
+        state(mob).loadingMaximum=0; // Curios has now restored its transient capacity bonuses.
         var magic=data(mob);boolean casting=mob.getPersistentData().getBoolean("RiftfallCasting") || mob instanceof IMagicEntity caster && caster.isCasting();
         magic.setMana((float)state(mob).budget.tick(magic.getMana(),maximum(mob),regeneration(mob),casting));
         if(mob.tickCount%5==0)mob.getPersistentData().put("RiftfallMana",diagnostics(mob));
     }
     public static void save(Mob mob,CompoundTag tag){if(active(mob))tag.put("RiftfallManaPool",diagnostics(mob));}
     public static void load(Mob mob,CompoundTag tag){
-        if(!tag.contains("RiftfallManaPool"))return;var saved=tag.getCompound("RiftfallManaPool");if(saved.contains("ConfiguredBase"))state(mob).configuredBase=saved.getDouble("ConfiguredBase");var magic=data(mob);
-        magic.setMana((float)Math.clamp(saved.getDouble("Current"),0,1000000));state(mob).budget.restoreDelay(saved.getInt("DelayTicks"));state(mob).lastExpense=saved.getString("LastExpense");
+        if(!tag.contains("RiftfallManaPool"))return;var saved=tag.getCompound("RiftfallManaPool");state(mob).loadingMaximum=saved.getDouble("Maximum");if(saved.contains("ConfiguredBase"))state(mob).configuredBase=saved.getDouble("ConfiguredBase");var magic=data(mob);
+        magic.setMana((float)Math.clamp(saved.getDouble("Current"),0,1000000));state(mob).budget.restoreDelay(saved.getInt("DelayTicks"));state(mob).budget.restoreRecovery(saved.getBoolean("Recovering"));state(mob).lastExpense=saved.getString("LastExpense");
     }
     private MobMana(){}
 }

@@ -14,7 +14,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** Living humanoids: the shaman is a separate entity type, never an undead caster. */
-public final class GoblinEntity extends Monster implements org.Azkerash.riftfall.stamina.StaminaUser, org.Azkerash.riftfall.behavior.skills.BehaviorSkillUser, net.minecraft.world.entity.monster.RangedAttackMob, org.Azkerash.riftfall.confidence.ConfidenceParticipant, org.Azkerash.riftfall.facial.FacialParticipant {
+public final class GoblinEntity extends Monster implements org.Azkerash.riftfall.stamina.StaminaUser, org.Azkerash.riftfall.behavior.skills.BehaviorSkillUser, net.minecraft.world.entity.monster.RangedAttackMob, org.Azkerash.riftfall.confidence.ConfidenceParticipant, org.Azkerash.riftfall.facial.FacialParticipant, net.minecraft.world.entity.npc.InventoryCarrier {
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> GRAPPLED_PLAYER =
         net.minecraft.network.syncher.SynchedEntityData.defineId(GoblinEntity.class,net.minecraft.network.syncher.EntityDataSerializers.INT);
     private static final net.minecraft.network.syncher.EntityDataAccessor<Integer> ESCAPE_PROGRESS =
@@ -38,6 +38,14 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
     @Override public void syncPanting(boolean panting){entityData.set(PANTING,panting);}
     public boolean isPanting(){return level().isClientSide?entityData.get(PANTING):org.Azkerash.riftfall.stamina.MobStamina.panting(this);}
     @Override public boolean managesStaminaActions(){return true;}
+    private final org.Azkerash.riftfall.loot.GoblinLoot loot=new org.Azkerash.riftfall.loot.GoblinLoot(this);
+    public org.Azkerash.riftfall.loot.GoblinLoot loot(){return loot;}
+    @Override public net.minecraft.world.SimpleContainer getInventory(){return loot.inventory();}
+    @Override public boolean wantsToPickUp(ItemStack stack){return loot.canPickUp(stack);}
+    @Override protected void pickUpItem(net.minecraft.world.entity.item.ItemEntity entity){loot.pickUp(entity);}
+    @Override public ItemStack equipItemIfPossible(ItemStack stack){return ItemStack.EMPTY;}
+    @Override protected void dropEquipment(){loot.dropAll();super.dropEquipment();}
+    @Override public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag){super.addAdditionalSaveData(tag);loot.save(tag);}
     private float previousBurrow,visualBurrow;
     private long lastKillLaugh=Long.MIN_VALUE;
     private final org.Azkerash.riftfall.behavior.EscapeSoundWait escapeSounds=new org.Azkerash.riftfall.behavior.EscapeSoundWait();
@@ -95,7 +103,7 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
     void grappleState(int playerId,int progress) { entityData.set(GRAPPLED_PLAYER,playerId); entityData.set(ESCAPE_PROGRESS,progress); }
     public GoblinEntity(EntityType<? extends GoblinEntity> type, Level level) {
         super(type,level);
-        xpReward=isShaman()?12:5;
+        xpReward=isShaman()?12:5;setCanPickUpLoot(true);
         face=new org.Azkerash.riftfall.facial.FacialController(this,org.Azkerash.riftfall.facial.FacialProfile.defaults().withBlinkTiming(2,2),packed->entityData.set(FACE,packed),()->isPanicking()?org.Azkerash.riftfall.facial.FaceExpression.SCARED:null);
         setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(isShaman()?GoblinItems.BONE_STAFF.get():isArcher()?Items.BOW:GoblinItems.SHORTSWORD.get()));
         setDropChance(EquipmentSlot.MAINHAND,0);
@@ -190,19 +198,19 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
             .add(Attributes.MOVEMENT_SPEED,.23).add(Attributes.FOLLOW_RANGE,28).add(Attributes.SCALE,.75);
     }
     @Override public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
+        super.readAdditionalSaveData(tag);loot.load(tag);setCanPickUpLoot(true);
         // Correct the previous default in existing saves while preserving deliberate
         // custom scale values and attribute modifiers.
         if (isShaman() && getMainHandItem().is(Items.BLAZE_ROD))
             setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(GoblinItems.BONE_STAFF.get()));
-        if (getPersistentData().contains("RiftfallOwner")) {
+        if (!tag.contains("RiftfallInventory") && getPersistentData().contains("RiftfallOwner")) {
             if (getItemBySlot(EquipmentSlot.HEAD).is(Items.IRON_HELMET)) setItemSlot(EquipmentSlot.HEAD,ItemStack.EMPTY);
             if (getItemBySlot(EquipmentSlot.CHEST).is(Items.IRON_CHESTPLATE) || getItemBySlot(EquipmentSlot.CHEST).is(Items.DIAMOND_CHESTPLATE))
                 setItemSlot(EquipmentSlot.CHEST,ItemStack.EMPTY);
             if (!isRanged() && (getMainHandItem().is(Items.IRON_SWORD) || getMainHandItem().is(Items.DIAMOND_SWORD) || getMainHandItem().is(Items.NETHERITE_SWORD)))
                 setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(Items.STONE_SWORD));
         }
-        if (!isRanged() && getMainHandItem().is(Items.STONE_SWORD))
+        if (!tag.contains("RiftfallInventory") && !isRanged() && getMainHandItem().is(Items.STONE_SWORD))
             setItemSlot(EquipmentSlot.MAINHAND,getMainHandItem().transmuteCopy(GoblinItems.SHORTSWORD.get()));
         // Update the old default without overwriting deliberately customized speeds.
         var speed=getAttribute(Attributes.MOVEMENT_SPEED);
@@ -233,6 +241,7 @@ public final class GoblinEntity extends Monster implements org.Azkerash.riftfall
             visualConfidence+=(entityData.get(CONFIDENCE)/100F-visualConfidence)*.15F;
         }
         if (!level().isClientSide) {
+            loot.tick();
             // Reuse the shared engine's confidence; send only changed percentages.
             // The client smooths these values rather than scanning nearby mobs per rendered pose.
             if (tickCount%10==0) entityData.set(CONFIDENCE,(int)Math.round(behavior.confidence()*100));

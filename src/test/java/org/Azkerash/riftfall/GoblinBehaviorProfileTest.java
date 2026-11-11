@@ -35,6 +35,11 @@ class GoblinBehaviorProfileTest {
         assertEquals("bow",choose(Map.of("ready.position",1D,"ready.bow",1D,"cover.safe",1D)));
         assertEquals("ranged_retreat",choose(Map.of("ready.ranged_retreat",1D,"ready.bow",1D,"fear",1D)));
     }
+    @Test void idleScavengingBeatsWanderingButNeverCombatOrPanic(){
+        assertEquals("loot",choose(Map.of("ready.loot",1D,"ready.wander",1D)));
+        assertEquals("melee",choose(Map.of("ready.loot",1D,"ready.melee",1D)));
+        assertEquals("panic_escape",choose(Map.of("ready.loot",1D,"ready.panic_escape",1D)));
+    }
     @Test void fearfulWarriorWatchesOrRetreatsInsteadOfAdvancing() {
         assertEquals("watch",choose(Map.of("self.melee_role",1D,"target.visible",1D,"engage",0D,"fear",1D)));
         assertEquals("cautious_retreat",choose(Map.of("self.melee_role",1D,"target.visible",1D,"engage",0D,"ready.cautious_retreat",1D,"fear",1D)));
