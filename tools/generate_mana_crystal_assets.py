@@ -90,9 +90,11 @@ for layer in range(1,9):
  # this preserves exact tangent directions even on walls and ceilings.
  join=[column(5.5,1,3,3,.42,h)]
  # Actual shared seams carry small daughter crystals across the full edge.
- for x,height in [(1,.25),(6,.22),(11,.24)]:join.append(box([x,.1,0],[x+3,min(h,1.2+h*height,4),3],edge=True))
+ # Overlapping individual buds cover the shared edge, including both corners.
+ for x,height,depth in [(0,.19,3),(3,.27,3.5),(6,.22,3),(9,.25,3.75),(12,.18,3.25)]:
+  join.append(box([x,0,0],[x+4,min(h,1.2+h*height,4),depth],edge=True))
  # Staggered small pillars link the edge buds back into the central clump.
- for cx,cz,fraction in [(3.5,3.5,.22),(5.5,5,.27),(8,3,.24),(8,5.5,.3),(10.5,5,.2),(12,3.5,.26)]:
+ for cx,cz,fraction in [(1.75,3.75,.19),(14.25,3.75,.23),(3.5,3.5,.22),(5.5,5,.27),(8,3,.24),(8,5.5,.3),(10.5,5,.2),(12,3.5,.26)]:
   join.append(box([cx-1.6,0,cz-1.75],[cx+1.6,min(h,1+h*fraction,5),cz+1.75]))
  for side in range(4):
   elements=[]

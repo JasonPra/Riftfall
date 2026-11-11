@@ -46,7 +46,7 @@ class CrystalGlowTest {
                 count++;for(int axis=0;axis<3;axis++)assertTrue(e.getAsJsonArray("to").get(axis).getAsDouble()-e.getAsJsonArray("from").get(axis).getAsDouble()<=4);
                 int axis=side%2==0?2:0;boolean positive=side==1||side==2;
                 assertTrue(positive?e.getAsJsonArray("from").get(axis).getAsDouble()>=12:e.getAsJsonArray("to").get(axis).getAsDouble()<=4);
-            }assertEquals(3,count);
+            }assertEquals(5,count);
         }
     }
     @Test void youngEdgeBudsTouchNeighboringYoungAndAdultCrystals()throws Exception{
@@ -74,6 +74,19 @@ class CrystalGlowTest {
                 boolean touching=true;for(int axis=0;axis<3;axis++)touching&=Math.max(prisms.get(a).getAsJsonArray("from").get(axis).getAsDouble(),prisms.get(b).getAsJsonArray("from").get(axis).getAsDouble())<=Math.min(prisms.get(a).getAsJsonArray("to").get(axis).getAsDouble(),prisms.get(b).getAsJsonArray("to").get(axis).getAsDouble())+1e-6;
                 if(touching){reached.add(b);changed=true;}
             }}assertEquals(prisms.size(),reached.size(),"No isolated buds at layer "+layer+suffix);
+        }
+    }
+    @Test void sharedEdgesHaveNoRepeatedGapsIncludingCorners()throws Exception{
+        for(int layer=1;layer<=8;layer++)for(int side=0;side<4;side++){
+            int boundaryAxis=side%2==0?2:0,tangentAxis=boundaryAxis==0?2:0;
+            for(int pixel=0;pixel<16;pixel++){
+                double point=pixel+.5;boolean covered=false;
+                for(var value:model("template_"+layer+"_join_"+side).getAsJsonArray("elements")){
+                    var e=value.getAsJsonObject();if(!e.get("shade").getAsBoolean())continue;
+                    int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if((id&1048576)==0)continue;
+                    covered|=e.getAsJsonArray("from").get(tangentAxis).getAsDouble()<=point&&e.getAsJsonArray("to").get(tangentAxis).getAsDouble()>=point;
+                }assertTrue(covered,"Open seam at layer "+layer+", side "+side+", pixel "+pixel);
+            }
         }
     }
     private double luminance(int rgb){return .2126*((rgb>>16)&255)+.7152*((rgb>>8)&255)+.0722*(rgb&255);}

@@ -52,3 +52,5 @@ Nearby crystals occasionally emit small, stationary, fullbright glints in their 
 Growth models consist entirely of individual prisms, including connected edges. Exposed stone remains visible between young buds; growth enlarges those buds instead of filling a rectangular backing sheet.
 
 Short, overlapping prisms form branching clumps behind the visible buds. Staggered edge pillars connect those clumps to the neighboring blocks, including mixed growth stages, without a continuous backing plane.
+
+Shared-edge buds overlap along the full edge, including its corners, with varied heights and depths. This closes repeated block-seam slots without a single broad backing face.
