@@ -26,17 +26,5 @@ public final class CrystalSurfaceConnections {
             if(includes(ownSurfaces,side.getOpposite())||includes(neighboringCrystalSurfaces.apply(direct),face)||includes(neighboringCrystalSurfaces.apply(around),side))mask|=1<<i;
         }return mask;
     }
-    /** Corners of a complete pair of mature 2x2 patches growing toward each other. */
-    public static int junctionCorners(Direction face,Function<Offset,Integer> matureSurfaces){
-        int result=0;
-        for(int corner=0;corner<4;corner++){
-            var a=tangent(face,corner);var b=tangent(face,(corner+1)%4);boolean complete=true;
-            for(int u=0;u<=1&&complete;u++)for(int v=0;v<=1&&complete;v++)for(int front=0;front<=1;front++){
-                var p=new Offset(a.getStepX()*u+b.getStepX()*v+face.getStepX()*front,a.getStepY()*u+b.getStepY()*v+face.getStepY()*front,a.getStepZ()*u+b.getStepZ()*v+face.getStepZ()*front);
-                if(!includes(matureSurfaces.apply(p),front==0?face:face.getOpposite())){complete=false;break;}
-            }
-            if(complete)result|=1<<corner;
-        }return result;
-    }
     private CrystalSurfaceConnections(){}
 }

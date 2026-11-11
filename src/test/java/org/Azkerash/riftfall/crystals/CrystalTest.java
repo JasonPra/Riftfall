@@ -38,26 +38,37 @@ class CrystalTest {
     @Test void texturePixelsAreSmokyTranslucentAcrossAllEightColors()throws Exception{
         for(var tier:CrystalTier.values())try(var stream=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png")){
             assertNotNull(stream);var image=ImageIO.read(stream);assertEquals(32,image.getWidth());Set<Integer> colors=new HashSet<>();
-            for(int y=0;y<32;y++)for(int x=0;x<32;x++){int pixel=image.getRGB(x,y);assertTrue((pixel>>>24)>=205&&(pixel>>>24)<=250);colors.add(pixel&0xffffff);}assertTrue(colors.size()>20);
+            for(int y=0;y<32;y++)for(int x=0;x<32;x++){int pixel=image.getRGB(x,y);assertTrue((pixel>>>24)>100&&(pixel>>>24)<255);colors.add(pixel&0xffffff);}assertTrue(colors.size()>20);
         }
     }
-    @Test void allStagesFacesAndPresetsHaveExplicitBodyModels()throws Exception{
+    @Test void multipartModelsSelectRealNeighborConnectionsOnEveryAttachmentFace()throws Exception{
         for(var tier:CrystalTier.values()){
-            var variants=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonObject("variants");assertEquals(288,variants.size());
-            for(int layer=1;layer<=8;layer++)for(String face:List.of("up","down","north","south","east","west"))for(int preset=0;preset<6;preset++){
-                var variant=variants.getAsJsonObject("facing="+face+",layers="+layer+",variant="+preset);assertNotNull(variant);
-                String suffix=preset==0?"":preset==1?"_wild":"_preset_"+preset;assertEquals("riftfall:block/mana_crystals/"+tier.id()+"_"+layer+suffix,variant.get("model").getAsString());
+            var parts=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart");assertEquals(240,parts.size());
+            for(int layer=1;layer<=8;layer++)for(String facing:List.of("up","down","north","south","east","west"))for(int mask=0;mask<16;mask++){
+                int cores=0,joins=0;
+                for(var value:parts){
+                    var part=value.getAsJsonObject();var when=part.getAsJsonObject("when");if(when.has("join_tip"))continue;
+                    if(!when.get("facing").getAsString().equals(facing)||when.get("layers").getAsInt()!=layer)continue;
+                    int side=0;boolean matches=true,connection=false;
+                    for(String direction:List.of("north","east","south","west")){
+                        if(when.has("join_"+direction)){connection=true;matches=(mask&(1<<side))!=0;}side++;
+                    }
+                    if(!matches)continue;
+                    var apply=part.get("apply");if(connection){joins++;assertTrue(apply.getAsJsonObject().get("model").getAsString().contains("_join_"));}
+                    else {cores++;assertEquals(2,apply.getAsJsonArray().size());}
+                }
+                assertEquals(1,cores);assertEquals(Integer.bitCount(mask),joins);
             }
         }
     }
     @Test void intergrownColumnsHaveTiltAndStayInsideOneBlockAtEveryLayer()throws Exception{
-        for(int layer=1;layer<=8;layer++)for(int variant=0;variant<6;variant++){
+        for(int layer=1;layer<=8;layer++)for(int variant=0;variant<2;variant++){
             var model=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_"+variant+".json");int tilted=0;
             for(var value:model.getAsJsonArray("elements")){
                 var element=value.getAsJsonObject();var a=element.getAsJsonArray("from");var b=element.getAsJsonArray("to");
                 assertFalse(a.get(0).getAsDouble()==0&&a.get(2).getAsDouble()==0&&b.get(0).getAsDouble()==16&&b.get(2).getAsDouble()==16,"No rectangular full-block slab underneath the crystals");
                 for(int axis=0;axis<3;axis++)assertTrue(a.get(axis).getAsDouble()<b.get(axis).getAsDouble());
-                if(element.has("rotation")&&element.get("shade").getAsBoolean())tilted++;
+                if(element.has("rotation"))tilted++;
                 for(int bits=0;bits<8;bits++){
                     double[] point=new double[3];for(int axis=0;axis<3;axis++)point[axis]=((bits&(1<<axis))==0?a:b).get(axis).getAsDouble();
                     if(element.has("rotation")){
@@ -68,36 +79,21 @@ class CrystalTest {
                     for(int axis=0;axis<3;axis++){assertTrue(point[axis]>=-1e-7);assertTrue(point[axis]<=(axis==1?layer*2:16)+1e-7);}
                 }
             }
-            assertEquals(layer>=3?(variant==0?3:variant==1?4:2):0,tilted);
+            assertEquals(layer>=3?(variant==0?3:4):0,tilted);
         }
     }
-    @Test void everyStageHasSixDistinctPresets()throws Exception{
-        for(int layer=1;layer<=8;layer++){
-            var shapes=new java.util.HashSet<String>();
-            for(int preset=0;preset<6;preset++){
-                var elements=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_"+preset+".json").getAsJsonArray("elements");
-                var silhouette=new StringBuilder();for(var value:elements){var e=value.getAsJsonObject();if(e.get("shade").getAsBoolean())silhouette.append(e.get("from")).append(e.get("to")).append(e.get("rotation"));}shapes.add(silhouette.toString());
-            }assertEquals(6,shapes.size());
-        }
-    }
-    @Test void connectionsHaveIndividualPrismsAndTierTextureInheritance()throws Exception{
+    @Test void connectionsHaveBroadMatchingRootsAndTierTextureInheritance()throws Exception{
         for(int layer=1;layer<=8;layer++){
             var model=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_join_0.json");var root=model.getAsJsonArray("elements").get(0).getAsJsonObject();
-            for(var value:model.getAsJsonArray("elements")){var prism=value.getAsJsonObject();assertTrue(prism.getAsJsonArray("to").get(0).getAsDouble()-prism.getAsJsonArray("from").get(0).getAsDouble()<=4,"No broad backing plate");assertTrue(prism.getAsJsonArray("to").get(2).getAsDouble()-prism.getAsJsonArray("from").get(2).getAsDouble()<=4,"No broad backing plate");}
+            assertEquals(0,root.getAsJsonArray("from").get(2).getAsDouble());assertEquals(16,root.getAsJsonArray("to").get(0).getAsDouble()-root.getAsJsonArray("from").get(0).getAsDouble(),"Roots must cover junction corners, not leave a four-block square hole");
             for(var tier:CrystalTier.values())for(String suffix:List.of("","_wild","_join_0","_join_1","_join_2","_join_3")){
                 var child=json("assets/riftfall/models/block/mana_crystals/"+tier.id()+"_"+layer+suffix+".json");assertTrue(child.get("parent").getAsString().contains("template_"+layer));assertEquals("riftfall:block/"+tier.id()+"_mana_crystal",child.getAsJsonObject("textures").get("crystal").getAsString());
             }
         }
     }
     @Test void floatingEndCapsAreAbsentFromEveryTier()throws Exception{
-        for(var tier:CrystalTier.values())assertFalse(json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").toString().contains("_tip"));
-    }
-    @Test void junctionBranchesReachTheSharedCornerWithoutAFlatCap()throws Exception{
-        for(int corner=0;corner<4;corner++){
-            var elements=json("assets/riftfall/models/block/mana_crystals/template_junction_"+corner+".json").getAsJsonArray("elements");assertEquals(6,elements.size());
-            for(var value:elements){var e=value.getAsJsonObject();var a=e.getAsJsonArray("from");var b=e.getAsJsonArray("to");for(int axis=0;axis<3;axis++){assertTrue(a.get(axis).getAsDouble()>=0);assertTrue(b.get(axis).getAsDouble()<=16);assertTrue(a.get(axis).getAsDouble()<b.get(axis).getAsDouble());}assertTrue((b.get(0).getAsDouble()-a.get(0).getAsDouble())<=4);assertTrue((b.get(2).getAsDouble()-a.get(2).getAsDouble())<=4);}
-            var tip=elements.get(2).getAsJsonObject();assertEquals(16,tip.getAsJsonArray("to").get(1).getAsDouble());
-            for(var tier:CrystalTier.values())assertTrue(json("assets/riftfall/models/block/mana_crystals/"+tier.id()+"_junction_"+corner+".json").get("parent").getAsString().endsWith("junction_"+corner));
+        for(var tier:CrystalTier.values())for(var value:json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart")){
+            var part=value.getAsJsonObject();assertFalse(part.getAsJsonObject("when").has("join_tip"));assertFalse(part.get("apply").toString().contains("_tip"));
         }
     }
     @Test void everyLayerDropsRawItemsAndCuttingIsOneWay()throws Exception{

@@ -22,7 +22,3 @@ run
 
 # Logs from development runs and persistence tests
 logs/
-
-# Python asset-generation helpers
-__pycache__/
-*.py[cod]

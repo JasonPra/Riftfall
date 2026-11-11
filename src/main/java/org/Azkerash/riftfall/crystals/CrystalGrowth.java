@@ -62,7 +62,7 @@ public final class CrystalGrowth {
             var tier=initial?CrystalTier.natural(inward,power,random.nextDouble(),CrystalRules.naturalWhite()):CrystalTier.RED;
             var state=seedState(level,pos,tier,Direction.UP);if(state==null)continue;
             int layers=placed<adults?8:initial?1+random.nextInt(7):1;
-            if(level.setBlock(pos,state.setValue(ManaCrystalBlock.VARIANT,random.nextInt(6)).setValue(ManaCrystalBlock.LAYERS,layers),Block.UPDATE_ALL)){
+            if(level.setBlock(pos,state.setValue(ManaCrystalBlock.LAYERS,layers),Block.UPDATE_ALL)){
                 placed++;for(var d:Direction.values())queue.addLast(pos.relative(d));
             }
         }
