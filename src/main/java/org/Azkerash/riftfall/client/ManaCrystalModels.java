@@ -66,19 +66,27 @@ public final class ManaCrystalModels {
         @Override public List<BakedQuad> getQuads(BlockState state,Direction side,RandomSource random,ModelData data,RenderType renderType){
             var mesh=data.get(SURFACES);
             if(mesh==null){
-                if(state==null)return originalModel.getQuads(null,side,random,data,renderType);
+                if(state==null)return CrystalQuadUnion.clean(originalModel.getQuads(null,side,random,data,renderType),q->0);
                 int joins=0;for(int i=0;i<4;i++)if(state.getValue(ManaCrystalBlock.JOINS.get(i)))joins|=1<<i;
                 var part=parts[state.getValue(ManaCrystalBlock.FACING).ordinal()][state.getValue(ManaCrystalBlock.LAYERS)-1][joins];
-                return part.model().getQuads(part.state(),side,random,ModelData.EMPTY,renderType);
+                return CrystalQuadUnion.clean(part.model().getQuads(part.state(),side,random,ModelData.EMPTY,renderType),q->((ManaCrystalBlock)state.getBlock()).tier().ordinal());
             }
-            if(!mesh.adjacent()&&mesh.surfaces().size()==1){var part=mesh.surfaces().getFirst();return part.model().getQuads(part.state(),side,random,ModelData.EMPTY,renderType);}
             var quads=new ArrayList<BakedQuad>();
             CrystalTier[] colors=mesh.mixed()?new CrystalTier[6]:null;if(colors!=null)for(int i=0;i<6;i++)if(mesh.neighbors()[i]!=null)colors[i]=mesh.neighbors()[i].tier();
             for(var part:mesh.surfaces())for(var quad:part.model().getQuads(part.state(),side,random,ModelData.EMPTY,renderType)){
                 if(side!=null&&coveredRoot(quad,side,mesh))continue;
-                quads.add(mesh.mixed()?blend(quad,mesh,colors):quad);
+                quads.add(quad);
             }
-            return quads;
+            var visible=CrystalQuadUnion.clean(quads,quad->edgePriority(quad,mesh));
+            if(!mesh.mixed())return visible;
+            var blended=new ArrayList<BakedQuad>(visible.size());for(var quad:visible)blended.add(blend(quad,mesh,colors));return blended;
+        }
+        /** Higher-tier material wins competing coplanar edge pieces; never biases unrelated depth. */
+        private int edgePriority(BakedQuad quad,Mesh mesh){
+            int priority=mesh.tier().ordinal();double x=0,y=0,z=0;var vertices=quad.getVertices();int stride=vertices.length/4;
+            for(int vertex=0;vertex<4;vertex++){x+=Float.intBitsToFloat(vertices[vertex*stride])*.25;y+=Float.intBitsToFloat(vertices[vertex*stride+1])*.25;z+=Float.intBitsToFloat(vertices[vertex*stride+2])*.25;}
+            for(var direction:Direction.values()){var neighbor=mesh.neighbors()[direction.ordinal()];if(neighbor!=null&&distance(direction,x,y,z)<CrystalEdgeBlend.WIDTH)priority=Math.max(priority,neighbor.tier().ordinal());}
+            return priority;
         }
         /** Hide only boundary faces demonstrably covered by the neighbor's continuous mineral root. */
         private boolean coveredRoot(BakedQuad quad,Direction side,Mesh mesh){
