@@ -22,7 +22,7 @@ public final class WorldManaCommands {
                 source.sendSuccess(()->Component.literal("Ley-line nodes in "+source.getLevel().dimension().location()+": "+network.size()),false);
                 int count=0;for(var node:network.nodes()){
                     if(count++==10)break;
-                    source.sendSuccess(()->Component.literal("Chunk ["+node.chunkX()+", "+node.chunkZ()+"] at "+node.x()+", "+node.y()+", "+node.z()+"; parent="+(node.parent()==null?"root":new net.minecraft.world.level.ChunkPos(node.parent()))),false);
+                    source.sendSuccess(()->Component.literal("Chunk ["+node.chunkX()+", "+node.chunkZ()+"] at "+node.x()+", "+node.y()+", "+node.z()+"; strength="+node.strength()+"/s; parent="+(node.parent()==null?"root":new net.minecraft.world.level.ChunkPos(node.parent()))),false);
                 }return network.size();
             }))));
     }
