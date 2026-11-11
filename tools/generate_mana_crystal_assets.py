@@ -96,7 +96,7 @@ for tier,color in COLORS.items():
  for layer in range(1,9):children.append({'type':'minecraft:item','name':'riftfall:'+raw,'conditions':[{'condition':'minecraft:block_state_property','block':'riftfall:'+block,'properties':{'layers':str(layer)}}],'functions':[{'function':'minecraft:set_count','count':layer}]})
  write(Path('data/riftfall/loot_table/blocks')/(block+'.json'),{'type':'minecraft:block','pools':[{'rolls':1,'conditions':[{'condition':'minecraft:survives_explosion'}],'entries':[{'type':'minecraft:alternatives','children':children}]}]})
  write(Path('data/riftfall/recipe')/(cut+'.json'),{'type':'minecraft:stonecutting','ingredient':{'item':'riftfall:'+raw},'result':{'id':'riftfall:'+cut,'count':1}})
-write(Path('data/riftfall/tags/block/mana_crystal_supports.json'),{'replace':False,'values':['#minecraft:base_stone_overworld','#minecraft:base_stone_nether','minecraft:calcite','minecraft:end_stone']})
+write(Path('data/riftfall/tags/block/mana_crystal_supports.json'),{'replace':False,'values':['#minecraft:base_stone_overworld','#minecraft:base_stone_nether','minecraft:calcite','minecraft:end_stone','#c:ores']})
 # Future crafting recipes can use cut-only tags; raw crystals are never included.
 write(Path('data/riftfall/tags/item/cut_mana_crystals.json'),{'replace':False,'values':['riftfall:cut_'+tier+'_mana_crystal'for tier in COLORS]})
 lang=ROOT/'assets/riftfall/lang/en_us.json';data=json.loads(lang.read_text())
