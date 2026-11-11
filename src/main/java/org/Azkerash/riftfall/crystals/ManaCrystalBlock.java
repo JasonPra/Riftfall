@@ -137,7 +137,7 @@ public final class ManaCrystalBlock extends Block implements SimpleWaterloggedBl
         super.onPlace(state,level,pos,old,moving);if(level instanceof ServerLevel server){var joined=connections(state,level,pos);if(joined!=state)level.setBlock(pos,joined,Block.UPDATE_ALL);cornerNeighbors(server,pos,state);CrystalRefinement.changed(server,pos);if(!state.canSurvive(level,pos))level.scheduleTick(pos,this,1);}
     }
     @Override protected void onRemove(BlockState state,Level level,BlockPos pos,BlockState next,boolean moving){
-        if(level instanceof ServerLevel server&&state.getBlock()!=next.getBlock()){CrystalRefinement.changing(server,pos);cornerNeighbors(server,pos,state);}
+        if(level instanceof ServerLevel server&&state.getBlock()!=next.getBlock()){if(adult(state))CrystalRefinement.changing(server,pos);cornerNeighbors(server,pos,state);}
         super.onRemove(state,level,pos,next,moving);
     }
     @Override public void setPlacedBy(Level level,BlockPos pos,BlockState state,net.minecraft.world.entity.LivingEntity placer,ItemStack stack){
@@ -151,7 +151,7 @@ public final class ManaCrystalBlock extends Block implements SimpleWaterloggedBl
             CrystalGrowth.spread(level,pos,state,random);
             return;
         }
-        if(random.nextDouble()<CrystalRules.heightChance(state.getValue(WATERLOGGED))){level.setBlock(pos,connections(state.setValue(LAYERS,state.getValue(LAYERS)+1).setValue(BRANCH_NEXT,false),level,pos),Block.UPDATE_ALL);CrystalRefinement.changed(level,pos);}
+        if(random.nextDouble()<CrystalRules.heightChance(state.getValue(WATERLOGGED),tier)){level.setBlock(pos,connections(state.setValue(LAYERS,state.getValue(LAYERS)+1).setValue(BRANCH_NEXT,false),level,pos),Block.UPDATE_ALL);CrystalRefinement.changed(level,pos);}
     }
     @Override protected FluidState getFluidState(BlockState state){return state.getValue(WATERLOGGED)?Fluids.WATER.getSource(false):super.getFluidState(state);}
     @Override protected boolean propagatesSkylightDown(BlockState state,BlockGetter level,BlockPos pos){return true;}

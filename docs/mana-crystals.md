@@ -59,3 +59,27 @@ Seed-bed cleanup runs once during chunk mesh rebuilding. Coplanar faces pointing
 Crystals emit occasional stationary, fullbright star-shaped flashes tinted toward their tier color. Flashes last 8–14 ticks, quickly brighten and fade, and can appear on floors, walls, ceilings and waterlogged clusters. Spawning uses nearby client animation ticks and respects particle settings; it adds no server ticking or network packets.
 
 Only fully mature mother clusters can produce new seedlings. Immature clusters use growth ticks only to increase their own height, regardless of the legacy `branch_next` saved property. The current implementation uses eight layer steps; only layer eight is mature. The spreading entry point also rejects immature sources before mana checks or random draws.
+
+## Mature-neighbor refinement assistance
+
+Only fully mature mothers provide or receive refinement assistance. The highest-tier mother touching one of the six block faces supplies the bonus; extra neighbors do not stack, and diagonal crystals do not count. A planted high-tier seed must reach maturity first. Removing the catalyst stops future assistance without erasing earned progress. Mana cost and center-out chunk rounds remain unchanged.
+
+Default refinement **speed** bonuses from a white mother:
+
+| Recipient | Speed bonus | Speed multiplier |
+| --- | ---: | ---: |
+| Red | +200% | 3.00× |
+| Orange | +150% | 2.50× |
+| Yellow | +100% | 2.00× |
+| Green | +60% | 1.60× |
+| Cyan | +35% | 1.35× |
+| Blue | +15% | 1.15× |
+| Violet | +5% | 1.05× |
+
+The full recipient/donor table is configurable under `motherRefinementBonusPercent`. A speed bonus divides the required time; +200% means one third of the normal time, not instant refinement. The existing 215-minute base and 1.25-per-tier refinement time multiplier still apply, so late tiers remain slow.
+
+Mother positions and adjacent mature-tier snapshots are saved for unloaded simulation without loading terrain. Indexed virtual upgrades update nearby assistance as events occur. Placing or removing a catalyst settles previously earned progress before its rate changes.
+
+## Time to maturity by color
+
+`growthTimeMultiplierPerTier` defaults to 1.10: each higher tier takes 10% longer on average to gain growth layers (white is about 1.95× red). The 20% underwater height-growth bonus remains multiplicative. This changes seed-to-mother growth only: mature spreading probability, spreading cost, and refinement settings are independent.

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RefinementTest {
-    private final RefinementBatch.Settings quick=new RefinementBatch.Settings(20,600,1);
+    private final RefinementBatch.Settings quick=new RefinementBatch.Settings(20,600,1,RefinementBoostTable.none());
     private RefinementBatch.Crystal red(long position,double progress){return new RefinementBatch.Crystal(position,CrystalTier.RED,CrystalTier.RED,progress);}
     private RefinementBatch.Chunk chunk(long id,int count,double progress){var list=new ArrayList<RefinementBatch.Crystal>();for(int i=0;i<count;i++)list.add(red(id*100+i,progress));return new RefinementBatch.Chunk(id,1,list);}
     @Test void sharedBudgetSpendsOneUpgradePerChunkPerRoundCenterFirst(){
@@ -28,7 +28,7 @@ class RefinementTest {
         var result=RefinementBatch.advance(List.of(chunk(1,1,0)),40,0,2000,30,quick,Set.of());assertEquals(1,result.upgrades());assertEquals(600,result.mana(),1e-8);assertEquals(CrystalTier.RED,result.chunks().getFirst().crystals().getFirst().worldTier());assertEquals(CrystalTier.ORANGE,result.chunks().getFirst().crystals().getFirst().tier());
     }
     @Test void longCatchupMatchesRepeatedShortStepsIncludingRounds(){
-        var input=List.of(chunk(1,3,0),chunk(2,2,0));var settings=new RefinementBatch.Settings(100,600,1.25);
+        var input=List.of(chunk(1,3,0),chunk(2,2,0));var settings=new RefinementBatch.Settings(100,600,1.25,RefinementBoostTable.none());
         var full=RefinementBatch.advance(input,800,1000,162000,40.5,settings,Set.of());var current=input;double mana=1000;Set<Long> served=Set.of();
         for(int i=0;i<40;i++){var step=RefinementBatch.advance(current,20,mana,162000,40.5,settings,served);current=step.chunks();mana=step.mana();served=step.served();}
         assertEquals(full.mana(),mana,1e-6);for(int c=0;c<current.size();c++)for(int i=0;i<current.get(c).crystals().size();i++){var expected=full.chunks().get(c).crystals().get(i);var actual=current.get(c).crystals().get(i);assertEquals(expected.tier(),actual.tier());assertEquals(expected.progress(),actual.progress(),1e-6);}
