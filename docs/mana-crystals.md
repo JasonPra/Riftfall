@@ -48,4 +48,4 @@ Each layer drops one raw crystal of its tier (a mature cluster drops eight). Raw
 
 ## Sparkles
 
-Nearby crystals occasionally emit small, stationary, fullbright glints in their tier highlight color. Each glint grows and fades over 12–24 ticks. Floor, wall and ceiling growths all sparkle; this uses vanilla client display ticks and particle settings without server tasks or network packets.
+Nearby crystals occasionally emit small, stationary, fullbright glints in their tier highlight color. Custom four-point star glints have a near-white center, a rapid flare and a short fade over 8–14 ticks. Their increased size and frequency make them visible as sparkles rather than faint dots. Floor, wall and ceiling growths all sparkle; this uses vanilla client display ticks and particle settings without server tasks or network packets.

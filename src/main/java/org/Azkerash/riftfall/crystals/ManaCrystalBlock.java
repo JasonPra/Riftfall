@@ -36,9 +36,9 @@ public final class ManaCrystalBlock extends Block {
     }
     @Override public void animateTick(BlockState state,Level level,BlockPos pos,RandomSource random){
         // Vanilla invokes this only near the client camera; no server ticking or packets.
-        if(random.nextInt(12)!=0)return;
-        int mask=surfaceMask(level,pos,state);var face=Direction.values()[random.nextInt(6)];
-        if(!CrystalSurfaceConnections.includes(mask,face))return;
+        if(random.nextInt(18)!=0)return;
+        int mask=surfaceMask(level,pos,state);int selected=random.nextInt(Integer.bitCount(mask));Direction face=state.getValue(FACING);
+        for(var candidate:Direction.values())if(CrystalSurfaceConnections.includes(mask,candidate)&&selected--==0){face=candidate;break;}
         int layers=state.getValue(LAYERS);double height=(face==state.getValue(FACING)?layers:(layers+1)/2)/8.0;
         double u=.15+random.nextDouble()*.7,v=.15+random.nextDouble()*.7,w=.08+random.nextDouble()*height*.85;
         double x=u,y=w,z=v;

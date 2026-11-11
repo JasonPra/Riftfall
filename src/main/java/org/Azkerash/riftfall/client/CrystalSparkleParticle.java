@@ -15,10 +15,12 @@ import org.Azkerash.riftfall.crystals.CrystalParticles;
 public final class CrystalSparkleParticle extends TextureSheetParticle {
     private CrystalSparkleParticle(ClientLevel level,double x,double y,double z,double r,double g,double b,SpriteSet sprites){
         super(level,x,y,z);xd=yd=zd=0;hasPhysics=false;
-        lifetime=12+random.nextInt(13);quadSize=.035f+random.nextFloat()*.025f;
-        setColor((float)r,(float)g,(float)b);pickSprite(sprites);
+        lifetime=8+random.nextInt(7);quadSize=.085f+random.nextFloat()*.045f;
+        roll=oRoll=(random.nextFloat()-.5f)*.6f;
+        setColor(.65f+.35f*(float)r,.65f+.35f*(float)g,.65f+.35f*(float)b);pickSprite(sprites);
     }
-    @Override public float getQuadSize(float partialTick){return quadSize*(float)Math.sin(Math.PI*Math.min(1,(age+partialTick)/lifetime));}
+    @Override public float getQuadSize(float partialTick){float t=Math.min(1,(age+partialTick)/lifetime);return quadSize*(t<.2f?t/.2f:(1-t)/.8f);}
+    @Override public void tick(){super.tick();alpha=Math.max(0,1-(float)age/lifetime);}
     @Override public int getLightColor(float partialTick){return 0xF000F0;}
     @Override public ParticleRenderType getRenderType(){return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;}
     @SubscribeEvent public static void register(RegisterParticleProvidersEvent event){
