@@ -71,6 +71,7 @@ public final class CrystalRefinement {
     }
     @SubscribeEvent(priority=EventPriority.LOW) public static void loaded(ChunkEvent.Load event){
         if(!(event.getLevel() instanceof ServerLevel level)||!(event.getChunk() instanceof LevelChunk chunk))return;
+        ManaCrystalBlock.refreshConnections(chunk);
         var cp=chunk.getPos();var field=GeyserRegions.get(level).discover(cp.x,cp.z);if(field.isEmpty())return;
         // Catch up existing records before adding newly discovered crystals: no retroactive refinement.
         var store=RefinementStore.get(level);store.prepare(GeyserLedger.key(field.orElseThrow()));var entry=store.entries.get(cp.toLong());if(entry!=null)retain(entry,adults(chunk));

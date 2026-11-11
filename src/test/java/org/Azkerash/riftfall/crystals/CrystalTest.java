@@ -41,18 +41,53 @@ class CrystalTest {
             for(int y=0;y<32;y++)for(int x=0;x<32;x++){int pixel=image.getRGB(x,y);assertTrue((pixel>>>24)>100&&(pixel>>>24)<255);colors.add(pixel&0xffffff);}assertTrue(colors.size()>20);
         }
     }
-    @Test void modelsCoverAllLayersFacesAndHaveBluntFullWidthConnectedBases()throws Exception{
+    @Test void multipartModelsSelectRealNeighborConnectionsOnEveryAttachmentFace()throws Exception{
         for(var tier:CrystalTier.values()){
-            var states=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonObject("variants");assertEquals(48,states.size());
-            for(int layer=1;layer<=8;layer++){
-                var model=json("assets/riftfall/models/block/mana_crystals/"+tier.id()+"_"+layer+".json");assertEquals("minecraft:translucent",model.get("render_type").getAsString());double peak=0;boolean joined=false;
-                for(var e:model.getAsJsonArray("elements")){
-                    var element=e.getAsJsonObject();assertFalse(element.has("rotation"));var a=element.getAsJsonArray("from");var b=element.getAsJsonArray("to");
-                    for(int axis=0;axis<3;axis++){assertTrue(a.get(axis).getAsDouble()>=0);assertTrue(b.get(axis).getAsDouble()<=16);assertTrue(a.get(axis).getAsDouble()<b.get(axis).getAsDouble());}
-                    assertTrue(b.get(1).getAsDouble()<=layer*2);peak=Math.max(peak,b.get(1).getAsDouble());
-                    if(a.get(0).getAsDouble()==0&&a.get(2).getAsDouble()==0&&b.get(0).getAsDouble()==16&&b.get(2).getAsDouble()==16)joined=true;
-                }assertEquals(layer*2,peak);assertTrue(joined);
-                for(String direction:List.of("up","down","north","south","east","west"))assertTrue(states.has("facing="+direction+",layers="+layer));
+            var parts=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart");assertEquals(240,parts.size());
+            for(int layer=1;layer<=8;layer++)for(String facing:List.of("up","down","north","south","east","west"))for(int mask=0;mask<16;mask++){
+                int cores=0,joins=0;
+                for(var value:parts){
+                    var part=value.getAsJsonObject();var when=part.getAsJsonObject("when");
+                    if(!when.get("facing").getAsString().equals(facing)||when.get("layers").getAsInt()!=layer)continue;
+                    int side=0;boolean matches=true,connection=false;
+                    for(String direction:List.of("north","east","south","west")){
+                        if(when.has("join_"+direction)){connection=true;matches=(mask&(1<<side))!=0;}side++;
+                    }
+                    if(!matches)continue;
+                    var apply=part.get("apply");if(connection){joins++;assertTrue(apply.getAsJsonObject().get("model").getAsString().contains("_join_"));}
+                    else {cores++;assertEquals(2,apply.getAsJsonArray().size());}
+                }
+                assertEquals(1,cores);assertEquals(Integer.bitCount(mask),joins);
+            }
+        }
+    }
+    @Test void intergrownColumnsHaveTiltAndStayInsideOneBlockAtEveryLayer()throws Exception{
+        for(int layer=1;layer<=8;layer++)for(int variant=0;variant<2;variant++){
+            var model=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_"+variant+".json");int tilted=0;
+            for(var value:model.getAsJsonArray("elements")){
+                var element=value.getAsJsonObject();var a=element.getAsJsonArray("from");var b=element.getAsJsonArray("to");
+                assertFalse(a.get(0).getAsDouble()==0&&a.get(2).getAsDouble()==0&&b.get(0).getAsDouble()==16&&b.get(2).getAsDouble()==16,"No rectangular full-block slab underneath the crystals");
+                for(int axis=0;axis<3;axis++)assertTrue(a.get(axis).getAsDouble()<b.get(axis).getAsDouble());
+                if(element.has("rotation"))tilted++;
+                for(int bits=0;bits<8;bits++){
+                    double[] point=new double[3];for(int axis=0;axis<3;axis++)point[axis]=((bits&(1<<axis))==0?a:b).get(axis).getAsDouble();
+                    if(element.has("rotation")){
+                        var rotation=element.getAsJsonObject("rotation");var origin=rotation.getAsJsonArray("origin");int first=rotation.get("axis").getAsString().equals("x")?1:0,second=rotation.get("axis").getAsString().equals("x")?2:1;
+                        double angle=Math.toRadians(rotation.get("angle").getAsDouble()),x=point[first]-origin.get(first).getAsDouble(),y=point[second]-origin.get(second).getAsDouble();
+                        point[first]=origin.get(first).getAsDouble()+x*Math.cos(angle)-y*Math.sin(angle);point[second]=origin.get(second).getAsDouble()+x*Math.sin(angle)+y*Math.cos(angle);
+                    }
+                    for(int axis=0;axis<3;axis++){assertTrue(point[axis]>=-1e-7);assertTrue(point[axis]<=(axis==1?layer*2:16)+1e-7);}
+                }
+            }
+            assertEquals(layer>=3?(variant==0?3:4):0,tilted);
+        }
+    }
+    @Test void connectionsHaveBroadMatchingRootsAndTierTextureInheritance()throws Exception{
+        for(int layer=1;layer<=8;layer++){
+            var model=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_join_0.json");var root=model.getAsJsonArray("elements").get(0).getAsJsonObject();
+            assertEquals(0,root.getAsJsonArray("from").get(2).getAsDouble());assertEquals(8,root.getAsJsonArray("to").get(0).getAsDouble()-root.getAsJsonArray("from").get(0).getAsDouble());
+            for(var tier:CrystalTier.values())for(String suffix:List.of("","_wild","_join_0","_join_1","_join_2","_join_3")){
+                var child=json("assets/riftfall/models/block/mana_crystals/"+tier.id()+"_"+layer+suffix+".json");assertTrue(child.get("parent").getAsString().contains("template_"+layer));assertEquals("riftfall:block/"+tier.id()+"_mana_crystal",child.getAsJsonObject("textures").get("crystal").getAsString());
             }
         }
     }

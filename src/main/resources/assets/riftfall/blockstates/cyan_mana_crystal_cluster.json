@@ -1,212 +1,2980 @@
 {
-  "variants": {
-    "facing=up,layers=1": {
-      "model": "riftfall:block/mana_crystals/cyan_1"
+  "multipart": [
+    {
+      "when": {
+        "facing": "up",
+        "layers": "1"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1_wild"
+        }
+      ]
     },
-    "facing=down,layers=1": {
-      "model": "riftfall:block/mana_crystals/cyan_1",
-      "x": 180
+    {
+      "when": {
+        "facing": "up",
+        "layers": "1",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_0"
+      }
     },
-    "facing=north,layers=1": {
-      "model": "riftfall:block/mana_crystals/cyan_1",
-      "x": 90
+    {
+      "when": {
+        "facing": "up",
+        "layers": "1",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_1"
+      }
     },
-    "facing=east,layers=1": {
-      "model": "riftfall:block/mana_crystals/cyan_1",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "up",
+        "layers": "1",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_2"
+      }
     },
-    "facing=south,layers=1": {
-      "model": "riftfall:block/mana_crystals/cyan_1",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "up",
+        "layers": "1",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_3"
+      }
     },
-    "facing=west,layers=1": {
-      "model": "riftfall:block/mana_crystals/cyan_1",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "down",
+        "layers": "1"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1_wild",
+          "x": 180
+        }
+      ]
     },
-    "facing=up,layers=2": {
-      "model": "riftfall:block/mana_crystals/cyan_2"
+    {
+      "when": {
+        "facing": "down",
+        "layers": "1",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_0",
+        "x": 180
+      }
     },
-    "facing=down,layers=2": {
-      "model": "riftfall:block/mana_crystals/cyan_2",
-      "x": 180
+    {
+      "when": {
+        "facing": "down",
+        "layers": "1",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_1",
+        "x": 180
+      }
     },
-    "facing=north,layers=2": {
-      "model": "riftfall:block/mana_crystals/cyan_2",
-      "x": 90
+    {
+      "when": {
+        "facing": "down",
+        "layers": "1",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_2",
+        "x": 180
+      }
     },
-    "facing=east,layers=2": {
-      "model": "riftfall:block/mana_crystals/cyan_2",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "down",
+        "layers": "1",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_3",
+        "x": 180
+      }
     },
-    "facing=south,layers=2": {
-      "model": "riftfall:block/mana_crystals/cyan_2",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "north",
+        "layers": "1"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1_wild",
+          "x": 90
+        }
+      ]
     },
-    "facing=west,layers=2": {
-      "model": "riftfall:block/mana_crystals/cyan_2",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "layers": "1",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_0",
+        "x": 90
+      }
     },
-    "facing=up,layers=3": {
-      "model": "riftfall:block/mana_crystals/cyan_3"
+    {
+      "when": {
+        "facing": "north",
+        "layers": "1",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_1",
+        "x": 90
+      }
     },
-    "facing=down,layers=3": {
-      "model": "riftfall:block/mana_crystals/cyan_3",
-      "x": 180
+    {
+      "when": {
+        "facing": "north",
+        "layers": "1",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_2",
+        "x": 90
+      }
     },
-    "facing=north,layers=3": {
-      "model": "riftfall:block/mana_crystals/cyan_3",
-      "x": 90
+    {
+      "when": {
+        "facing": "north",
+        "layers": "1",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_3",
+        "x": 90
+      }
     },
-    "facing=east,layers=3": {
-      "model": "riftfall:block/mana_crystals/cyan_3",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "east",
+        "layers": "1"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
     },
-    "facing=south,layers=3": {
-      "model": "riftfall:block/mana_crystals/cyan_3",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "east",
+        "layers": "1",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_0",
+        "x": 90,
+        "y": 90
+      }
     },
-    "facing=west,layers=3": {
-      "model": "riftfall:block/mana_crystals/cyan_3",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "east",
+        "layers": "1",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_1",
+        "x": 90,
+        "y": 90
+      }
     },
-    "facing=up,layers=4": {
-      "model": "riftfall:block/mana_crystals/cyan_4"
+    {
+      "when": {
+        "facing": "east",
+        "layers": "1",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_2",
+        "x": 90,
+        "y": 90
+      }
     },
-    "facing=down,layers=4": {
-      "model": "riftfall:block/mana_crystals/cyan_4",
-      "x": 180
+    {
+      "when": {
+        "facing": "east",
+        "layers": "1",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_3",
+        "x": 90,
+        "y": 90
+      }
     },
-    "facing=north,layers=4": {
-      "model": "riftfall:block/mana_crystals/cyan_4",
-      "x": 90
+    {
+      "when": {
+        "facing": "south",
+        "layers": "1"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
     },
-    "facing=east,layers=4": {
-      "model": "riftfall:block/mana_crystals/cyan_4",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "south",
+        "layers": "1",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_0",
+        "x": 90,
+        "y": 180
+      }
     },
-    "facing=south,layers=4": {
-      "model": "riftfall:block/mana_crystals/cyan_4",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "south",
+        "layers": "1",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_1",
+        "x": 90,
+        "y": 180
+      }
     },
-    "facing=west,layers=4": {
-      "model": "riftfall:block/mana_crystals/cyan_4",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "south",
+        "layers": "1",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_2",
+        "x": 90,
+        "y": 180
+      }
     },
-    "facing=up,layers=5": {
-      "model": "riftfall:block/mana_crystals/cyan_5"
+    {
+      "when": {
+        "facing": "south",
+        "layers": "1",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_3",
+        "x": 90,
+        "y": 180
+      }
     },
-    "facing=down,layers=5": {
-      "model": "riftfall:block/mana_crystals/cyan_5",
-      "x": 180
+    {
+      "when": {
+        "facing": "west",
+        "layers": "1"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_1_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
     },
-    "facing=north,layers=5": {
-      "model": "riftfall:block/mana_crystals/cyan_5",
-      "x": 90
+    {
+      "when": {
+        "facing": "west",
+        "layers": "1",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_0",
+        "x": 90,
+        "y": 270
+      }
     },
-    "facing=east,layers=5": {
-      "model": "riftfall:block/mana_crystals/cyan_5",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "west",
+        "layers": "1",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_1",
+        "x": 90,
+        "y": 270
+      }
     },
-    "facing=south,layers=5": {
-      "model": "riftfall:block/mana_crystals/cyan_5",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "west",
+        "layers": "1",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_2",
+        "x": 90,
+        "y": 270
+      }
     },
-    "facing=west,layers=5": {
-      "model": "riftfall:block/mana_crystals/cyan_5",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "west",
+        "layers": "1",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_1_join_3",
+        "x": 90,
+        "y": 270
+      }
     },
-    "facing=up,layers=6": {
-      "model": "riftfall:block/mana_crystals/cyan_6"
+    {
+      "when": {
+        "facing": "up",
+        "layers": "2"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2_wild"
+        }
+      ]
     },
-    "facing=down,layers=6": {
-      "model": "riftfall:block/mana_crystals/cyan_6",
-      "x": 180
+    {
+      "when": {
+        "facing": "up",
+        "layers": "2",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_0"
+      }
     },
-    "facing=north,layers=6": {
-      "model": "riftfall:block/mana_crystals/cyan_6",
-      "x": 90
+    {
+      "when": {
+        "facing": "up",
+        "layers": "2",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_1"
+      }
     },
-    "facing=east,layers=6": {
-      "model": "riftfall:block/mana_crystals/cyan_6",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "up",
+        "layers": "2",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_2"
+      }
     },
-    "facing=south,layers=6": {
-      "model": "riftfall:block/mana_crystals/cyan_6",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "up",
+        "layers": "2",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_3"
+      }
     },
-    "facing=west,layers=6": {
-      "model": "riftfall:block/mana_crystals/cyan_6",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "down",
+        "layers": "2"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2_wild",
+          "x": 180
+        }
+      ]
     },
-    "facing=up,layers=7": {
-      "model": "riftfall:block/mana_crystals/cyan_7"
+    {
+      "when": {
+        "facing": "down",
+        "layers": "2",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_0",
+        "x": 180
+      }
     },
-    "facing=down,layers=7": {
-      "model": "riftfall:block/mana_crystals/cyan_7",
-      "x": 180
+    {
+      "when": {
+        "facing": "down",
+        "layers": "2",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_1",
+        "x": 180
+      }
     },
-    "facing=north,layers=7": {
-      "model": "riftfall:block/mana_crystals/cyan_7",
-      "x": 90
+    {
+      "when": {
+        "facing": "down",
+        "layers": "2",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_2",
+        "x": 180
+      }
     },
-    "facing=east,layers=7": {
-      "model": "riftfall:block/mana_crystals/cyan_7",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "down",
+        "layers": "2",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_3",
+        "x": 180
+      }
     },
-    "facing=south,layers=7": {
-      "model": "riftfall:block/mana_crystals/cyan_7",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "north",
+        "layers": "2"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2_wild",
+          "x": 90
+        }
+      ]
     },
-    "facing=west,layers=7": {
-      "model": "riftfall:block/mana_crystals/cyan_7",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "layers": "2",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_0",
+        "x": 90
+      }
     },
-    "facing=up,layers=8": {
-      "model": "riftfall:block/mana_crystals/cyan_8"
+    {
+      "when": {
+        "facing": "north",
+        "layers": "2",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_1",
+        "x": 90
+      }
     },
-    "facing=down,layers=8": {
-      "model": "riftfall:block/mana_crystals/cyan_8",
-      "x": 180
+    {
+      "when": {
+        "facing": "north",
+        "layers": "2",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_2",
+        "x": 90
+      }
     },
-    "facing=north,layers=8": {
-      "model": "riftfall:block/mana_crystals/cyan_8",
-      "x": 90
+    {
+      "when": {
+        "facing": "north",
+        "layers": "2",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_3",
+        "x": 90
+      }
     },
-    "facing=east,layers=8": {
-      "model": "riftfall:block/mana_crystals/cyan_8",
-      "x": 90,
-      "y": 90
+    {
+      "when": {
+        "facing": "east",
+        "layers": "2"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
     },
-    "facing=south,layers=8": {
-      "model": "riftfall:block/mana_crystals/cyan_8",
-      "x": 90,
-      "y": 180
+    {
+      "when": {
+        "facing": "east",
+        "layers": "2",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_0",
+        "x": 90,
+        "y": 90
+      }
     },
-    "facing=west,layers=8": {
-      "model": "riftfall:block/mana_crystals/cyan_8",
-      "x": 90,
-      "y": 270
+    {
+      "when": {
+        "facing": "east",
+        "layers": "2",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "2",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "2",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "2"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "2",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_0",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "2",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_1",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "2",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_2",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "2",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_3",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "2"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_2_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "2",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_0",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "2",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "2",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "2",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_2_join_3",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "3"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3_wild"
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "3",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "3",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "3",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "3",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "3"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3_wild",
+          "x": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "3",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_0",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "3",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_1",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "3",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_2",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "3",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_3",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "3"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3_wild",
+          "x": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "3",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_0",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "3",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_1",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "3",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "3",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_3",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "3"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "3",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_0",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "3",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "3",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "3",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "3"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "3",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_0",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "3",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_1",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "3",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_2",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "3",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_3",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "3"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_3_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "3",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_0",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "3",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "3",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "3",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_3_join_3",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "4"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4_wild"
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "4",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "4",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "4",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "4",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "4"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4_wild",
+          "x": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "4",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_0",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "4",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_1",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "4",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_2",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "4",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_3",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "4"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4_wild",
+          "x": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "4",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_0",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "4",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_1",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "4",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "4",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_3",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "4"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "4",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_0",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "4",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "4",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "4",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "4"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "4",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_0",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "4",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_1",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "4",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_2",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "4",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_3",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "4"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_4_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "4",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_0",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "4",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "4",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "4",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_4_join_3",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "5"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5_wild"
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "5",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "5",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "5",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "5",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "5"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5_wild",
+          "x": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "5",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_0",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "5",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_1",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "5",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_2",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "5",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_3",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "5"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5_wild",
+          "x": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "5",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_0",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "5",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_1",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "5",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "5",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_3",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "5"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "5",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_0",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "5",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "5",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "5",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "5"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "5",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_0",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "5",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_1",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "5",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_2",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "5",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_3",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "5"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_5_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "5",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_0",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "5",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "5",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "5",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_5_join_3",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "6"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6_wild"
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "6",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "6",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "6",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "6",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "6"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6_wild",
+          "x": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "6",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_0",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "6",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_1",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "6",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_2",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "6",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_3",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "6"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6_wild",
+          "x": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "6",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_0",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "6",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_1",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "6",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "6",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_3",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "6"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "6",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_0",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "6",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "6",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "6",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "6"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "6",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_0",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "6",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_1",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "6",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_2",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "6",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_3",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "6"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_6_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "6",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_0",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "6",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "6",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "6",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_6_join_3",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "7"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7_wild"
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "7",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "7",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "7",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "7",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "7"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7_wild",
+          "x": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "7",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_0",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "7",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_1",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "7",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_2",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "7",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_3",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "7"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7_wild",
+          "x": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "7",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_0",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "7",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_1",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "7",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "7",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_3",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "7"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "7",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_0",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "7",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "7",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "7",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "7"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "7",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_0",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "7",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_1",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "7",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_2",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "7",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_3",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "7"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_7_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "7",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_0",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "7",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "7",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "7",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_7_join_3",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "8"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8"
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8_wild"
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "8",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "8",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "8",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "layers": "8",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "8"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8",
+          "x": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8_wild",
+          "x": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "8",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_0",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "8",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_1",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "8",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_2",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "layers": "8",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_3",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "8"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8",
+          "x": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8_wild",
+          "x": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "8",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_0",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "8",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_1",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "8",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "layers": "8",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_3",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "8"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8",
+          "x": 90,
+          "y": 90
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8_wild",
+          "x": 90,
+          "y": 90
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "8",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_0",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "8",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_1",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "8",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_2",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "layers": "8",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_3",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "8"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8",
+          "x": 90,
+          "y": 180
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8_wild",
+          "x": 90,
+          "y": 180
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "8",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_0",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "8",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_1",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "8",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_2",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "layers": "8",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_3",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "8"
+      },
+      "apply": [
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8",
+          "x": 90,
+          "y": 270
+        },
+        {
+          "model": "riftfall:block/mana_crystals/cyan_8_wild",
+          "x": 90,
+          "y": 270
+        }
+      ]
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "8",
+        "join_north": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_0",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "8",
+        "join_east": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_1",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "8",
+        "join_south": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_2",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "layers": "8",
+        "join_west": "true"
+      },
+      "apply": {
+        "model": "riftfall:block/mana_crystals/cyan_8_join_3",
+        "x": 90,
+        "y": 270
+      }
     }
-  }
+  ]
 }

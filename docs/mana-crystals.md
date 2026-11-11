@@ -1,6 +1,8 @@
 # Mana crystals
 
-Tiers, in order: **red → orange → yellow → green → cyan → blue → violet → white**. All emit light level 9. Models use translucent smoky mineral textures, blunt stepped columns and a continuous base that joins neighboring clusters. They have no pointed tips.
+Tiers, in order: **red → orange → yellow → green → cyan → blue → violet → white**. All emit light level 9. Models use translucent smoky mineral textures and intergrown blunt columns with uneven heights, tilted stems and smaller daughter growths. Two deterministic clump variations break up repetition. There are no pointed tips or full-square foundation slabs.
+
+The structure is inspired by photographs of [Naica’s Cave of the Crystals](https://en.wikipedia.org/wiki/Cave_of_the_Crystals), adapted to the one-block growth limit. Four model-local neighbor flags select multipart root/column extensions only toward neighboring crystals attached to the same face. These connect across tiers and growth stages, rotate with floors/walls/ceilings, and update on placement, breaking and refinement. Saved chunks repair their connections on load, including both sides of loaded chunk boundaries. Connection checks do not force neighboring chunks to load.
 
 ## Placement and growth
 
