@@ -37,3 +37,7 @@ Mining away seed stock already removes its ability to propagate higher tiers. Ex
 ## Harvesting and cutting
 
 Each layer drops one raw crystal of its tier (a mature cluster drops eight). Raw items can be planted again. Stonecutting a raw crystal produces one cut crystal, permanently converting it into a crafting material with no planting or refinement behavior. The `riftfall:cut_mana_crystals` item tag provides an integration point for future crafting. Memory crystals are outside this feature.
+
+## Matching adult density
+
+Fully grown clusters widen their existing prisms when touching adults of the same tier on a shared growth surface. A pair packs toward its common edge, complete 2×2 corners add a further bonus, and larger connected patches approach the block footprint. Only immediate neighbors and their corner diagonals are inspected. Young clusters, unlike tiers and isolated adults do not activate packing. No new crystal meshes, tiers, drops or mana costs are introduced. Each complete prism is fitted affinely within its own cell, preserving all original faces, UVs, growth depth and connections. This runs during chunk meshing rather than each frame.

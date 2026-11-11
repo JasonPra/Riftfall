@@ -31,7 +31,12 @@ def box(a,b):
 # varied lengths and lean, and broad roots only where an actual neighboring cluster exists.
 rotations={'up':{},'down':{'x':180},'north':{'x':90},'east':{'x':90,'y':90},'south':{'x':90,'y':180},'west':{'x':90,'y':270}}
 model_dir=Path('assets/riftfall/models/block/mana_crystals')
+part_id=0
 def geometry(name,elements):
+ global part_id
+ for element in elements:
+  for face in element['faces'].values():face['tintindex']=part_id
+  part_id+=1
  write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':False,'textures':{'particle':'#crystal'},'elements':elements})
 def column(x,z,w,d,height,h,axis=None,angle=0):
  base=min(1.25,h*.20);top=max(base+.25,height*h)

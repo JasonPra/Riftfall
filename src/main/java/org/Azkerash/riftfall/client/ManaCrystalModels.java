@@ -54,7 +54,12 @@ public final class ManaCrystalModels {
             var surfaces=new ArrayList<Surface>(Integer.bitCount(mask));
             for(var face:Direction.values())if(CrystalSurfaceConnections.includes(mask,face)){
                 int growth=face==primary?layers:(layers+1)/2;
-                surfaces.add(parts[face.ordinal()][growth-1][ManaCrystalBlock.surfaceJoins(level,pos,face)]);
+                var part=parts[face.ordinal()][growth-1][ManaCrystalBlock.surfaceJoins(level,pos,face)];
+                if(layers==8){
+                    var profile=CrystalAdultDensity.profile(face,offset->{var p=pos.offset(offset.x(),offset.y(),offset.z());var other=level.getBlockState(p);return other.is(state.getBlock())&&ManaCrystalBlock.adult(other)&&CrystalSurfaceConnections.includes(ManaCrystalBlock.surfaceMask(level,p,other),face);});
+                    if(profile.neighbors()>0)part=new Surface(part.state(),new CrystalDenseModel(part.model(),part.state(),face,profile,state.getSeed(pos)));
+                }
+                surfaces.add(part);
             }
             var tier=((ManaCrystalBlock)state.getBlock()).tier();var neighbors=new Neighbor[6];boolean mixed=false,adjacentCrystal=false;
             for(var direction:Direction.values()){
