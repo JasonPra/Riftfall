@@ -113,7 +113,7 @@ class CrystalGlowTest {
             for(int quarter=0;quarter<4;quarter++){
                 var elements=model("template_mega_"+preset+"_"+quarter).getAsJsonArray("elements");assertFalse(elements.isEmpty());
                 for(var value:elements){var e=value.getAsJsonObject();var a=e.getAsJsonArray("from");var b=e.getAsJsonArray("to");
-                    for(int axis=0;axis<3;axis++){assertTrue(a.get(axis).getAsDouble()>=0);assertTrue(b.get(axis).getAsDouble()<=16);assertTrue(a.get(axis).getAsDouble()<b.get(axis).getAsDouble());}
+                    for(int axis=0;axis<3;axis++){assertTrue(a.get(axis).getAsDouble()>=0);assertTrue(b.get(axis).getAsDouble()<=16);assertTrue(a.get(axis).getAsDouble()<=b.get(axis).getAsDouble());}
                     var faces=e.getAsJsonObject("faces");int u=quarter%2,v=quarter/2;
                     if(u==0&&b.get(0).getAsDouble()==16&&continuesIn(preset,quarter^1,e))assertFalse(faces.has("east"));if(u==1&&a.get(0).getAsDouble()==0&&continuesIn(preset,quarter^1,e))assertFalse(faces.has("west"));
                     if(v==0&&b.get(2).getAsDouble()==16&&continuesIn(preset,quarter^2,e))assertFalse(faces.has("south"));if(v==1&&a.get(2).getAsDouble()==0&&continuesIn(preset,quarter^2,e))assertFalse(faces.has("north"));

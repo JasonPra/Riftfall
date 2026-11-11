@@ -72,3 +72,5 @@ A 2×2 patch can visually combine only when all four crystals are fully grown, s
 Large formations use slender dominant columns and small staggered branching growths extending back to the four original clumps and their perimeter seams. Wide panel-like daughter prisms are avoided; the connecting growths remain individual columns.
 
 Each large formation also has two substantial companion crystals leaning at 22.5 degrees along different axes. Their locations vary with the six presets. Each rotated shell and core stays inside its cell, avoiding artificial cuts and new overlaps at the formation seams.
+
+Large models export exterior shell and core surfaces separately, trimming buried prism faces and giving coincident outside faces one owner. This reduces translucent self-occlusion as the camera moves without deleting exposed faces or changing the silhouettes. The generator surface checks can be run with `python -m unittest discover -s tools -p test_crystal_surfaces.py`; Java geometry checks remain in `./gradlew test`.

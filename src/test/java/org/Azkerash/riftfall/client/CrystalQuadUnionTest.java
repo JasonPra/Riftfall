@@ -32,6 +32,17 @@ class CrystalQuadUnionTest {
         var result=CrystalQuadUnion.clean(List.of(own,solid),q->q.getTintIndex()==CrystalNeighborFaces.MASK_ID?Integer.MAX_VALUE:0);
         assertEquals(.1*.6,area(result.stream().filter(q->q.getTintIndex()!=CrystalNeighborFaces.MASK_ID).toList()),1e-6);
     }
+    @Test void trimmedFacesKeepFrontFacingTriangleWindingOnAllSixAttachments(){
+        for(var face:Direction.values()){
+            var input=new ArrayList<BakedQuad>();for(var q:List.of(quad(0,0,1,1,.1,0),quad(.2,.1,.5,.6,.1,1),quad(.4,.3,.8,.8,.1,2),quad(.1,.7,.7,.9,.1,3)))input.add(CrystalSurfaceRotation.rotate(q,face));
+            for(var q:CrystalQuadUnion.clean(input,BakedQuad::getTintIndex)){
+                var d=q.getVertices();for(int[] t:new int[][]{{0,1,2},{0,2,3}}){
+                    double[] a=new double[3],b=new double[3];for(int k=0;k<3;k++){a[k]=Float.intBitsToFloat(d[t[1]*8+k])-Float.intBitsToFloat(d[t[0]*8+k]);b[k]=Float.intBitsToFloat(d[t[2]*8+k])-Float.intBitsToFloat(d[t[0]*8+k]);}
+                    double dot=(a[1]*b[2]-a[2]*b[1])*face.getStepX()+(a[2]*b[0]-a[0]*b[2])*face.getStepY()+(a[0]*b[1]-a[1]*b[0])*face.getStepZ();assertTrue(dot>=-1e-8,"Clipping must never turn an outer face inward");
+                }
+            }
+        }
+    }
     @Test void equalTierFacesHaveDeterministicOwnership(){
         var first=quad(0,0,1,1,.1,3);var second=quad(0,0,1,1,.1,3);
         for(int i=0;i<10;i++)assertSame(first,CrystalQuadUnion.clean(List.of(first,second),BakedQuad::getTintIndex).getFirst());

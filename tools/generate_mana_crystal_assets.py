@@ -1,5 +1,6 @@
 """Paired glowing cores, translucent shells and crystal geometry. Python standard library only."""
 import copy,json,math,random,struct,zlib
+from crystal_surfaces import exterior_faces
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]/'src/main/resources'
 COLORS={'red':0xB94D57,'orange':0xCB8450,'yellow':0xD0BB67,'green':0x619A72,'cyan':0x65A8B4,'blue':0x526FAE,'violet':0x8A64AD,'white':0xD8DFE8}
@@ -171,23 +172,26 @@ for preset,prisms in enumerate(mega_presets):
   height=5.5+((index+preset*2)%5)*.65
   elements.append(box([nx-2.1,0,nz-2.1],[nx+2.1,height,nz+2.1]))
  full=geometry(None,elements,emit=False)
+ full['elements']=exterior_faces(full['elements'])
  for quarter in range(4):
   ox=(quarter%2)*16;oz=(quarter//2)*16;elements=[]
   for source in full['elements']:
    e=copy.deepcopy(source);a=source['from'];b=source['to'];lo=[max(a[0],ox),a[1],max(a[2],oz)];hi=[min(b[0],ox+16),b[1],min(b[2],oz+16)]
-   if any(lo[k]>=hi[k] for k in range(3)):continue
+   if any(lo[k]>hi[k] for k in range(3)) or sum(hi[k]-lo[k]>1e-7 for k in range(3))<2:continue
+   # A surface exactly on a cell boundary belongs to its material side only.
+   side=next(iter(source['faces']))
+   if a[0]==b[0] and ((a[0]==ox and side=='east') or (a[0]==ox+16 and side=='west')):continue
+   if a[2]==b[2] and ((a[2]==oz and side=='south') or (a[2]==oz+16 and side=='north')):continue
    for side,axis,positive in [('west',0,False),('east',0,True),('north',2,False),('south',2,True)]:
     if (hi[axis]<b[axis] if positive else lo[axis]>a[axis]):e['faces'].pop(side,None)
+   # Crop the existing UV frame with the face; never remap a tiny visible
+   # fragment over the full texture (which would change its opacity).
    for side,face in e['faces'].items():
-    face.pop('cullface',None)
-    # Keep UV scale continuous across cell cuts, with the clearer texture at the tip.
-    if side in ('up','down'):
-     face['uv']=[(lo[0]-a[0])/(b[0]-a[0])*16,(lo[2]-a[2])/(b[2]-a[2])*16,(hi[0]-a[0])/(b[0]-a[0])*16,(hi[2]-a[2])/(b[2]-a[2])*16]
-     if side=='up' and face['texture']=='#large_crystal':face['uv'][1]=0;face['uv'][3]=1
-     if side=='down' and face['texture']=='#large_crystal':face['uv'][1]=15;face['uv'][3]=16
-    else:
-     axis=0 if side in ('north','south') else 2
-     face['uv']=[(lo[axis]-a[axis])/(b[axis]-a[axis])*16,0,(hi[axis]-a[axis])/(b[axis]-a[axis])*16,16]
+    axis={'west':0,'east':0,'down':1,'up':1,'north':2,'south':2}[side]
+    u,v=([0,2] if axis==1 else [2,1] if axis==0 else [0,1]);uv=face['uv']
+    fu0=(lo[u]-a[u])/(b[u]-a[u]);fu1=(hi[u]-a[u])/(b[u]-a[u]);fv0=(lo[v]-a[v])/(b[v]-a[v]);fv1=(hi[v]-a[v])/(b[v]-a[v])
+    if v==1:fv0,fv1=1-fv1,1-fv0
+    face['uv']=[uv[0]+fu0*(uv[2]-uv[0]),uv[1]+fv0*(uv[3]-uv[1]),uv[0]+fu1*(uv[2]-uv[0]),uv[1]+fv1*(uv[3]-uv[1])]
    e['from']=[lo[0]-ox,lo[1],lo[2]-oz];e['to']=[hi[0]-ox,hi[1],hi[2]-oz];elements.append(e)
   # Each leaning companion stays within its own cell, so its rotated facets
   # never need to be cut or duplicated across the four-block seams.
