@@ -145,10 +145,32 @@ mega_presets=[
  [([8,0,8],[24,16,23]),([4,0,18],[14,13,28]),([21,0,5],[29,9,15])]
 ]
 for preset,prisms in enumerate(mega_presets):
- a,b=prisms[0];cx=(a[0]+b[0])/2;cz=(a[2]+b[2])/2;wx=(b[0]-a[0])*.4;wz=(b[2]-a[2])*.4
+ a,b=prisms[0];cx=(a[0]+b[0])/2;cz=(a[2]+b[2])/2;wx=(b[0]-a[0])*.28;wz=(b[2]-a[2])*.28
  body=box([cx-wx,0,cz-wz],[cx+wx,13,cz+wz])
  crown=box([cx-wx+.75,9,cz-wz+.75],[cx+wx-.75,b[1],cz+wz-.75])
- full=geometry(None,[body,crown]+[box(a,b) for a,b in prisms[1:]],emit=False)
+ elements=[body,crown]
+ # Slender daughter columns instead of broad panels.
+ for a,b in prisms[1:]:
+  mx=(a[0]+b[0])/2;mz=(a[2]+b[2])/2;dx=(b[0]-a[0])*.27;dz=(b[2]-a[2])*.27
+  elements.append(box([mx-dx,0,mz-dz],[mx+dx,b[1],mz+dz]))
+  for t in (.35,.7):
+   nx=mx+(cx-mx)*t;nz=mz+(cz-mz)*t
+   elements.append(box([nx-2.1,0,nz-2.1],[nx+2.1,5.5+t*2,nz+2.1]))
+ # Branching small columns fill the transition to all four original clumps and
+ # to their outside seams, leaving an irregular mineral outline rather than a plate.
+ for qx in (8,24):
+  for qz in (8,24):
+   nodes=[(qx,qz,6+(preset%3)*.5)]
+   for t in (.3,.6):nodes.append((qx+(cx-qx)*t,qz+(cz-qz)*t,6.5+t*3+(preset%2)*.5))
+   for step in (3,6):
+    nodes.append((qx+(-step if qx==8 else step),qz,4.5+(step%2)+preset*.15))
+    nodes.append((qx,qz+(-step if qz==8 else step),5+(step%2)+preset*.12))
+   for nx,nz,height in nodes:elements.append(box([max(0,nx-2.1),0,max(0,nz-2.1)],[min(32,nx+2.1),height,min(32,nz+2.1)]))
+ # Offset forks crowd the internal seams without drawing a straight cross or panel.
+ for index,(nx,nz) in enumerate([(12,8),(16,9),(20,8),(8,12),(9,16),(8,20),(24,12),(23,16),(24,20),(12,24),(16,23),(20,24)]):
+  height=5.5+((index+preset*2)%5)*.65
+  elements.append(box([nx-2.1,0,nz-2.1],[nx+2.1,height,nz+2.1]))
+ full=geometry(None,elements,emit=False)
  for quarter in range(4):
   ox=(quarter%2)*16;oz=(quarter//2)*16;elements=[]
   for source in full['elements']:

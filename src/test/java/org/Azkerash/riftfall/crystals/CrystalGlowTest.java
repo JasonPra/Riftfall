@@ -123,6 +123,22 @@ class CrystalGlowTest {
             }presets.add(silhouette.toString());
         }assertEquals(6,presets.size());
     }
+    @Test void largeFormationsUseConnectedNarrowColumnsInsteadOfPanels()throws Exception{
+        for(int preset=0;preset<6;preset++){
+            var bounds=new HashMap<Integer,double[]>();
+            for(int quarter=0;quarter<4;quarter++)for(var value:model("template_mega_"+preset+"_"+quarter).getAsJsonArray("elements")){
+                var e=value.getAsJsonObject();if(!e.get("shade").getAsBoolean())continue;
+                int id=e.getAsJsonObject("faces").entrySet().iterator().next().getValue().getAsJsonObject().get("tintindex").getAsInt();
+                var box=bounds.computeIfAbsent(id,k->new double[]{99,99,99,-99,-99,-99});
+                for(int axis=0;axis<3;axis++){double shift=axis==0?(quarter%2)*16:axis==2?(quarter/2)*16:0;box[axis]=Math.min(box[axis],e.getAsJsonArray("from").get(axis).getAsDouble()+shift);box[axis+3]=Math.max(box[axis+3],e.getAsJsonArray("to").get(axis).getAsDouble()+shift);}
+            }
+            var prisms=new ArrayList<>(bounds.values());var reached=new HashSet<Integer>();reached.add(0);
+            for(var box:prisms){assertTrue(box[3]-box[0]<=9);assertTrue(box[5]-box[2]<=9);}
+            for(int pass=0;pass<prisms.size();pass++)for(int a=0;a<prisms.size();a++)if(reached.contains(a))for(int b=0;b<prisms.size();b++){
+                var x=prisms.get(a);var y=prisms.get(b);boolean touch=true;for(int axis=0;axis<3;axis++)touch&=Math.max(x[axis],y[axis])<=Math.min(x[axis+3],y[axis+3])+1e-6;if(touch)reached.add(b);
+            }assertEquals(prisms.size(),reached.size(),"No isolated growths in large preset "+preset);
+        }
+    }
     private boolean continuesIn(int preset,int quarter,JsonObject prism)throws Exception{
         var id=prism.getAsJsonObject("faces").entrySet().iterator().next().getValue().getAsJsonObject().get("tintindex");
         for(var value:model("template_mega_"+preset+"_"+quarter).getAsJsonArray("elements")){
