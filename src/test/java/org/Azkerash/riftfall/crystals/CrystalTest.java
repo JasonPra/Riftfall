@@ -96,6 +96,14 @@ class CrystalTest {
             var part=value.getAsJsonObject();assertFalse(part.getAsJsonObject("when").has("join_tip"));assertFalse(part.get("apply").toString().contains("_tip"));
         }
     }
+    @Test void junctionBranchesReachTheSharedCornerWithoutAFlatCap()throws Exception{
+        for(int corner=0;corner<4;corner++){
+            var elements=json("assets/riftfall/models/block/mana_crystals/template_junction_"+corner+".json").getAsJsonArray("elements");assertEquals(3,elements.size());
+            for(var value:elements){var e=value.getAsJsonObject();var a=e.getAsJsonArray("from");var b=e.getAsJsonArray("to");for(int axis=0;axis<3;axis++){assertTrue(a.get(axis).getAsDouble()>=0);assertTrue(b.get(axis).getAsDouble()<=16);assertTrue(a.get(axis).getAsDouble()<b.get(axis).getAsDouble());}assertTrue((b.get(0).getAsDouble()-a.get(0).getAsDouble())<=4);assertTrue((b.get(2).getAsDouble()-a.get(2).getAsDouble())<=4);}
+            var tip=elements.get(2).getAsJsonObject();assertEquals(16,tip.getAsJsonArray("to").get(1).getAsDouble());
+            for(var tier:CrystalTier.values())assertTrue(json("assets/riftfall/models/block/mana_crystals/"+tier.id()+"_junction_"+corner+".json").get("parent").getAsString().endsWith("junction_"+corner));
+        }
+    }
     @Test void everyLayerDropsRawItemsAndCuttingIsOneWay()throws Exception{
         var tag=json("data/riftfall/tags/item/cut_mana_crystals.json").getAsJsonArray("values");assertEquals(8,tag.size());
         for(var tier:CrystalTier.values()){

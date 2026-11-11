@@ -67,10 +67,24 @@ for layer in range(1,9):
      corners.append((rx,rz))
    elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)]))
   geometry(f'template_{layer}_join_{side}',elements)
+# Only complete mature 2x2x2 junctions use these short intergrown branches.
+# They join at the shared corner, with no full-width sheet or floating cap.
+for corner in range(4):
+ elements=[]
+ for a,b in [([8,.5,3],[12,9,7]),([10,7,1],[14,14,5]),([13,12,0],[16,16,3])]:
+  points=[]
+  for x in (a[0],b[0]):
+   for z in (a[2],b[2]):
+    rx,rz=x,z
+    for _ in range(corner):rx,rz=16-rz,rx
+    points.append((rx,rz))
+  elements.append(box([min(x for x,z in points),a[1],min(z for x,z in points)],[max(x for x,z in points),b[1],max(z for x,z in points)]))
+ geometry(f'template_junction_{corner}',elements)
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
+ for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal'}})
  multipart=[]
  for layer in range(1,9):
   models=[]

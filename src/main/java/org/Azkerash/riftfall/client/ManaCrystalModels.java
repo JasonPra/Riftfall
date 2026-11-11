@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
@@ -29,6 +30,8 @@ public final class ManaCrystalModels {
     private record Neighbor(CrystalTier tier,int surfaces,int layers,Direction primary){}
     private record Mesh(List<Surface> surfaces,BlockPos pos,CrystalTier tier,int faces,Neighbor[] neighbors,boolean mixed,boolean adjacent){}
     private static final ModelProperty<Mesh> SURFACES=new ModelProperty<>();
+    private static ModelResourceLocation junction(CrystalTier tier,int corner){return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/mana_crystals/"+tier.id()+"_junction_"+corner));}
+    @SubscribeEvent public static void additional(ModelEvent.RegisterAdditional event){for(var tier:CrystalTier.values())for(int corner=0;corner<4;corner++)event.register(junction(tier,corner));}
     @SubscribeEvent public static void baked(ModelEvent.ModifyBakingResult event){
         var registry=event.getModels();
         var neutral=event.getTextureGetter().apply(new Material(TextureAtlas.LOCATION_BLOCKS,ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/white_mana_crystal")));
@@ -41,20 +44,43 @@ public final class ManaCrystalModels {
                 if(raw==null)throw new IllegalStateException("Missing mana crystal surface model: "+state);
                 parts[face.ordinal()][layers-1][joins]=new Surface(state,raw);
             }
-            var wrapper=new SurfaceModel(parts,neutral);
+            Surface[][] junctions=new Surface[6][4];
+            for(int corner=0;corner<4;corner++){
+                var raw=registry.get(junction(tier,corner));if(raw==null)throw new IllegalStateException("Missing crystal junction model");
+                for(var face:Direction.values())junctions[face.ordinal()][corner]=new Surface(block.defaultBlockState().setValue(ManaCrystalBlock.FACING,face).setValue(ManaCrystalBlock.LAYERS,8),new JunctionModel(raw,face));
+            }
+            var wrapper=new SurfaceModel(parts,junctions,neutral);
             for(var state:block.getStateDefinition().getPossibleStates())registry.put(BlockModelShaper.stateToModelLocation(state),wrapper);
         }
+    }
+    private static final class JunctionModel extends BakedModelWrapper<BakedModel> {
+        private final List<List<BakedQuad>> buckets=new ArrayList<>(Collections.nCopies(7,null));
+        JunctionModel(BakedModel original,Direction face){super(original);
+            for(int bucket=0;bucket<7;bucket++){
+                Direction local=bucket==6?null:Direction.values()[bucket],world=local==null?null:CrystalSurfaceRotation.direction(local,face);
+                var quads=new ArrayList<BakedQuad>();for(var quad:original.getQuads(null,local,RandomSource.create(0),ModelData.EMPTY,RenderType.translucent()))quads.add(CrystalSurfaceRotation.rotate(quad,face));buckets.set(world==null?6:world.ordinal(),List.copyOf(quads));
+            }
+        }
+        @Override public List<BakedQuad> getQuads(BlockState state,Direction side,RandomSource random,ModelData data,RenderType renderType){return buckets.get(side==null?6:side.ordinal());}
     }
     private static final class SurfaceModel extends BakedModelWrapper<BakedModel> {
         private final Surface[][][] parts;
         private final TextureAtlasSprite neutral;
-        SurfaceModel(Surface[][][] parts,TextureAtlasSprite neutral){super(parts[Direction.UP.ordinal()][0][0].model());this.parts=parts;this.neutral=neutral;}
+        private final Surface[][] junctions;
+        SurfaceModel(Surface[][][] parts,Surface[][] junctions,TextureAtlasSprite neutral){super(parts[Direction.UP.ordinal()][0][0].model());this.parts=parts;this.junctions=junctions;this.neutral=neutral;}
         @Override public ModelData getModelData(BlockAndTintGetter level,BlockPos pos,BlockState state,ModelData incoming){
             int mask=ManaCrystalBlock.surfaceMask(level,pos,state),layers=state.getValue(ManaCrystalBlock.LAYERS);var primary=state.getValue(ManaCrystalBlock.FACING);
             var surfaces=new ArrayList<Surface>(Integer.bitCount(mask));
             for(var face:Direction.values())if(CrystalSurfaceConnections.includes(mask,face)){
                 int growth=face==primary?layers:(layers+1)/2;
                 surfaces.add(parts[face.ordinal()][growth-1][ManaCrystalBlock.surfaceJoins(level,pos,face)]);
+            }
+            if(layers==8){
+                var cache=new HashMap<CrystalSurfaceConnections.Offset,Integer>();cache.put(new CrystalSurfaceConnections.Offset(0,0,0),mask);
+                java.util.function.Function<CrystalSurfaceConnections.Offset,Integer> mature=offset->cache.computeIfAbsent(offset,key->{var adjacent=pos.offset(key.x(),key.y(),key.z());var other=level.getBlockState(adjacent);return ManaCrystalBlock.adult(other)?ManaCrystalBlock.surfaceMask(level,adjacent,other):0;});
+                for(var face:Direction.values())if(CrystalSurfaceConnections.includes(mask,face)){
+                    int corners=CrystalSurfaceConnections.junctionCorners(face,mature);for(int corner=0;corner<4;corner++)if((corners&(1<<corner))!=0)surfaces.add(junctions[face.ordinal()][corner]);
+                }
             }
             var tier=((ManaCrystalBlock)state.getBlock()).tier();var neighbors=new Neighbor[6];boolean mixed=false,adjacentCrystal=false;
             for(var direction:Direction.values()){
