@@ -14,7 +14,7 @@ Neighboring tiers intermingle visually in a four-pixel band at their shared edge
 
 Raw crystals can be placed on natural stone or ore floors, walls and ceilings. Their thickness stacks from 1 to 8 layers, like snow. Eight layers is mature, occupying at most one block. Crystals cannot support towers of other crystals. Support is controlled by `riftfall:mana_crystal_supports`, including the shared `c:ores` tag for vanilla and tagged modded ores.
 
-A successful branching attempt consumes 600 mana, with a 10% chance per random tick (not per game tick). Failed rolls or blocked locations cost nothing. Existing height growth requires 600 available but does not spend it; after a layer grows, a branching attempt takes priority. Higher-tier parents seed lower tiers: 70% one tier down, 25% two down, 5% three down, clamped at red. White therefore seeds violet, blue or cyan, never new white.
+A successful branching attempt consumes 600 mana, with a 10% chance per random tick (not per game tick). Failed rolls or blocked locations cost nothing. Existing height growth requires 600 available but does not spend it. Immature clusters only grow their own height; branching is reserved for fully mature mother clusters. Higher-tier parents seed lower tiers: 70% one tier down, 25% two down, 5% three down, clamped at red. White therefore seeds violet, blue or cyan, never new white.
 
 Geyser chunks draw these costs from their shared pool. Ordinary chunks use their own reservoir. Growth checks use already-loaded terrain and never force neighboring chunks to load.
 
@@ -57,3 +57,5 @@ Seed-bed cleanup runs once during chunk mesh rebuilding. Coplanar faces pointing
 ## Sparkles
 
 Crystals emit occasional stationary, fullbright star-shaped flashes tinted toward their tier color. Flashes last 8–14 ticks, quickly brighten and fade, and can appear on floors, walls, ceilings and waterlogged clusters. Spawning uses nearby client animation ticks and respects particle settings; it adds no server ticking or network packets.
+
+Only fully mature mother clusters can produce new seedlings. Immature clusters use growth ticks only to increase their own height, regardless of the legacy `branch_next` saved property. The current implementation uses eight layer steps; only layer eight is mature. The spreading entry point also rejects immature sources before mana checks or random draws.

@@ -147,12 +147,11 @@ public final class ManaCrystalBlock extends Block implements SimpleWaterloggedBl
     @Override protected void randomTick(BlockState state,ServerLevel level,BlockPos pos,RandomSource random){
         var chunk=level.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4);
         if(chunk==null||!CrystalRules.growth(WorldMana.inspect(chunk).amount()))return;
-        if(state.getValue(BRANCH_NEXT)||state.getValue(LAYERS)==8){
+        if(adult(state)){
             CrystalGrowth.spread(level,pos,state,random);
-            if(state.getValue(BRANCH_NEXT)){var current=level.getBlockState(pos);if(current.is(this))level.setBlock(pos,current.setValue(BRANCH_NEXT,false),Block.UPDATE_CLIENTS);}
             return;
         }
-        if(random.nextDouble()<CrystalRules.heightChance(state.getValue(WATERLOGGED))){level.setBlock(pos,connections(state.setValue(LAYERS,state.getValue(LAYERS)+1).setValue(BRANCH_NEXT,true),level,pos),Block.UPDATE_ALL);CrystalRefinement.changed(level,pos);}
+        if(random.nextDouble()<CrystalRules.heightChance(state.getValue(WATERLOGGED))){level.setBlock(pos,connections(state.setValue(LAYERS,state.getValue(LAYERS)+1).setValue(BRANCH_NEXT,false),level,pos),Block.UPDATE_ALL);CrystalRefinement.changed(level,pos);}
     }
     @Override protected FluidState getFluidState(BlockState state){return state.getValue(WATERLOGGED)?Fluids.WATER.getSource(false):super.getFluidState(state);}
     @Override protected boolean propagatesSkylightDown(BlockState state,BlockGetter level,BlockPos pos){return true;}

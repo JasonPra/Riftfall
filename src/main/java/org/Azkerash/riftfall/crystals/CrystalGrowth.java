@@ -26,6 +26,7 @@ public final class CrystalGrowth {
         }return null;
     }
     public static boolean spread(ServerLevel level,BlockPos pos,BlockState source,RandomSource random){
+        if(!ManaCrystalBlock.adult(source))return false;
         var chunk=level.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4);
         if(chunk==null||!CrystalRules.growth(WorldMana.inspect(chunk).amount())||random.nextDouble()>=CrystalRules.spreadChance(source.getValue(ManaCrystalBlock.WATERLOGGED)))return false;
         var directions=new ArrayList<>(List.of(Direction.values()));Collections.rotate(directions,random.nextInt(6));
