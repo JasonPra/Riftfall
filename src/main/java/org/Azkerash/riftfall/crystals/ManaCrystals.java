@@ -47,7 +47,7 @@ public final class ManaCrystals {
         if(!Double.isFinite(cost)||cost<0)throw new IllegalArgumentException("Invalid refinement cost");
         var chunk=level.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4);if(chunk==null)return false;
         var old=chunk.getBlockState(pos);if(!canRefine(old))return false;
-        var next=block(((ManaCrystalBlock)old.getBlock()).tier().next().orElseThrow()).defaultBlockState().setValue(ManaCrystalBlock.LAYERS,8).setValue(ManaCrystalBlock.FACING,old.getValue(ManaCrystalBlock.FACING));
+        var next=block(((ManaCrystalBlock)old.getBlock()).tier().next().orElseThrow()).defaultBlockState().setValue(ManaCrystalBlock.LAYERS,8).setValue(ManaCrystalBlock.FACING,old.getValue(ManaCrystalBlock.FACING)).setValue(ManaCrystalBlock.WATERLOGGED,old.getValue(ManaCrystalBlock.WATERLOGGED));
         if(!next.canSurvive(level,pos)||!WorldMana.tryExtract(chunk,cost))return false;
         if(level.setBlock(pos,next,Block.UPDATE_ALL))return true;
         WorldMana.add(chunk,cost);return false;

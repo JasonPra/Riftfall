@@ -5,6 +5,7 @@ import net.minecraft.core.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -15,17 +16,18 @@ public final class CrystalGrowth {
     private static boolean loaded(ServerLevel level,BlockPos pos){return level.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4)!=null;}
     public static BlockState seedState(ServerLevel level,BlockPos target,CrystalTier tier,Direction preferred){
         if(target.getY()<level.getMinBuildHeight()||target.getY()>=level.getMaxBuildHeight()||!loaded(level,target))return null;
-        var old=level.getBlockState(target);if(!old.isAir()||!old.getFluidState().isEmpty())return null;
+        var old=level.getBlockState(target);boolean water=old.getFluidState().is(FluidTags.WATER);
+        if(!old.isAir()&&!(old.getBlock() instanceof net.minecraft.world.level.block.LiquidBlock&&water))return null;
         List<Direction> faces=new ArrayList<>();faces.add(preferred);for(var d:Direction.values())if(d!=preferred)faces.add(d);
         for(var facing:faces){
             if(!loaded(level,target.relative(facing.getOpposite())))continue;
-            var state=ManaCrystals.block(tier).defaultBlockState().setValue(ManaCrystalBlock.FACING,facing);
+            var state=ManaCrystals.block(tier).defaultBlockState().setValue(ManaCrystalBlock.FACING,facing).setValue(ManaCrystalBlock.WATERLOGGED,water);
             if(state.canSurvive(level,target))return state;
         }return null;
     }
     public static boolean spread(ServerLevel level,BlockPos pos,BlockState source,RandomSource random){
         var chunk=level.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4);
-        if(chunk==null||!CrystalRules.growth(WorldMana.inspect(chunk).amount())||random.nextDouble()>=CrystalRules.chance())return false;
+        if(chunk==null||!CrystalRules.growth(WorldMana.inspect(chunk).amount())||random.nextDouble()>=CrystalRules.spreadChance(source.getValue(ManaCrystalBlock.WATERLOGGED)))return false;
         var directions=new ArrayList<>(List.of(Direction.values()));Collections.rotate(directions,random.nextInt(6));
         var tier=((ManaCrystalBlock)source.getBlock()).tier().seedTier(random.nextDouble());
         for(var d:directions){

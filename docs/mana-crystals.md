@@ -45,3 +45,7 @@ Fully grown clusters widen their existing prisms when touching adults of the sam
 ## Seed-bed and prism colors
 
 Only the thin seed-bed/root pieces use smooth edge color blending. Individual crystal prisms use a stable whole-piece choice between their own tier and a touching neighbor’s tier, including raised edges and corners on all six sides. Interior prisms retain their native color. Boundary prisms have a 50% chance to borrow a neighbor color; the same choice applies to every face, without extra geometry or tier changes.
+
+## Water
+
+Crystals can be placed and spread into source or flowing water on valid stone/ore supports. They waterlog rather than washing away, preserve water when mined, and retain water through growth and tier refinement. Waterlogged crystals have a 20% higher chance of height growth and spreading per random tick, with unchanged mana requirements and costs. This bonus does not accelerate tier refinement.

@@ -11,10 +11,12 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.phys.shapes.*;
+import net.minecraft.world.level.material.*;
 import org.Azkerash.riftfall.worldmana.WorldMana;
 
 /** Raw crystal layers attach to stone, including walls/ceilings; no crystal-supported towers. */
-public final class ManaCrystalBlock extends Block {
+public final class ManaCrystalBlock extends Block implements SimpleWaterloggedBlock {
+    public static final BooleanProperty WATERLOGGED=BlockStateProperties.WATERLOGGED;
     public static final IntegerProperty LAYERS=BlockStateProperties.LAYERS;
     public static final DirectionProperty FACING=BlockStateProperties.FACING;
     public static final BooleanProperty BRANCH_NEXT=BooleanProperty.create("branch_next");
@@ -25,7 +27,7 @@ public final class ManaCrystalBlock extends Block {
     private final CrystalTier tier;
     private final VoxelShape[][] shapes=new VoxelShape[6][8];
     public ManaCrystalBlock(CrystalTier tier,Properties properties){
-        super(properties);this.tier=tier;registerDefaultState(stateDefinition.any().setValue(LAYERS,1).setValue(FACING,Direction.UP).setValue(BRANCH_NEXT,true).setValue(JOIN_NORTH,false).setValue(JOIN_EAST,false).setValue(JOIN_SOUTH,false).setValue(JOIN_WEST,false).setValue(JOIN_TIP,false));
+        super(properties);this.tier=tier;registerDefaultState(stateDefinition.any().setValue(WATERLOGGED,false).setValue(LAYERS,1).setValue(FACING,Direction.UP).setValue(BRANCH_NEXT,true).setValue(JOIN_NORTH,false).setValue(JOIN_EAST,false).setValue(JOIN_SOUTH,false).setValue(JOIN_WEST,false).setValue(JOIN_TIP,false));
         for(var d:Direction.values())for(int n=1;n<=8;n++){
             double h=n*2;shapes[d.ordinal()][n-1]=switch(d){
                 case UP->box(0,0,0,16,h,16);case DOWN->box(0,16-h,0,16,16,16);
@@ -37,7 +39,7 @@ public final class ManaCrystalBlock extends Block {
     @Override protected MapCodec<? extends Block> codec(){return Block.CODEC;}
     public CrystalTier tier(){return tier;}
     public static boolean adult(BlockState state){return state.getBlock() instanceof ManaCrystalBlock&&state.getValue(LAYERS)==8;}
-    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> builder){builder.add(LAYERS,FACING,BRANCH_NEXT,JOIN_NORTH,JOIN_EAST,JOIN_SOUTH,JOIN_WEST,JOIN_TIP);}
+    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> builder){builder.add(WATERLOGGED,LAYERS,FACING,BRANCH_NEXT,JOIN_NORTH,JOIN_EAST,JOIN_SOUTH,JOIN_WEST,JOIN_TIP);}
     @Override protected VoxelShape getShape(BlockState state,BlockGetter level,BlockPos pos,CollisionContext context){var primary=state.getValue(FACING);int layers=state.getValue(LAYERS),mask=surfaceMask(level,pos,state);var shape=shapes[primary.ordinal()][layers-1];
         for(var face:Direction.values())if(face!=primary&&CrystalSurfaceConnections.includes(mask,face))shape=Shapes.or(shape,shapes[face.ordinal()][(layers-1)/2]);
         return shape;}
@@ -49,7 +51,7 @@ public final class ManaCrystalBlock extends Block {
         var old=c.getLevel().getBlockState(c.getClickedPos());
         if(old.is(this)&&old.getValue(LAYERS)<8)return connections(old.setValue(LAYERS,old.getValue(LAYERS)+1).setValue(BRANCH_NEXT,true),c.getLevel(),c.getClickedPos());
         for(var direction:c.getNearestLookingDirections()){
-            var state=defaultBlockState().setValue(FACING,direction.getOpposite());if(state.canSurvive(c.getLevel(),c.getClickedPos()))return connections(state,c.getLevel(),c.getClickedPos());
+            var state=defaultBlockState().setValue(WATERLOGGED,c.getLevel().getFluidState(c.getClickedPos()).getType()==Fluids.WATER||c.getLevel().getFluidState(c.getClickedPos()).getType()==Fluids.FLOWING_WATER).setValue(FACING,direction.getOpposite());if(state.canSurvive(c.getLevel(),c.getClickedPos()))return connections(state,c.getLevel(),c.getClickedPos());
         }return null;
     }
     public static Direction tangent(Direction facing,int index){return CrystalSurfaceConnections.tangent(facing,index);}
@@ -105,9 +107,10 @@ public final class ManaCrystalBlock extends Block {
     }
     @Override protected boolean canBeReplaced(BlockState state,BlockPlaceContext c){return c.getItemInHand().is(asItem())&&state.getValue(LAYERS)<8;}
     @Override protected BlockState updateShape(BlockState state,Direction direction,BlockState neighbor,LevelAccessor level,BlockPos pos,BlockPos other){
+        if(state.getValue(WATERLOGGED))level.scheduleTick(pos,Fluids.WATER,Fluids.WATER.getTickDelay(level));
         if(!state.canSurvive(level,pos)){
             for(var face:Direction.values()){var candidate=state.setValue(FACING,face);if(candidate.canSurvive(level,pos))return connections(candidate,level,pos);}
-            return Blocks.AIR.defaultBlockState();
+            return state.getFluidState().createLegacyBlock();
         }return connections(state,level,pos);
     }
     @Override protected void onPlace(BlockState state,Level level,BlockPos pos,BlockState old,boolean moving){
@@ -129,8 +132,9 @@ public final class ManaCrystalBlock extends Block {
             if(state.getValue(BRANCH_NEXT)){var current=level.getBlockState(pos);if(current.is(this))level.setBlock(pos,current.setValue(BRANCH_NEXT,false),Block.UPDATE_CLIENTS);}
             return;
         }
-        if(random.nextInt(6)==0){level.setBlock(pos,connections(state.setValue(LAYERS,state.getValue(LAYERS)+1).setValue(BRANCH_NEXT,true),level,pos),Block.UPDATE_ALL);CrystalRefinement.changed(level,pos);}
+        if(random.nextDouble()<CrystalRules.heightChance(state.getValue(WATERLOGGED))){level.setBlock(pos,connections(state.setValue(LAYERS,state.getValue(LAYERS)+1).setValue(BRANCH_NEXT,true),level,pos),Block.UPDATE_ALL);CrystalRefinement.changed(level,pos);}
     }
+    @Override protected FluidState getFluidState(BlockState state){return state.getValue(WATERLOGGED)?Fluids.WATER.getSource(false):super.getFluidState(state);}
     @Override protected boolean propagatesSkylightDown(BlockState state,BlockGetter level,BlockPos pos){return true;}
     @Override protected int getLightBlock(BlockState state,BlockGetter level,BlockPos pos){return 0;}
 }

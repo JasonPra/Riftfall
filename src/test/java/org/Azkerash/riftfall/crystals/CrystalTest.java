@@ -35,6 +35,12 @@ class CrystalTest {
         assertThrows(IllegalArgumentException.class,()->CrystalTier.WHITE.seedTier(Double.NaN));assertThrows(IllegalArgumentException.class,()->CrystalTier.natural(1,1,1,true));
         assertFalse(CrystalRules.nucleation(1999.99));assertTrue(CrystalRules.nucleation(2000));assertFalse(CrystalRules.growth(599.99));assertTrue(CrystalRules.growth(600));assertEquals(600,CrystalRules.cost());assertEquals(.10,CrystalRules.chance());
     }
+    @Test void underwaterGrowthIsTwentyPercentFasterWithoutChangingManaCost(){
+        assertEquals(CrystalRules.chance()*1.2,CrystalRules.spreadChance(true),1e-12);
+        assertEquals(CrystalRules.chance(),CrystalRules.spreadChance(false),1e-12);
+        assertEquals(1.2,CrystalRules.heightChance(true)/CrystalRules.heightChance(false),1e-12);
+        assertEquals(600,CrystalRules.cost());
+    }
     @Test void texturePixelsAreSmokyTranslucentAcrossAllEightColors()throws Exception{
         for(var tier:CrystalTier.values())try(var stream=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png")){
             assertNotNull(stream);var image=ImageIO.read(stream);assertEquals(32,image.getWidth());Set<Integer> colors=new HashSet<>();

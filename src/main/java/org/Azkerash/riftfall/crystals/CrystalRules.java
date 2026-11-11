@@ -29,6 +29,9 @@ public final class CrystalRules {
     public static boolean growth(double amount){return Double.isFinite(amount)&&amount>=cost;}
     public static double cost(){return cost;}
     public static double chance(){return chance;}
+    /** Water gives a modest 20% bonus without changing mana costs or tier refinement. */
+    public static double spreadChance(boolean underwater){return Math.min(1,chance*(underwater?1.2:1));}
+    public static double heightChance(boolean underwater){return (underwater?1.2:1)/6.0;}
     public static boolean naturalWhite(){return naturalWhite;}
     public static int depositSize(){return depositSize;}
     public static RefinementBatch.Settings refinement(){return new RefinementBatch.Settings(refineMinutes*1200,refineCost,refineScale);}

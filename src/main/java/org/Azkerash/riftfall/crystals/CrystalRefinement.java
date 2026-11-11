@@ -40,7 +40,7 @@ public final class CrystalRefinement {
             var pos=BlockPos.of(c.position());var state=chunk.getBlockState(pos);
             if(!ManaCrystalBlock.adult(state)||((ManaCrystalBlock)state.getBlock()).tier()!=c.worldTier())continue;
             if(c.tier()!=c.worldTier()){
-                var next=ManaCrystals.block(c.tier()).defaultBlockState().setValue(ManaCrystalBlock.LAYERS,8).setValue(ManaCrystalBlock.FACING,state.getValue(ManaCrystalBlock.FACING));
+                var next=ManaCrystals.block(c.tier()).defaultBlockState().setValue(ManaCrystalBlock.LAYERS,8).setValue(ManaCrystalBlock.FACING,state.getValue(ManaCrystalBlock.FACING)).setValue(ManaCrystalBlock.WATERLOGGED,state.getValue(ManaCrystalBlock.WATERLOGGED));
                 if(!next.canSurvive(level,pos)||!level.setBlock(pos,next,Block.UPDATE_ALL)){applied.add(c);continue;}
             }
             applied.add(new RefinementBatch.Crystal(c.position(),c.tier(),c.tier(),c.progress()));
