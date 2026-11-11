@@ -16,7 +16,7 @@ Shared border planes are clipped against the neighbor’s root volume, including
 
 A complete mature 2×2×2 group (four clusters below, four opposing clusters above) receives staggered intergrown branches at its shared central junction. This breaks up the artificial rectangular opening left by eight separate clump models. The rule rotates to all six attachment directions and four local corners, and requires all eight mature surface contacts. Removing or making any member immature disables that junction. No flat cap, new block, extra drop or gameplay cost is added; branches use the same fragment material inheritance and overlap cleanup as the rest of the cluster.
 
-Mature clusters can also form narrow visual bridges through **one clear air block** to another mature cluster in any of the six directions. Each endpoint renders a tapered half-spire, narrowing from five pixels at its base to four pixels where the tips meet, including its glowing core and outer shell. Solid blocks, plants, liquids, immature targets or longer gaps prevent bridging. These are connecting model branches, not new blocks: no extra crystals, drops or mana costs are created. Both endpoints refresh when a connection changes, including across chunk-section boundaries; no terrain is force-loaded.
+Touching crystal blocks connect even when suspended above the ground. Empty blocks stay empty: no crystal branches bridge gaps. Complete mature 2×2×2 junctions add vertical columns near the shared center rather than horizontal connecting bars.
 
 ## Placement and growth
 

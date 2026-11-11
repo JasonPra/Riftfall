@@ -31,8 +31,7 @@ public final class ManaCrystalModels {
     private record Mesh(List<Surface> surfaces,BlockPos pos,CrystalTier tier,int faces,Neighbor[] neighbors,Map<Integer,CrystalTier> materials){}
     private static final ModelProperty<Mesh> SURFACES=new ModelProperty<>();
     private static ModelResourceLocation junction(CrystalTier tier,int corner){return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/mana_crystals/"+tier.id()+"_junction_"+corner));}
-    private static ModelResourceLocation bridge(CrystalTier tier){return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/mana_crystals/"+tier.id()+"_bridge"));}
-    @SubscribeEvent public static void additional(ModelEvent.RegisterAdditional event){for(var tier:CrystalTier.values()){for(int corner=0;corner<4;corner++)event.register(junction(tier,corner));event.register(bridge(tier));}}
+    @SubscribeEvent public static void additional(ModelEvent.RegisterAdditional event){for(var tier:CrystalTier.values()){for(int corner=0;corner<4;corner++)event.register(junction(tier,corner));}}
     @SubscribeEvent public static void baked(ModelEvent.ModifyBakingResult event){
         var registry=event.getModels();
         TextureAtlasSprite[][] textures=new TextureAtlasSprite[8][2];
@@ -51,9 +50,7 @@ public final class ManaCrystalModels {
                 var raw=registry.get(junction(tier,corner));if(raw==null)throw new IllegalStateException("Missing crystal junction model");
                 for(var face:Direction.values())junctions[face.ordinal()][corner]=new Surface(block.defaultBlockState().setValue(ManaCrystalBlock.FACING,face).setValue(ManaCrystalBlock.LAYERS,8),new JunctionModel(raw,face));
             }
-            Surface[] bridges=new Surface[6];var rawBridge=registry.get(bridge(tier));if(rawBridge==null)throw new IllegalStateException("Missing crystal bridge model");
-            for(var face:Direction.values())bridges[face.ordinal()]=new Surface(block.defaultBlockState().setValue(ManaCrystalBlock.FACING,face).setValue(ManaCrystalBlock.LAYERS,8),new JunctionModel(rawBridge,face));
-            var wrapper=new SurfaceModel(parts,junctions,bridges,textures);
+            var wrapper=new SurfaceModel(parts,junctions,textures);
             for(var state:block.getStateDefinition().getPossibleStates())registry.put(BlockModelShaper.stateToModelLocation(state),wrapper);
         }
     }
@@ -71,8 +68,7 @@ public final class ManaCrystalModels {
         private final Surface[][][] parts;
         private final TextureAtlasSprite[][] textures;
         private final Surface[][] junctions;
-        private final Surface[] bridges;
-        SurfaceModel(Surface[][][] parts,Surface[][] junctions,Surface[] bridges,TextureAtlasSprite[][] textures){super(parts[Direction.UP.ordinal()][0][0].model());this.parts=parts;this.junctions=junctions;this.bridges=bridges;this.textures=textures;}
+        SurfaceModel(Surface[][][] parts,Surface[][] junctions,TextureAtlasSprite[][] textures){super(parts[Direction.UP.ordinal()][0][0].model());this.parts=parts;this.junctions=junctions;this.textures=textures;}
         @Override public ModelData getModelData(BlockAndTintGetter level,BlockPos pos,BlockState state,ModelData incoming){
             int mask=ManaCrystalBlock.surfaceMask(level,pos,state),layers=state.getValue(ManaCrystalBlock.LAYERS);var primary=state.getValue(ManaCrystalBlock.FACING);
             var surfaces=new ArrayList<Surface>(Integer.bitCount(mask));
@@ -87,8 +83,6 @@ public final class ManaCrystalModels {
                     int corners=CrystalSurfaceConnections.junctionCorners(face,mature);for(int corner=0;corner<4;corner++)if((corners&(1<<corner))!=0)surfaces.add(junctions[face.ordinal()][corner]);
                 }
             }
-            int bridgeMask=layers==8?CrystalGapConnections.directions(offset->{var gap=level.getBlockState(pos.offset(offset.x(),offset.y(),offset.z()));return gap.isAir()&&gap.getFluidState().isEmpty();},offset->ManaCrystalBlock.adult(level.getBlockState(pos.offset(offset.x(),offset.y(),offset.z())))):0;
-            for(var face:Direction.values())if(CrystalSurfaceConnections.includes(bridgeMask,face))surfaces.add(bridges[face.ordinal()]);
             var tier=((ManaCrystalBlock)state.getBlock()).tier();var neighbors=new Neighbor[6];var palette=new CrystalTier[6];boolean mixed=false;
             for(var direction:Direction.values()){
                 var adjacent=pos.relative(direction);var other=level.getBlockState(adjacent);

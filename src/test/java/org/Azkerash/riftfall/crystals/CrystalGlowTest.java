@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CrystalGlowTest {
     private JsonObject model(String name)throws Exception{try(var stream=getClass().getResourceAsStream("/assets/riftfall/models/block/mana_crystals/"+name+".json")){assertNotNull(stream);return JsonParser.parseReader(new InputStreamReader(stream,StandardCharsets.UTF_8)).getAsJsonObject();}}
     @Test void prismCoresAreInsetAndRootPlatesStayUnlit()throws Exception{
-        var names=new ArrayList<String>();for(int layer=1;layer<=8;layer++){for(int variant=0;variant<2;variant++)names.add("template_"+layer+"_"+variant);for(int side=0;side<4;side++)names.add("template_"+layer+"_join_"+side);}for(int corner=0;corner<4;corner++)names.add("template_junction_"+corner);names.add("template_bridge");
+        var names=new ArrayList<String>();for(int layer=1;layer<=8;layer++){for(int variant=0;variant<2;variant++)names.add("template_"+layer+"_"+variant);for(int side=0;side<4;side++)names.add("template_"+layer+"_join_"+side);}for(int corner=0;corner<4;corner++)names.add("template_junction_"+corner);
         for(var name:names){var elements=model(name).getAsJsonArray("elements");var shells=new HashMap<Integer,JsonObject>();
             for(var value:elements){var e=value.getAsJsonObject();if(e.get("shade").getAsBoolean()){assertFalse(e.has("neoforge_data"));int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if(id>=0)shells.put(id,e);}else{
                 int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();var shell=shells.get(id);assertNotNull(shell,"No root plate may have a core");var light=e.getAsJsonObject("neoforge_data");assertEquals(15,light.get("block_light").getAsInt());assertEquals(15,light.get("sky_light").getAsInt());assertFalse(light.get("ambient_occlusion").getAsBoolean());
@@ -25,12 +25,7 @@ class CrystalGlowTest {
                 assertNotNull(a);assertNotNull(b);var shell=ImageIO.read(a);var core=ImageIO.read(b);double outer=0,inner=0;
                 for(int y=0;y<32;y++)for(int x=0;x<32;x++){int s=shell.getRGB(x,y),c=core.getRGB(x,y);assertTrue((s>>>24)>=205&&(s>>>24)<=250);assertTrue((c>>>24)>0&&(c>>>24)<200);outer+=luminance(s);inner+=luminance(c);}assertTrue(inner>outer*.65,tier.toString());assertTrue((core.getRGB(16,16)>>>24)>(core.getRGB(0,0)>>>24)+80,"Emission must fade towards facet edges");assertTrue((shell.getRGB(16,31)>>>24)>(shell.getRGB(16,0)>>>24),"Bases should be denser");
             }
-            for(String suffix:List.of("_1","_8_wild","_8_join_0","_junction_0","_bridge"))assertEquals("riftfall:block/"+tier.id()+"_mana_crystal_core",model(tier.id()+suffix).getAsJsonObject("textures").get("core").getAsString());
-        }
-    }
-    @Test void overhangingBridgeUvsStayInsideTheirTexture()throws Exception{
-        for(var value:model("template_bridge").getAsJsonArray("elements"))for(var face:value.getAsJsonObject().getAsJsonObject("faces").entrySet()){
-            var uv=face.getValue().getAsJsonObject().getAsJsonArray("uv");assertNotNull(uv);for(var coordinate:uv)assertTrue(coordinate.getAsDouble()>=0&&coordinate.getAsDouble()<=16,"No atlas bleeding from overhanging geometry");
+            for(String suffix:List.of("_1","_8_wild","_8_join_0","_junction_0"))assertEquals("riftfall:block/"+tier.id()+"_mana_crystal_core",model(tier.id()+suffix).getAsJsonObject("textures").get("core").getAsString());
         }
     }
     @Test void onlyTwoSmallEdgePrismsCanBorrowMaterials()throws Exception{

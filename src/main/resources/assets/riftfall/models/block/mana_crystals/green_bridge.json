@@ -1,8 +1,0 @@
-{
-  "parent": "riftfall:block/mana_crystals/template_bridge",
-  "render_type": "minecraft:translucent",
-  "textures": {
-    "crystal": "riftfall:block/green_mana_crystal",
-    "core": "riftfall:block/green_mana_crystal_core"
-  }
-}

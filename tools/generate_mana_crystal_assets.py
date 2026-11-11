@@ -95,11 +95,11 @@ for layer in range(1,9):
      corners.append((rx,rz))
    elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)],matrix=element.get('_matrix',False)))
   geometry(f'template_{layer}_join_{side}',elements)
-# Only complete mature 2x2x2 junctions use these short intergrown branches.
+# Only complete mature 2x2x2 junctions use these vertical intergrown columns crowded toward their shared center.
 # They join at the shared corner, with no full-width sheet or floating cap.
 for corner in range(4):
  elements=[]
- for a,b in [([8,.5,3],[12,9,7]),([10,7,1],[14,14,5]),([13,12,0],[16,16,3])]:
+ for a,b in [([10,.5,2],[13.5,13,5.5]),([12,1,0],[15,15,3]),([14,.75,1],[16,16,4])]:
   points=[]
   for x in (a[0],b[0]):
    for z in (a[2],b[2]):
@@ -108,18 +108,11 @@ for corner in range(4):
     points.append((rx,rz))
   elements.append(box([min(x for x,z in points),a[1],min(z for x,z in points)],[max(x for x,z in points),b[1],max(z for x,z in points)]))
  geometry(f'template_junction_{corner}',elements)
-# Each endpoint owns half of one clear air block; the opposite endpoint supplies the other half.
-bridge_elements=[box([5.5,6,5.5],[10.5,14,10.5]),box([5.75,12,5.75],[10.25,21,10.25]),box([6,19,6],[10,24,10])]
-# Geometry may overhang, but UVs must remain inside the sprite's atlas rectangle.
-for element in bridge_elements:
- for face in element['faces'].values():face['uv']=[0,0,16,16]
-geometry('template_bridge',bridge_elements)
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_core.png'),GLOW[tier],core=True)
- write(model_dir/f'{tier}_bridge.json',{'parent':'riftfall:block/mana_crystals/template_bridge','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
  for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
  multipart=[]
  for layer in range(1,9):
