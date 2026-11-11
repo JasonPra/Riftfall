@@ -12,5 +12,4 @@ final class GrappleStruggle {
     }
     int progress() { return progress; }
     boolean complete() { return progress>=REQUIRED; }
-    static boolean stabsAt(int tick) { return tick>=20 && tick<=68 && (tick-20)%16==0; }
 }

@@ -98,7 +98,8 @@ public final class BackstabSequence {
     public static boolean canStart(LivingEntity attacker,LivingEntity target){
         if(target==null || attacker==target || !attacker.isAlive() || !target.isAlive() || attacker.isAlliedTo(target)
             || target instanceof Player player && (player.isCreative() || player.isSpectator())
-            || target instanceof ServerPlayer player && GoblinGrapple.restrained(player)
+            || GrappleGoal.restrained(target) || GrappleGoal.restrained(attacker)
+            || attacker instanceof Mob mob && !AmbushCooldown.ready(mob)
             || captured(attacker) || captured(target) || attacker.getMainHandItem().isEmpty()
             || !(EpicFightCapabilities.getItemStackCapability(attacker.getMainHandItem()) instanceof yesman.epicfight.world.capabilities.item.WeaponCapability)
             || attacker.getMainHandItem().getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem
@@ -106,7 +107,7 @@ public final class BackstabSequence {
             || attacker.level()!=target.level() || !humanoid(attacker) || !humanoid(target)
             || attacker.level().getGameTime()<attacker.getPersistentData().getLong("RiftfallBackstabReady"))return false;
         var offset=attacker.position().subtract(target.position());
-        return offset.horizontalDistanceSqr()<Math.pow(maximumDistance(attacker),2) && Math.abs(offset.y)<.6 && GoblinGrapple.isBehind(target.getLookAngle(),offset)
+        return offset.horizontalDistanceSqr()<Math.pow(maximumDistance(attacker),2) && Math.abs(offset.y)<.6 && GrappleGoal.isBehind(target.getLookAngle(),offset)
             && attacker.hasLineOfSight(target) && proneSpace(target)
             && (attacker.level().isClientSide || WeaponReach.canContact(attacker,target,animation(attacker).get()));
     }
@@ -125,6 +126,7 @@ public final class BackstabSequence {
         patch(target).playAnimationSynchronized(GoblinAnimations.BACKSTAB_CAUGHT,0);
         target.getPersistentData().putBoolean("RiftfallBackstabLocked",true);
         attacker.getPersistentData().putLong("RiftfallBackstabReady",began+200);
+        if(attacker instanceof Mob mob)AmbushCooldown.begin(mob,state.attackTicks,AmbushCooldown.DEFAULT_RECOVERY_TICKS,AmbushCooldown.DEFAULT_RADIUS);
         float yaw=GoblinTactics.staffFacing(target.getX()-attacker.getX(),target.getZ()-attacker.getZ());attacker.setYRot(yaw);attacker.setYBodyRot(yaw);attacker.setYHeadRot(yaw);
         if(attacker instanceof Mob mob)mob.getNavigation().stop();
         if(attacker instanceof GoblinEntity goblin)GoblinBuckler.lowerForAttack(goblin,state.attackTicks);

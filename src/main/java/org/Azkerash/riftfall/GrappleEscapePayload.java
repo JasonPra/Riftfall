@@ -14,7 +14,7 @@ public record GrappleEscapePayload() implements CustomPacketPayload {
     @Override public Type<GrappleEscapePayload> type() { return TYPE; }
     static void register(RegisterPayloadHandlersEvent event) {
         event.registrar("1").playToServer(TYPE,CODEC,(packet,context)-> {
-            if (context.player() instanceof ServerPlayer player) GoblinGrapple.struggle(player);
+            if (context.player() instanceof ServerPlayer player) GrappleGoal.struggle(player);
         });
     }
 }

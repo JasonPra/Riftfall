@@ -29,6 +29,7 @@ public class Riftfall {
         GoblinCombatRegistries.CONDITIONALS.register(bus);
         bus.addListener(GoblinEntities::attributes);
         bus.addListener(GrappleEscapePayload::register);
+        bus.addListener(GrappleStatePayload::register);
         bus.addListener(BackstabCorpsePayload::register);
         bus.addListener(BackstabActorPayload::register);
         bus.addListener(BackstabViewPayload::register);
@@ -46,6 +47,6 @@ public class Riftfall {
         NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.behavior.skills.MobSkillCommands.class);
         GoblinFlurryStun.register();
         NeoForge.EVENT_BUS.register(GoblinHostility.class);
-        NeoForge.EVENT_BUS.register(GoblinGrapple.class);
+        NeoForge.EVENT_BUS.register(GrappleGoal.class);
     }
 }

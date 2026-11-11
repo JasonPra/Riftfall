@@ -21,12 +21,6 @@ class GrappleStruggleTest {
         assertFalse(struggle.press(112));
         struggle.reset(); assertFalse(struggle.complete()); assertEquals(0,struggle.progress());
     }
-    @Test void exactlyFourStabsLandBeforeTheHoldEnds() {
-        int stabs=0;
-        for (int tick=0;tick<80;tick++) if (GrappleStruggle.stabsAt(tick)) stabs++;
-        assertEquals(4,stabs);
-        assertFalse(GrappleStruggle.stabsAt(0)); assertFalse(GrappleStruggle.stabsAt(84));
-    }
     @Test void swipeBackswingAndFlurryHaveDistinctImpactsAndRecovery() {
         for (var attack : GoblinTactics.SwordAttack.values()) {
             int hits=0;

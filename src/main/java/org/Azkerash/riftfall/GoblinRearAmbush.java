@@ -27,12 +27,12 @@ final class GoblinRearAmbush extends Goal {
                 && org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.ready(mob,yesman.epicfight.skill.SkillSlots.IDENTITY))
             return BackstabSequence.canStart(mob,target);
         return target!=null && mob.distanceToSqr(target)<1.3*1.3
-            && GoblinGrapple.isBehind(target.getLookAngle(),mob.position().subtract(target.position()));
+            && GrappleGoal.isBehind(target.getLookAngle(),mob.position().subtract(target.position()));
     }
     private boolean plan(){
         var target=mob.getTarget();if(target==null)return false;
         var rear=target.position().subtract(Vec3.directionFromRotation(0,target.getYRot()).scale(1));
-        if(mob.distanceToSqr(target)<4 && GoblinGrapple.isBehind(target.getLookAngle(),mob.position().subtract(target.position())))rear=target.position();
+        if(mob.distanceToSqr(target)<4 && GrappleGoal.isBehind(target.getLookAngle(),mob.position().subtract(target.position())))rear=target.position();
         path=mob.getNavigation().createPath(net.minecraft.core.BlockPos.containing(rear),0);
         return path!=null && path.canReach() && !path.isDone();
     }
