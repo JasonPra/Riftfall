@@ -1,11 +1,12 @@
-"""Original translucent pixel textures and cuboid crystal geometry. Python standard library only."""
-import json,math,random,struct,zlib
+"""Paired glowing cores, translucent shells and crystal geometry. Python standard library only."""
+import copy,json,math,random,struct,zlib
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]/'src/main/resources'
 COLORS={'red':0xB94D57,'orange':0xCB8450,'yellow':0xD0BB67,'green':0x619A72,'cyan':0x65A8B4,'blue':0x526FAE,'violet':0x8A64AD,'white':0xD8DFE8}
+GLOW={'red':0xFF4764,'orange':0xFF953F,'yellow':0xFFE35C,'green':0x68F18C,'cyan':0x5CE9FF,'blue':0x6C9EFF,'violet':0xC28AFF,'white':0xF0FCFF}
 def write(path,data):
  p=ROOT/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(data,indent=2)+'\n')
-def texture(path,color,cut=False):
+def texture(path,color,cut=False,core=False):
  r,g,b=(color>>16)&255,(color>>8)&255,color&255;noise=random.Random(41);raw=bytearray()
  for y in range(32):
   raw.append(0)
@@ -14,9 +15,11 @@ def texture(path,color,cut=False):
     inside=5<=x<=26 and 4<=y<=27 and 10<=x+y<=49 and -20<=x-y<=21
     factor=1.15 if x<10 or y<9 else .65 if x>22 or y>23 else .95
     alpha=255 if inside else 0
+   elif core:
+    factor=.95+.035*math.sin(x*.9)+.025*math.cos(y*.65)+noise.uniform(-.015,.015);alpha=255
    else:
     cloud=.12*math.sin(x*.62+y*.27)+.08*math.sin(y*.81-x*.21)+noise.uniform(-.06,.06)
-    factor=.89+cloud+(.09 if x%11 in (2,3) else 0);alpha=max(165,min(225,round(198+cloud*80)))
+    factor=.89+cloud+(.09 if x%11 in (2,3) else 0);alpha=max(90,min(155,round(120+cloud*75)))
    for value in (r,g,b):raw.append(max(0,min(255,round(value*factor+12))))
    raw.append(alpha)
  def chunk(tag,data):return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
@@ -31,8 +34,25 @@ def box(a,b):
 # varied lengths and lean, and broad roots only where an actual neighboring cluster exists.
 rotations={'up':{},'down':{'x':180},'north':{'x':90},'east':{'x':90,'y':90},'south':{'x':90,'y':180},'west':{'x':90,'y':270}}
 model_dir=Path('assets/riftfall/models/block/mana_crystals')
+part_id=1000
 def geometry(name,elements):
- write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':False,'textures':{'particle':'#crystal'},'elements':elements})
+ global part_id
+ shells=[];cores=[]
+ for element in elements:
+  shell=copy.deepcopy(element);shell['shade']=True
+  for face in shell['faces'].values():face['tintindex']=part_id
+  shells.append(shell)
+  core=copy.deepcopy(element)
+  for axis in range(3):
+   span=element['to'][axis]-element['from'][axis];inset=min(span*(.12 if axis==1 else .18),.45 if axis==1 else .65)
+   core['from'][axis]+=inset;core['to'][axis]-=inset
+  core['shade']=False
+  # NeoForge 1.21.1 uses ExtraFaceData (vanilla light_emission is not supported here).
+  core['neoforge_data']={'block_light':15,'sky_light':15,'ambient_occlusion':False}
+  for face in core['faces'].values():face['texture']='#core';face['tintindex']=part_id;face.pop('cullface',None)
+  part_id+=1
+  cores.append(core)
+ write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':True,'textures':{'particle':'#crystal'},'elements':shells+cores})
 def column(x,z,w,d,height,h,axis=None,angle=0):
  base=min(1.25,h*.20);top=max(base+.25,height*h)
  if axis and h>=6:
@@ -80,19 +100,27 @@ for corner in range(4):
     points.append((rx,rz))
   elements.append(box([min(x for x,z in points),a[1],min(z for x,z in points)],[max(x for x,z in points),b[1],max(z for x,z in points)]))
  geometry(f'template_junction_{corner}',elements)
+# Each endpoint owns half of one clear air block; the opposite endpoint supplies the other half.
+bridge_elements=[box([5,6,5],[10,14,10]),box([6,12,6],[11,21,11]),box([6.5,19,6.5],[9.5,24,9.5])]
+# Geometry may overhang, but UVs must remain inside the sprite's atlas rectangle.
+for element in bridge_elements:
+ for face in element['faces'].values():face['uv']=[0,0,16,16]
+geometry('template_bridge',bridge_elements)
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
- for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal'}})
+ texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_core.png'),GLOW[tier],core=True)
+ write(model_dir/f'{tier}_bridge.json',{'parent':'riftfall:block/mana_crystals/template_bridge','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
+ for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
  multipart=[]
  for layer in range(1,9):
   models=[]
   for variant in range(2):
    name=f'{tier}_{layer}'+('_wild'if variant else '')
-   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal'}})
+   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
    models.append(f'riftfall:block/mana_crystals/{name}')
-  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal'}})
+  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
   for facing,rotation in rotations.items():
    condition={'facing':facing,'layers':str(layer)}
    multipart.append({'when':condition,'apply':[{'model':model,**rotation}for model in models]})

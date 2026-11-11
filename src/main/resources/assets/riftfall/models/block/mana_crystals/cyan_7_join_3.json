@@ -2,6 +2,7 @@
   "parent": "riftfall:block/mana_crystals/template_7_join_3",
   "render_type": "minecraft:translucent",
   "textures": {
-    "crystal": "riftfall:block/cyan_mana_crystal"
+    "crystal": "riftfall:block/cyan_mana_crystal",
+    "core": "riftfall:block/cyan_mana_crystal_core"
   }
 }

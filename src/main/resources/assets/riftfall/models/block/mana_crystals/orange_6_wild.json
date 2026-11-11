@@ -2,6 +2,7 @@
   "parent": "riftfall:block/mana_crystals/template_6_1",
   "render_type": "minecraft:translucent",
   "textures": {
-    "crystal": "riftfall:block/orange_mana_crystal"
+    "crystal": "riftfall:block/orange_mana_crystal",
+    "core": "riftfall:block/orange_mana_crystal_core"
   }
 }
