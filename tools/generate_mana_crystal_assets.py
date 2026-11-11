@@ -73,12 +73,20 @@ def column(x,z,w,d,height,h,axis=None,angle=0):
  return result
 for layer in range(1,9):
  h=layer*2
- for variant in range(2):
+ for variant in range(6):
   elements=[]
   if variant==0:
    columns=[(6,6,4.5,4,1,None,0),(3,5,4,4,.86,'z',-22.5),(8,4,3.5,4,.77,'x',22.5),(4,9,3,3,.52,'z',22.5),(10,9,2,2,.38,None,0)]
-  else:
+  elif variant==1:
    columns=[(6,6,4.5,4.5,.95,'z',22.5),(8,4,3.5,4,.92,'x',22.5),(3,8,3.5,3,.65,'z',-22.5),(8,10,3,3,.46,'x',-22.5),(4,3,2.5,3,.34,None,0)]
+  else:
+   # Distinct authored silhouettes, with the same contact buds at the perimeter.
+   columns={
+    2:[(4,6,4,4,.98,'z',-22.5),(8,7,4,3.5,.79,'x',-22.5),(6,3,3,3,.61,None,0),(10,8.5,2.5,3,.43,None,0),(4,9,3,3,.38,None,0)],
+    3:[(7,5,4,4,1,'x',22.5),(5,7,3.5,4,.72,'z',22.5),(8,10,3,3,.64,None,0),(4,3,3,3,.4,None,0),(11,6,2,3,.31,None,0)],
+    4:[(6.5,7,4,4,.96,'z',22.5),(8,5.5,4,4,.88,'x',-22.5),(3,4,3,3,.55,None,0),(9,9,3,3,.46,None,0),(4,9,2.5,3,.35,None,0)],
+    5:[(7,7,4,4,1,None,0),(4,4,4,4,.83,'x',22.5),(9,4,3,3,.66,'z',-22.5),(4,9,3.5,3,.57,None,0),(9.5,9,2.5,2.5,.39,None,0)]
+   }[variant]
   for x,z,w,d,height,axis,angle in columns:elements.append(column(x,z,w,d,height,h,axis,angle))
   # Small offset daughter growths share the larger column's root, not a regular row of posts.
   elements.extend([box([.5,0,6],[3.5,min(h,1.2+h*.25,4),9],edge=True),box([12.5,0,7],[15.5,min(h,1.2+h*.22,3.5),10],edge=True)] if variant==0 else [box([6,0,.5],[9,min(h,1.2+h*.25,4),3.5],edge=True),box([7,0,12.5],[10,min(h,1.2+h*.22,3.5),15.5],edge=True)])
@@ -91,7 +99,7 @@ for layer in range(1,9):
  join=[column(5.5,1,3,3,.42,h)]
  # Actual shared seams carry small daughter crystals across the full edge.
  # Overlapping individual buds cover the shared edge, including both corners.
- for x,height,depth in [(0,.19,3),(3,.27,3.5),(6,.22,3),(9,.25,3.75),(12,.18,3.25)]:
+ for x,height,depth in [(0,.10,3),(3,.175,3.5),(6,.12,3),(9,.16,3.75),(12,.08,3.25)]:
   join.append(box([x,0,0],[x+4,min(h,1.2+h*height,4),depth],edge=True))
  # Staggered small pillars link the edge buds back into the central clump.
  for cx,cz,fraction in [(1.75,3.75,.19),(14.25,3.75,.23),(3.5,3.5,.22),(5.5,5,.27),(8,3,.24),(8,5.5,.3),(10.5,5,.2),(12,3.5,.26)]:
@@ -126,20 +134,17 @@ for tier,color in COLORS.items():
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_core.png'),GLOW[tier],core=True)
  for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
- multipart=[]
+ variants={}
  for layer in range(1,9):
   models=[]
-  for variant in range(2):
-   name=f'{tier}_{layer}'+('_wild'if variant else '')
+  for variant in range(6):
+   name=f'{tier}_{layer}'+('_wild'if variant==1 else f'_preset_{variant}' if variant>1 else '')
    write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
    models.append(f'riftfall:block/mana_crystals/{name}')
   for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core'}})
   for facing,rotation in rotations.items():
-   condition={'facing':facing,'layers':str(layer)}
-   multipart.append({'when':condition,'apply':[{'model':model,**rotation}for model in models]})
-   for side,direction in enumerate(('north','east','south','west')):
-    multipart.append({'when':{**condition,'join_'+direction:'true'},'apply':{'model':f'riftfall:block/mana_crystals/{tier}_{layer}_join_{side}',**rotation}})
- write(Path('assets/riftfall/blockstates')/(block+'.json'),{'multipart':multipart})
+   for variant,model in enumerate(models):variants[f'facing={facing},layers={layer},variant={variant}']={'model':model,**rotation}
+ write(Path('assets/riftfall/blockstates')/(block+'.json'),{'variants':variants})
  write(Path('assets/riftfall/models/item')/(raw+'.json'),{'parent':f'riftfall:block/mana_crystals/{tier}_8'})
  write(Path('assets/riftfall/models/item')/(cut+'.json'),{'parent':'minecraft:item/generated','textures':{'layer0':f'riftfall:item/{cut}'}})
  children=[]

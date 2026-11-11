@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CrystalGlowTest {
     private JsonObject model(String name)throws Exception{try(var stream=getClass().getResourceAsStream("/assets/riftfall/models/block/mana_crystals/"+name+".json")){assertNotNull(stream);return JsonParser.parseReader(new InputStreamReader(stream,StandardCharsets.UTF_8)).getAsJsonObject();}}
     @Test void prismCoresAreInsetAndRootPlatesStayUnlit()throws Exception{
-        var names=new ArrayList<String>();for(int layer=1;layer<=8;layer++){for(int variant=0;variant<2;variant++)names.add("template_"+layer+"_"+variant);for(int side=0;side<4;side++)names.add("template_"+layer+"_join_"+side);}for(int corner=0;corner<4;corner++)names.add("template_junction_"+corner);
+        var names=new ArrayList<String>();for(int layer=1;layer<=8;layer++){for(int variant=0;variant<6;variant++)names.add("template_"+layer+"_"+variant);for(int side=0;side<4;side++)names.add("template_"+layer+"_join_"+side);}for(int corner=0;corner<4;corner++)names.add("template_junction_"+corner);
         for(var name:names){var elements=model(name).getAsJsonArray("elements");var shells=new HashMap<Integer,JsonObject>();
             for(var value:elements){var e=value.getAsJsonObject();if(e.get("shade").getAsBoolean()){assertFalse(e.has("neoforge_data"));int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if(id>=0)shells.put(id,e);}else{
                 int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();var shell=shells.get(id);assertNotNull(shell,"No root plate may have a core");var light=e.getAsJsonObject("neoforge_data");assertEquals(15,light.get("block_light").getAsInt());assertEquals(15,light.get("sky_light").getAsInt());assertFalse(light.get("ambient_occlusion").getAsBoolean());
@@ -29,7 +29,7 @@ class CrystalGlowTest {
         }
     }
     @Test void onlyTwoSmallEdgePrismsCanBorrowMaterials()throws Exception{
-        for(int layer=1;layer<=8;layer++)for(int variant=0;variant<2;variant++){
+        for(int layer=1;layer<=8;layer++)for(int variant=0;variant<6;variant++){
             int eligible=0;for(var value:model("template_"+layer+"_"+variant).getAsJsonArray("elements")){
                 var e=value.getAsJsonObject();if(!e.get("shade").getAsBoolean())continue;int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if(id<0||(id&1048576)==0)continue;eligible++;
                 for(int axis=0;axis<3;axis++)assertTrue(e.getAsJsonArray("to").get(axis).getAsDouble()-e.getAsJsonArray("from").get(axis).getAsDouble()<=4);
@@ -39,14 +39,14 @@ class CrystalGlowTest {
     }
     @Test void everySharedEdgeHasSmallMixableDaughterCrystals()throws Exception{
         for(int layer=1;layer<=8;layer++)for(int side=0;side<4;side++){
-            int count=0;
+            int count=0;var heights=new HashSet<Double>();
             for(var value:model("template_"+layer+"_join_"+side).getAsJsonArray("elements")){
                 var e=value.getAsJsonObject();if(!e.get("shade").getAsBoolean())continue;
                 int id=e.getAsJsonObject("faces").getAsJsonObject("up").get("tintindex").getAsInt();if(id<0||(id&1048576)==0)continue;
-                count++;for(int axis=0;axis<3;axis++)assertTrue(e.getAsJsonArray("to").get(axis).getAsDouble()-e.getAsJsonArray("from").get(axis).getAsDouble()<=4);
+                count++;heights.add(e.getAsJsonArray("to").get(1).getAsDouble());for(int axis=0;axis<3;axis++)assertTrue(e.getAsJsonArray("to").get(axis).getAsDouble()-e.getAsJsonArray("from").get(axis).getAsDouble()<=4);
                 int axis=side%2==0?2:0;boolean positive=side==1||side==2;
                 assertTrue(positive?e.getAsJsonArray("from").get(axis).getAsDouble()>=12:e.getAsJsonArray("to").get(axis).getAsDouble()<=4);
-            }assertEquals(5,count);
+            }assertEquals(5,count);assertTrue(heights.size()>=3,"Edge buds must not flatten into a uniform rim");
         }
     }
     @Test void youngEdgeBudsTouchNeighboringYoungAndAdultCrystals()throws Exception{
@@ -67,7 +67,7 @@ class CrystalGlowTest {
         }
     }
     @Test void budsFormConnectedClumpsAtEveryGrowthStage()throws Exception{
-        for(int layer=1;layer<=8;layer++)for(String suffix:List.of("_0","_1","_join_0","_join_1","_join_2","_join_3")){
+        for(int layer=1;layer<=8;layer++)for(String suffix:List.of("_0","_1","_2","_3","_4","_5","_join_0","_join_1","_join_2","_join_3")){
             var prisms=new ArrayList<JsonObject>();for(var value:model("template_"+layer+suffix).getAsJsonArray("elements")){var e=value.getAsJsonObject();if(e.get("shade").getAsBoolean())prisms.add(e);}
             var reached=new HashSet<Integer>();reached.add(0);boolean changed=true;
             while(changed){changed=false;for(int a=0;a<prisms.size();a++)if(reached.contains(a))for(int b=0;b<prisms.size();b++)if(!reached.contains(b)){
