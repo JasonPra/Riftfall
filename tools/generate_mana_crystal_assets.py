@@ -32,10 +32,10 @@ def box(a,b):
 rotations={'up':{},'down':{'x':180},'north':{'x':90},'east':{'x':90,'y':90},'south':{'x':90,'y':180},'west':{'x':90,'y':270}}
 model_dir=Path('assets/riftfall/models/block/mana_crystals')
 part_id=0
-def geometry(name,elements):
+def geometry(name,elements,base_count=2):
  global part_id
- for element in elements:
-  for face in element['faces'].values():face['tintindex']=part_id
+ for index,element in enumerate(elements):
+  for face in element['faces'].values():face['tintindex']=part_id | (65536 if index<base_count else 0)
   part_id+=1
  write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':False,'textures':{'particle':'#crystal'},'elements':elements})
 def column(x,z,w,d,height,h,axis=None,angle=0):
@@ -71,7 +71,7 @@ for layer in range(1,9):
      for _ in range(side):rx,rz=16-rz,rx
      corners.append((rx,rz))
    elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)]))
-  geometry(f'template_{layer}_join_{side}',elements)
+  geometry(f'template_{layer}_join_{side}',elements,base_count=1)
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)

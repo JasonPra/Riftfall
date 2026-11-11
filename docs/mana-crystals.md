@@ -41,3 +41,7 @@ Each layer drops one raw crystal of its tier (a mature cluster drops eight). Raw
 ## Matching adult density
 
 Fully grown clusters widen their existing prisms when touching adults of the same tier on a shared growth surface. A pair packs toward its common edge, complete 2×2 corners add a further bonus, and larger connected patches approach the block footprint. Only immediate neighbors and their corner diagonals are inspected. Young clusters, unlike tiers and isolated adults do not activate packing. No new crystal meshes, tiers, drops or mana costs are introduced. Each complete prism is fitted affinely within its own cell, preserving all original faces, UVs, growth depth and connections. This runs during chunk meshing rather than each frame.
+
+## Seed-bed and prism colors
+
+Only the thin seed-bed/root pieces use smooth edge color blending. Individual crystal prisms use a stable whole-piece choice between their own tier and a touching neighbor’s tier, including raised edges and corners on all six sides. Interior prisms retain their native color. Boundary prisms have a 50% chance to borrow a neighbor color; the same choice applies to every face, without extra geometry or tier changes.
