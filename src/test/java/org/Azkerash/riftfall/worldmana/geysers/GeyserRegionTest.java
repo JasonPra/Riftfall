@@ -47,6 +47,6 @@ class GeyserRegionTest {
         assertEquals(candidate,loaded.discover(candidate.centerChunkX(),candidate.centerChunkZ()).orElseThrow());
     }
     @Test void chunkStorageStillCapsAtTwoThousandAndOnlyLoadedTicksRegenerate(){
-        var mana=new ChunkMana();mana.regenerate(20,5);assertEquals(5.5,mana.amount());assertEquals(5.5,mana.snapshot(5).regenerationPerSecond());mana.regenerate(0,100);assertEquals(5.5,mana.amount());mana.regenerate(Long.MAX_VALUE,100);assertEquals(2000,mana.amount());
+        var mana=new ChunkMana();mana.regenerate(20);assertEquals(10,mana.amount());assertEquals(10,mana.snapshot().regenerationPerSecond());mana.regenerate(0);assertEquals(10,mana.amount());mana.regenerate(Long.MAX_VALUE);assertEquals(2000,mana.amount());
     }
 }

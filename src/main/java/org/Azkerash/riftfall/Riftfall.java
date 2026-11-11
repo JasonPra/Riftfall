@@ -23,6 +23,10 @@ public class Riftfall {
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
         org.Azkerash.riftfall.worldmana.WorldMana.register(bus);
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,org.Azkerash.riftfall.crystals.CrystalRules.SPEC,"riftfall-crystals-server.toml");
+        bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Loading e)->org.Azkerash.riftfall.crystals.CrystalRules.loaded(e));
+        bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Reloading e)->org.Azkerash.riftfall.crystals.CrystalRules.loaded(e));
+        org.Azkerash.riftfall.crystals.ManaCrystals.register(bus);
         RiftfallSkills.SKILLS.register(bus);
         GoblinSounds.register(bus);
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(GoblinSwordCombat::presets);

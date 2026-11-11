@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "riftfall:raw_violet_mana_crystal"
+  },
+  "result": {
+    "id": "riftfall:cut_violet_mana_crystal",
+    "count": 1
+  }
+}

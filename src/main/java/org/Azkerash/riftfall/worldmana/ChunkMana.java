@@ -13,17 +13,16 @@ public final class ChunkMana {
     public ChunkMana(){this(0);}
     private ChunkMana(double amount){this.amount=amount;}
     public double amount(){return amount;}
-    public double regenerationPerSecond(){return BASE_REGENERATION;}
+    public double regenerationPerSecond(){return BASE_REGENERATION*20;}
     private static void quantity(double value){if(!Double.isFinite(value)||value<0)throw new IllegalArgumentException("Mana quantity must be finite and nonnegative");}
     public double add(double requested){quantity(requested);double before=amount;amount=Math.min(CAPACITY,amount+requested);return amount-before;}
     public double extract(double requested){quantity(requested);double taken=Math.min(amount,requested);amount-=taken;return taken;}
     public boolean tryExtract(double requested){quantity(requested);if(amount<requested)return false;amount-=requested;return true;}
-    public double regenerate(long loadedTicks){return regenerate(loadedTicks,0);}
-    public double regenerate(long loadedTicks,double geyserContribution){
-        if(loadedTicks<0)throw new IllegalArgumentException("Negative elapsed ticks");quantity(geyserContribution);
-        return add(Math.min(CAPACITY,loadedTicks/20.0*(BASE_REGENERATION+geyserContribution)));
+    /** Normal chunks receive 0.50 per loaded game tick; geyser chunks never call this. */
+    public double regenerate(long loadedTicks){
+        if(loadedTicks<0)throw new IllegalArgumentException("Negative elapsed ticks");
+        return add(Math.min(CAPACITY,loadedTicks*BASE_REGENERATION));
     }
     public record Snapshot(double amount,double capacity,double regenerationPerSecond){}
-    public Snapshot snapshot(){return snapshot(0);}
-    public Snapshot snapshot(double geyserContribution){quantity(geyserContribution);return new Snapshot(amount,CAPACITY,BASE_REGENERATION+geyserContribution);}
+    public Snapshot snapshot(){return new Snapshot(amount,CAPACITY,regenerationPerSecond());}
 }

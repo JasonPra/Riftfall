@@ -11,30 +11,29 @@ Odd widths provide a true center chunk. Each 128 × 128-chunk placement cell has
 
 The seed includes the world seed and dimension ID. Discovery order does not affect placement. One cell lookup identifies a chunk's field; no neighboring chunks are loaded. Entering any part of the footprint records the whole geyser descriptor. Discovered centers, sizes and output budgets are saved per dimension in `data/riftfall_geyser_regions.dat`.
 
-## Output and chunk storage
+## Shared mana pool
 
-The starting **extra** output budgets are 405 mana/second for a small field and 2,890 for a large field. Across the footprint these average +5 and +10 mana/second per chunk respectively. Larger fields therefore provide both more total energy and a higher local concentration.
+The reservoir covers **every chunk in the footprint**, not just visited chunks:
 
-These budgets are distributed using normalized, separable tent weights, with the highest concentration at the center. Adding up all the chunk contributions equals one geyser's total output; the entire output is never copied into each chunk. The ordinary 0.50/second ambient rate remains additive. Individual chunk reservoirs still cap at 2,000 mana.
+| Size | Chunks | Capacity | Mana/tick | Mana/minute |
+| --- | ---: | ---: | ---: | ---: |
+| Small | 81 | 162,000 | 40.50 | 24,300 |
+| Large | 289 | 578,000 | 144.50 | 86,700 |
 
-Only loaded chunks receive their own share. Unloaded shares are not rerouted into loaded chunks, do not accumulate offline, and do not force terrain to load. A full reservoir stops accepting mana as before.
+Capacity is `chunkCount × 2,000`; generation is `chunkCount × 0.50/tick`. Geyser chunks draw directly from this pool and do not regenerate independently. No output is duplicated per loaded chunk. Full pools discard excess generation.
 
-## Cave-only crystal eligibility
+`GeyserLedger` saves one balance, capacity, collective regeneration rate and last simulation tick per discovered geyser in `riftfall_geyser_mana.dat`. It advances using elapsed server game time, including time with no geyser terrain loaded. No chunk tickets or terrain access are needed. Crystal refinement spends from this authoritative balance even when physical upgrades are deferred. It never charges twice on reload.
 
-`GeyserQueries.at(level, pos)` identifies the same full-height field at every Y. `GeyserQueries.crystalSurface(level, pos)` is stricter: the location must be a loaded, dry cave-air position, at least roughly eight blocks below the local surface, in the surrounding stable zone and beside sturdy natural stone. The central chunk area is reserved for the stream, independent of depth.
+The original normalized center-to-edge profile remains a geological concentration profile used for initial deposit quality. It no longer allocates independent chunk mana or controls regeneration. Crystal generation and refinement do not depend on depth.
 
-This first step does **not** add crystal blocks, crystal deposits, cave carving, tier refinement, metal conversion or ley lines. It supplies an eligibility API for a later crystal feature; it never places a crystal on the surface merely because the energy field extends there.
+## Cave crystals
+
+Initial deposits occur only on natural stone in underground caves in the stable surrounding zone. The central stream is excluded. Terrain is not carved. See [mana-crystals.md](mana-crystals.md) for tiers, seeding, cutting and refinement.
 
 ## Testing in game
 
-Operator commands:
+- `/riftfall geyser locate` finds a candidate without generating terrain.
+- `/riftfall geyser inspect` shows footprint, shared capacity, collective mana/tick and crystal-zone membership.
+- `/riftfall ambient inspect` shows the actual reservoir balance and mana/second.
 
-- `/riftfall geyser locate` finds the nearest candidate in a bounded regional search without generating terrain.
-- `/riftfall geyser inspect` shows the current field, footprint and local contribution.
-- `/riftfall ambient inspect` shows the actual chunk reservoir and total local regeneration rate.
-
-Teleport to the reported X/Z at a safe Y in creative or spectator mode. Changing altitude within that chunk does not change field membership or output. Moving outward changes concentration, and crossing the footprint boundary returns to ordinary ambient regeneration.
-
-Automated tests cover exact output-budget normalization, positive center-to-edge falloff, larger-field concentration, negative coordinates, complete footprint membership, non-overlap, descriptor persistence and capacity limits.
-
-Native server checks confirmed full-height membership, center-to-fringe falloff, the exact footprint boundary, underground-only surface eligibility and restoration of the saved descriptor/output/mana after a complete restart. Temporary verification commands are excluded from the release.
+Every chunk inside the same geyser reports the same pool. Changing altitude does not change membership. Crossing its footprint boundary returns to an ordinary independent chunk reservoir.
