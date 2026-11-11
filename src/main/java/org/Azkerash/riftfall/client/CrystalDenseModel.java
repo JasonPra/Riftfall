@@ -27,6 +27,7 @@ public final class CrystalDenseModel extends BakedModelWrapper<BakedModel> {
         for(int bucket=0;bucket<7;bucket++){
             var output=new ArrayList<BakedQuad>();
             for(var q:buckets.get(bucket)){
+                if((q.getTintIndex()&65536)!=0){output.add(q);continue;}
                 var box=bounds.get(q.getTintIndex());var uFit=CrystalAdultDensity.fit(box[0],box[2],profile.xScale(),profile.xShift());var vFit=CrystalAdultDensity.fit(box[1],box[3],profile.zScale(),profile.zShift());var data=q.getVertices().clone();int stride=data.length/4;
                 for(int v=0;v<4;v++){
                     double a=Float.intBitsToFloat(data[v*stride])-.5,b=Float.intBitsToFloat(data[v*stride+1])-.5,c=Float.intBitsToFloat(data[v*stride+2])-.5;

@@ -27,7 +27,7 @@ import org.Azkerash.riftfall.crystals.*;
 public final class ManaCrystalModels {
     private record Surface(BlockState state,BakedModel model){}
     private record Neighbor(CrystalTier tier,int surfaces,int layers,Direction primary){}
-    private record Mesh(List<Surface> surfaces,BlockPos pos,CrystalTier tier,int faces,Neighbor[] neighbors,boolean mixed,boolean adjacent,Map<Surface,Map<Integer,double[]>> bounds){}
+    private record Mesh(List<Surface> surfaces,BlockPos pos,CrystalTier tier,int faces,Neighbor[] neighbors,boolean mixed,boolean adjacent,Map<Surface,Map<Integer,double[]>> bounds,Map<Surface,CrystalTier[]> colors){}
     private static final ModelProperty<Mesh> SURFACES=new ModelProperty<>();
     @SubscribeEvent public static void baked(ModelEvent.ModifyBakingResult event){
         var registry=event.getModels();
@@ -66,12 +66,21 @@ public final class ManaCrystalModels {
                 var adjacent=pos.relative(direction);var other=level.getBlockState(adjacent);
                 if(other.getBlock() instanceof ManaCrystalBlock crystal){adjacentCrystal=true;neighbors[direction.ordinal()]=new Neighbor(crystal.tier(),ManaCrystalBlock.surfaceMask(level,adjacent,other),other.getValue(ManaCrystalBlock.LAYERS),other.getValue(ManaCrystalBlock.FACING));mixed|=crystal.tier()!=tier;}
             }
+            var surfaceColors=new HashMap<Surface,CrystalTier[]>();
+            for(var part:surfaces){
+                var colors=CrystalSurfaceColors.forFace(part.state().getValue(ManaCrystalBlock.FACING),offset->{
+                    var adjacent=pos.offset(offset.x(),offset.y(),offset.z());var other=level.getBlockState(adjacent);
+                    return other.getBlock() instanceof ManaCrystalBlock crystal?new CrystalSurfaceColors.Contact(crystal.tier(),ManaCrystalBlock.surfaceMask(level,adjacent,other)):null;
+                });
+                surfaceColors.put(part,colors);
+                for(var color:colors)if(color!=null&&color!=tier){mixed=true;adjacentCrystal=true;}
+            }
             var bounds=new HashMap<Surface,Map<Integer,double[]>>();
             if(mixed)for(var part:surfaces)for(int bucket=0;bucket<7;bucket++)for(var quad:part.model().getQuads(part.state(),bucket==6?null:Direction.values()[bucket],RandomSource.create(state.getSeed(pos)),ModelData.EMPTY,null)){
                 var box=bounds.computeIfAbsent(part,key->new HashMap<>()).computeIfAbsent(quad.getTintIndex(),id->new double[]{1,1,1,0,0,0});var vertices=quad.getVertices();int stride=vertices.length/4;
                 for(int v=0;v<4;v++)for(int axis=0;axis<3;axis++){double value=Float.intBitsToFloat(vertices[v*stride+axis]);box[axis]=Math.min(box[axis],value);box[axis+3]=Math.max(box[axis+3],value);}
             }
-            return incoming.derive().with(SURFACES,new Mesh(List.copyOf(surfaces),pos.immutable(),tier,mask,neighbors,mixed,adjacentCrystal,bounds)).build();
+            return incoming.derive().with(SURFACES,new Mesh(List.copyOf(surfaces),pos.immutable(),tier,mask,neighbors,mixed,adjacentCrystal,bounds,surfaceColors)).build();
         }
         @Override public List<BakedQuad> getQuads(BlockState state,Direction side,RandomSource random,ModelData data,RenderType renderType){
             var mesh=data.get(SURFACES);
@@ -83,10 +92,9 @@ public final class ManaCrystalModels {
             }
             if(!mesh.adjacent()&&mesh.surfaces().size()==1){var part=mesh.surfaces().getFirst();return part.model().getQuads(part.state(),side,random,ModelData.EMPTY,renderType);}
             var quads=new ArrayList<BakedQuad>();
-            CrystalTier[] colors=mesh.mixed()?new CrystalTier[6]:null;if(colors!=null)for(int i=0;i<6;i++)if(mesh.neighbors()[i]!=null)colors[i]=mesh.neighbors()[i].tier();
-            for(var part:mesh.surfaces())for(var quad:part.model().getQuads(part.state(),side,random,ModelData.EMPTY,renderType)){
+            for(var part:mesh.surfaces())for(var quad:part.model().getQuads(part.state(),side,RandomSource.create(part.state().getSeed(mesh.pos())),ModelData.EMPTY,renderType)){
                 if(side!=null&&coveredRoot(quad,side,mesh))continue;
-                quads.add(mesh.mixed()?blend(quad,part,mesh,colors):quad);
+                quads.add(mesh.mixed()?blend(quad,part,mesh,mesh.colors().get(part)):quad);
             }
             return quads;
         }

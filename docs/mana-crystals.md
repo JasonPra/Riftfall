@@ -49,3 +49,5 @@ Only the thin seed-bed/root pieces use smooth edge color blending. Individual cr
 ## Water
 
 Crystals can be placed and spread into source or flowing water on valid stone/ore supports. They waterlog rather than washing away, preserve water when mined, and retain water through growth and tier refinement. Waterlogged crystals have a 20% higher chance of height growth and spreading per random tick, with unchanged mana requirements and costs. This bonus does not accelerate tier refinement.
+
+Corner color contacts follow the same convex-wrap checks as surface connections, including clusters diagonally around a shared support block. A direct neighbor takes precedence over a corner neighbor. Root strips retain a continuous narrow shared seam but have staggered outer edges rather than a broad straight shelf; adult packing only widens crystal prisms, leaving the seed bed unchanged.

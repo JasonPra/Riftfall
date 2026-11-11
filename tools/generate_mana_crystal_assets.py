@@ -60,7 +60,7 @@ for layer in range(1,9):
   geometry(f'template_{layer}_{variant}',elements)
  # North-facing root/column slice. Rotate these vertices BEFORE the attachment rotation:
  # this preserves exact tangent directions even on walls and ceilings.
- join=[box([0,0,0],[16,min(1.2,h*.3),8]),box([5.5,min(.4,h*.1),0],[9.5,h*.42,7]),box([9,0,0],[12,h*.22,4])]
+ join=[box([0,0,0],[16,min(1.2,h*.3),2]),box([0,0,2],[5,min(1.2,h*.3),6]),box([5,0,2],[11,min(1.2,h*.3),8]),box([11,0,2],[16,min(1.2,h*.3),5]),box([5.5,min(.4,h*.1),0],[9.5,h*.42,7]),box([9,0,0],[12,h*.22,4])]
  for side in range(4):
   elements=[]
   for element in join:
@@ -71,7 +71,7 @@ for layer in range(1,9):
      for _ in range(side):rx,rz=16-rz,rx
      corners.append((rx,rz))
    elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)]))
-  geometry(f'template_{layer}_join_{side}',elements,base_count=1)
+  geometry(f'template_{layer}_join_{side}',elements,base_count=4)
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
