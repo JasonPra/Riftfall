@@ -38,7 +38,9 @@ public final class ManaCrystalBlock extends Block {
     public CrystalTier tier(){return tier;}
     public static boolean adult(BlockState state){return state.getBlock() instanceof ManaCrystalBlock&&state.getValue(LAYERS)==8;}
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> builder){builder.add(LAYERS,FACING,BRANCH_NEXT,JOIN_NORTH,JOIN_EAST,JOIN_SOUTH,JOIN_WEST,JOIN_TIP);}
-    @Override protected VoxelShape getShape(BlockState state,BlockGetter level,BlockPos pos,CollisionContext context){return shapes[state.getValue(FACING).ordinal()][state.getValue(LAYERS)-1];}
+    @Override protected VoxelShape getShape(BlockState state,BlockGetter level,BlockPos pos,CollisionContext context){var primary=state.getValue(FACING);int layers=state.getValue(LAYERS),mask=surfaceMask(level,pos,state);var shape=shapes[primary.ordinal()][layers-1];
+        for(var face:Direction.values())if(face!=primary&&CrystalSurfaceConnections.includes(mask,face))shape=Shapes.or(shape,shapes[face.ordinal()][(layers-1)/2]);
+        return shape;}
     @Override protected boolean canSurvive(BlockState state,LevelReader level,BlockPos pos){
         var facing=state.getValue(FACING);var host=pos.relative(facing.getOpposite());var stone=level.getBlockState(host);
         return stone.is(ManaCrystals.SUPPORTS)&&stone.isFaceSturdy(level,host,facing);
@@ -50,38 +52,32 @@ public final class ManaCrystalBlock extends Block {
             var state=defaultBlockState().setValue(FACING,direction.getOpposite());if(state.canSurvive(c.getLevel(),c.getClickedPos()))return connections(state,c.getLevel(),c.getClickedPos());
         }return null;
     }
-    /** Tangents match the X/Y rotations used by the multipart models. */
-    public static Direction tangent(Direction facing,int index){
-        if(index<0||index>3)throw new IllegalArgumentException("Invalid crystal tangent");
-        if(facing==Direction.UP)return new Direction[]{Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST}[index];
-        if(facing==Direction.DOWN)return new Direction[]{Direction.SOUTH,Direction.EAST,Direction.NORTH,Direction.WEST}[index];
-        if(index==0)return Direction.DOWN;if(index==2)return Direction.UP;
-        Direction right=switch(facing){case NORTH->Direction.EAST;case EAST->Direction.SOUTH;case SOUTH->Direction.WEST;case WEST->Direction.NORTH;default->throw new IllegalStateException();};
-        return index==1?right:right.getOpposite();
-    }
+    public static Direction tangent(Direction facing,int index){return CrystalSurfaceConnections.tangent(facing,index);}
     private static BlockState neighbor(BlockGetter level,BlockPos pos){
         if(level instanceof ServerLevel server){var chunk=server.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4);return chunk==null?Blocks.AIR.defaultBlockState():chunk.getBlockState(pos);}
         if(level instanceof LevelReader reader&&!reader.hasChunk(pos.getX()>>4,pos.getZ()>>4))return Blocks.AIR.defaultBlockState();
         return level.getBlockState(pos);
     }
+    /** Every sturdy solid contact contributes a surface; the primary face retains its larger stems. */
+    public static int surfaceMask(BlockGetter level,BlockPos pos,BlockState state){
+        int mask=CrystalSurfaceConnections.bit(state.getValue(FACING));
+        for(var face:Direction.values()){
+            var host=pos.relative(face.getOpposite());var solid=neighbor(level,host);
+            if(!(solid.getBlock() instanceof ManaCrystalBlock)&&solid.isFaceSturdy(level,host,face))mask|=CrystalSurfaceConnections.bit(face);
+        }return mask;
+    }
+    public static int surfaceJoins(BlockGetter level,BlockPos pos,Direction face){
+        var own=neighbor(level,pos);int surfaces=own.getBlock() instanceof ManaCrystalBlock?surfaceMask(level,pos,own):0;
+        return CrystalSurfaceConnections.joins(face,surfaces,offset->{
+            var adjacent=pos.offset(offset.x(),offset.y(),offset.z());var other=neighbor(level,adjacent);
+            return other.getBlock() instanceof ManaCrystalBlock?surfaceMask(level,adjacent,other):0;
+        });
+    }
     public static BlockState connections(BlockState state,BlockGetter level,BlockPos pos){
-        var facing=state.getValue(FACING);
-        for(int i=0;i<4;i++){
-            var direction=tangent(facing,i);var adjacent=pos.relative(direction);var other=neighbor(level,adjacent);
-            boolean joined=false;
-            if(other.getBlock() instanceof ManaCrystalBlock){
-                var mount=other.getValue(FACING);
-                // Parallel surfaces or perpendicular mounts whose actual geometry reaches this seam.
-                joined=CrystalSurfaceConnections.edge(facing,direction,mount,adult(other));
-            }
-            // Convex corner: two clusters on perpendicular faces of the same stone block.
-            var around=neighbor(level,adjacent.relative(facing.getOpposite()));
-            joined|=around.getBlock() instanceof ManaCrystalBlock&&around.getValue(FACING)==direction;
-            state=state.setValue(JOINS.get(i),joined);
-        }
-        var front=neighbor(level,pos.relative(facing));
-        boolean tip=front.getBlock() instanceof ManaCrystalBlock&&CrystalSurfaceConnections.tip(facing,adult(state),front.getValue(FACING));
-        return state.setValue(JOIN_TIP,tip);
+        int joins=surfaceJoins(level,pos,state.getValue(FACING));
+        for(int i=0;i<4;i++)state=state.setValue(JOINS.get(i),(joins&(1<<i))!=0);
+        // Retained only for save compatibility. Floating end caps are no longer generated.
+        return state.setValue(JOIN_TIP,false);
     }
     private static void cornerNeighbors(ServerLevel level,BlockPos pos,BlockState state){
         for(int i=0;i<4;i++){
@@ -109,7 +105,10 @@ public final class ManaCrystalBlock extends Block {
     }
     @Override protected boolean canBeReplaced(BlockState state,BlockPlaceContext c){return c.getItemInHand().is(asItem())&&state.getValue(LAYERS)<8;}
     @Override protected BlockState updateShape(BlockState state,Direction direction,BlockState neighbor,LevelAccessor level,BlockPos pos,BlockPos other){
-        return direction==state.getValue(FACING).getOpposite()&&!state.canSurvive(level,pos)?Blocks.AIR.defaultBlockState():connections(state,level,pos);
+        if(!state.canSurvive(level,pos)){
+            for(var face:Direction.values()){var candidate=state.setValue(FACING,face);if(candidate.canSurvive(level,pos))return connections(candidate,level,pos);}
+            return Blocks.AIR.defaultBlockState();
+        }return connections(state,level,pos);
     }
     @Override protected void onPlace(BlockState state,Level level,BlockPos pos,BlockState old,boolean moving){
         super.onPlace(state,level,pos,old,moving);if(level instanceof ServerLevel server){var joined=connections(state,level,pos);if(joined!=state)level.setBlock(pos,joined,Block.UPDATE_ALL);cornerNeighbors(server,pos,state);CrystalRefinement.changed(server,pos);if(!state.canSurvive(level,pos))level.scheduleTick(pos,this,1);}

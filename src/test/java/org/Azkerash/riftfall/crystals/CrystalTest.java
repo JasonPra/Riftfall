@@ -43,7 +43,7 @@ class CrystalTest {
     }
     @Test void multipartModelsSelectRealNeighborConnectionsOnEveryAttachmentFace()throws Exception{
         for(var tier:CrystalTier.values()){
-            var parts=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart");assertEquals(246,parts.size());
+            var parts=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart");assertEquals(240,parts.size());
             for(int layer=1;layer<=8;layer++)for(String facing:List.of("up","down","north","south","east","west"))for(int mask=0;mask<16;mask++){
                 int cores=0,joins=0;
                 for(var value:parts){
@@ -91,12 +91,9 @@ class CrystalTest {
             }
         }
     }
-    @Test void perpendicularTipJoinsOnlyRenderForMatureClusters()throws Exception{
-        for(var tier:CrystalTier.values()){
-            int tips=0;for(var value:json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart")){
-                var part=value.getAsJsonObject();var when=part.getAsJsonObject("when");if(!when.has("join_tip"))continue;
-                tips++;assertEquals(8,when.get("layers").getAsInt());assertEquals("true",when.get("join_tip").getAsString());assertTrue(part.getAsJsonObject("apply").get("model").getAsString().endsWith("_tip"));
-            }assertEquals(6,tips);
+    @Test void floatingEndCapsAreAbsentFromEveryTier()throws Exception{
+        for(var tier:CrystalTier.values())for(var value:json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart")){
+            var part=value.getAsJsonObject();assertFalse(part.getAsJsonObject("when").has("join_tip"));assertFalse(part.get("apply").toString().contains("_tip"));
         }
     }
     @Test void everyLayerDropsRawItemsAndCuttingIsOneWay()throws Exception{

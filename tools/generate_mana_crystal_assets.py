@@ -67,8 +67,6 @@ for layer in range(1,9):
      corners.append((rx,rz))
    elements.append(box([min(x for x,z in corners),element['from'][1],min(z for x,z in corners)],[max(x for x,z in corners),element['to'][1],max(z for x,z in corners)]))
   geometry(f'template_{layer}_join_{side}',elements)
-# A mature cluster can meet a perpendicular surface at its exposed end (inside corner).
-geometry('template_tip',[box([0,14.8,0],[16,16,16])])
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
@@ -86,8 +84,6 @@ for tier,color in COLORS.items():
    multipart.append({'when':condition,'apply':[{'model':model,**rotation}for model in models]})
    for side,direction in enumerate(('north','east','south','west')):
     multipart.append({'when':{**condition,'join_'+direction:'true'},'apply':{'model':f'riftfall:block/mana_crystals/{tier}_{layer}_join_{side}',**rotation}})
- write(model_dir/f'{tier}_tip.json',{'parent':'riftfall:block/mana_crystals/template_tip','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal'}})
- for facing,rotation in rotations.items():multipart.append({'when':{'facing':facing,'layers':'8','join_tip':'true'},'apply':{'model':f'riftfall:block/mana_crystals/{tier}_tip',**rotation}})
  write(Path('assets/riftfall/blockstates')/(block+'.json'),{'multipart':multipart})
  write(Path('assets/riftfall/models/item')/(raw+'.json'),{'parent':f'riftfall:block/mana_crystals/{tier}_8'})
  write(Path('assets/riftfall/models/item')/(cut+'.json'),{'parent':'minecraft:item/generated','textures':{'layer0':f'riftfall:item/{cut}'}})

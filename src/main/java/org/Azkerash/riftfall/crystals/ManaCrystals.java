@@ -23,7 +23,7 @@ public final class ManaCrystals {
     private static final Map<CrystalTier,DeferredItem<Item>> CUT=new EnumMap<>(CrystalTier.class);
     static {
         for(var tier:CrystalTier.values()){
-            var block=BLOCKS.register(tier.id()+"_mana_crystal_cluster",()->new ManaCrystalBlock(tier,BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.AMETHYST_CLUSTER).noOcclusion().randomTicks().lightLevel(state->9).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
+            var block=BLOCKS.register(tier.id()+"_mana_crystal_cluster",()->new ManaCrystalBlock(tier,BlockBehaviour.Properties.of().strength(1.5F).dynamicShape().sound(SoundType.AMETHYST_CLUSTER).noOcclusion().randomTicks().lightLevel(state->9).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
             CLUSTERS.put(tier,block);
             RAW.put(tier,ITEMS.register("raw_"+tier.id()+"_mana_crystal",()->new BlockItem(block.get(),new Item.Properties()){
                 @Override public String getDescriptionId(){return "item.riftfall.raw_"+tier.id()+"_mana_crystal";}
