@@ -60,7 +60,6 @@
         },
         "up": {
           "texture": "#large_crystal",
-          "cullface": "up",
           "tintindex": 1932,
           "uv": [
             0,
@@ -241,7 +240,6 @@
         },
         "down": {
           "texture": "#large_crystal",
-          "cullface": "down",
           "tintindex": 1934,
           "uv": [
             0,
@@ -317,7 +315,6 @@
         },
         "down": {
           "texture": "#large_crystal",
-          "cullface": "down",
           "tintindex": 1935,
           "uv": [
             0,
@@ -363,7 +360,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1936
         }
       },
@@ -403,7 +399,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1050513
         }
       },
@@ -443,7 +438,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1050514
         }
       },
@@ -483,7 +477,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1939
         }
       },
@@ -523,7 +516,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1940
         }
       },
@@ -563,7 +555,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1941
         }
       },
@@ -603,7 +594,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1942
         }
       },
@@ -643,7 +633,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1943
         }
       },

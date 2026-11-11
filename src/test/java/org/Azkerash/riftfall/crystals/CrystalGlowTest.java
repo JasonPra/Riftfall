@@ -106,7 +106,7 @@ class CrystalGlowTest {
             }
         }
     }
-    @Test void largeFormationQuartersHaveNoInternalCutFacesOrOutOfBoundsUvs()throws Exception{
+    @Test void largeFormationQuartersRetainAllFacesAndStayInsideTheirUvs()throws Exception{
         var presets=new HashSet<String>();
         for(int preset=0;preset<6;preset++){
             var silhouette=new StringBuilder();
@@ -115,8 +115,7 @@ class CrystalGlowTest {
                 for(var value:elements){var e=value.getAsJsonObject();var a=e.getAsJsonArray("from");var b=e.getAsJsonArray("to");
                     for(int axis=0;axis<3;axis++){assertTrue(a.get(axis).getAsDouble()>=0);assertTrue(b.get(axis).getAsDouble()<=16);assertTrue(a.get(axis).getAsDouble()<=b.get(axis).getAsDouble());}
                     var faces=e.getAsJsonObject("faces");int u=quarter%2,v=quarter/2;
-                    if(u==0&&b.get(0).getAsDouble()==16&&continuesIn(preset,quarter^1,e))assertFalse(faces.has("east"));if(u==1&&a.get(0).getAsDouble()==0&&continuesIn(preset,quarter^1,e))assertFalse(faces.has("west"));
-                    if(v==0&&b.get(2).getAsDouble()==16&&continuesIn(preset,quarter^2,e))assertFalse(faces.has("south"));if(v==1&&a.get(2).getAsDouble()==0&&continuesIn(preset,quarter^2,e))assertFalse(faces.has("north"));
+                    assertEquals(6,faces.size(),"Face removal is disabled for large formations");
                     for(var face:faces.entrySet())for(var coordinate:face.getValue().getAsJsonObject().getAsJsonArray("uv"))assertTrue(coordinate.getAsDouble()>=0&&coordinate.getAsDouble()<=16);
                     if(e.get("shade").getAsBoolean())silhouette.append(a).append(b);
                 }
@@ -155,6 +154,13 @@ class CrystalGlowTest {
                 }
             }assertEquals(2,count);assertEquals(Set.of("x","z"),axes);
         }
+    }
+    @Test void generatedCrystalModelsNeverRequestNeighborFaceCulling()throws Exception{
+        var names=new ArrayList<String>();
+        for(int layer=1;layer<=8;layer++){for(int preset=0;preset<6;preset++)names.add("template_"+layer+"_"+preset);for(int side=0;side<4;side++)names.add("template_"+layer+"_join_"+side);}
+        for(int corner=0;corner<4;corner++)names.add("template_junction_"+corner);
+        for(int preset=0;preset<6;preset++)for(int quarter=0;quarter<4;quarter++)names.add("template_mega_"+preset+"_"+quarter);
+        for(var name:names)for(var value:model(name).getAsJsonArray("elements"))for(var face:value.getAsJsonObject().getAsJsonObject("faces").entrySet())assertFalse(face.getValue().getAsJsonObject().has("cullface"),name);
     }
     private boolean continuesIn(int preset,int quarter,JsonObject prism)throws Exception{
         var id=prism.getAsJsonObject("faces").entrySet().iterator().next().getValue().getAsJsonObject().get("tintindex");

@@ -70,7 +70,6 @@
         },
         "down": {
           "texture": "#large_crystal",
-          "cullface": "down",
           "tintindex": 1982,
           "uv": [
             0,
@@ -96,7 +95,6 @@
       "faces": {
         "north": {
           "texture": "#crystal",
-          "cullface": "north",
           "tintindex": 1050559
         },
         "south": {
@@ -105,7 +103,6 @@
         },
         "east": {
           "texture": "#crystal",
-          "cullface": "east",
           "tintindex": 1050559
         },
         "west": {
@@ -118,7 +115,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1050559
         }
       },
@@ -146,7 +142,6 @@
         },
         "east": {
           "texture": "#crystal",
-          "cullface": "east",
           "tintindex": 1050560
         },
         "west": {
@@ -159,7 +154,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1050560
         }
       },
@@ -187,7 +181,6 @@
         },
         "east": {
           "texture": "#crystal",
-          "cullface": "east",
           "tintindex": 1050561
         },
         "west": {
@@ -200,7 +193,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1050561
         }
       },
@@ -228,7 +220,6 @@
         },
         "east": {
           "texture": "#crystal",
-          "cullface": "east",
           "tintindex": 1050562
         },
         "west": {
@@ -241,7 +232,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1050562
         }
       },
@@ -265,12 +255,10 @@
         },
         "south": {
           "texture": "#crystal",
-          "cullface": "south",
           "tintindex": 1050563
         },
         "east": {
           "texture": "#crystal",
-          "cullface": "east",
           "tintindex": 1050563
         },
         "west": {
@@ -283,7 +271,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1050563
         }
       },
@@ -323,7 +310,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1988
         }
       },
@@ -363,7 +349,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1989
         }
       },
@@ -403,7 +388,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1990
         }
       },
@@ -443,7 +427,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1991
         }
       },
@@ -483,7 +466,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1992
         }
       },
@@ -523,7 +505,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1993
         }
       },
@@ -563,7 +544,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1994
         }
       },
@@ -603,7 +583,6 @@
         },
         "down": {
           "texture": "#crystal",
-          "cullface": "down",
           "tintindex": 1995
         }
       },

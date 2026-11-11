@@ -95,7 +95,6 @@
       "faces": {
         "north": {
           "texture": "#large_crystal",
-          "cullface": "north",
           "tintindex": 2025,
           "uv": [
             0,
@@ -191,7 +190,6 @@
         },
         "east": {
           "texture": "#large_crystal",
-          "cullface": "east",
           "tintindex": 2026,
           "uv": [
             0,
@@ -212,7 +210,6 @@
         },
         "up": {
           "texture": "#large_crystal",
-          "cullface": "up",
           "tintindex": 2026,
           "uv": [
             0,

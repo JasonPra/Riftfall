@@ -125,7 +125,6 @@
         },
         "west": {
           "texture": "#large_crystal",
-          "cullface": "west",
           "tintindex": 2034,
           "uv": [
             0,
@@ -171,7 +170,6 @@
       "faces": {
         "north": {
           "texture": "#large_crystal",
-          "cullface": "north",
           "tintindex": 2035,
           "uv": [
             0,
@@ -212,7 +210,6 @@
         },
         "up": {
           "texture": "#large_crystal",
-          "cullface": "up",
           "tintindex": 2035,
           "uv": [
             0,
