@@ -36,7 +36,10 @@ final class GoblinRearAmbush extends Goal {
         path=mob.getNavigation().createPath(net.minecraft.core.BlockPos.containing(rear),0);
         return path!=null && path.canReach() && !path.isDone();
     }
-    @Override public boolean canUse(){return opening(mob) && !closeEnough() && plan();}
+    @Override public boolean canUse(){
+        if(!opening(mob)||closeEnough()||mob.level().getGameTime()<nextPlan)return false;
+        nextPlan=mob.level().getGameTime()+8;return plan();
+    }
     @Override public boolean canContinueToUse(){return opening(mob) && !closeEnough() && !mob.getNavigation().isDone();}
     private void move(){mob.setSprinting(mob.getNavigation().moveTo(path,1.1));}
     @Override public void start(){nextPlan=mob.level().getGameTime()+8;move();mob.getPersistentData().putBoolean("RiftfallRearAmbush",true);}

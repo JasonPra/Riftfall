@@ -10,6 +10,7 @@ import org.Azkerash.riftfall.confidence.*;
 /** Reusable confidence + local combat awareness. Does not choose factions or attach species-specific goals. */
 public final class CombatBehaviorController {
     private final Mob mob;
+    private final String entityId;
     private final CombatConfidenceController confidence;
     private final int memoryTicks;
     private final BiConsumer<CombatSituation,Map<String,Double>> extraSignals;
@@ -23,7 +24,7 @@ public final class CombatBehaviorController {
     }
     public CombatBehaviorController(Mob mob,CombatConfidenceController confidence,int memoryTicks,
             BiConsumer<CombatSituation,Map<String,Double>> extraSignals) {
-        this.mob=Objects.requireNonNull(mob);this.confidence=Objects.requireNonNull(confidence);
+        this.mob=Objects.requireNonNull(mob);entityId=net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString();this.confidence=Objects.requireNonNull(confidence);
         if (memoryTicks<0) throw new IllegalArgumentException("Negative target memory");
         this.memoryTicks=memoryTicks;this.extraSignals=Objects.requireNonNull(extraSignals);
     }
@@ -41,7 +42,7 @@ public final class CombatBehaviorController {
         // Hidden targets do not leak their current position, equipment or health into confidence inputs.
         var result=confidence.update(visible?target:null);var settings=confidence.settings();
         Map<String,Double> signals=new HashMap<>();
-        signals.put("engage",result.atLeast(org.Azkerash.riftfall.confidence.ConfidenceConfig.engagePointsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()))?1D:0D);
+        signals.put("engage",result.atLeast(org.Azkerash.riftfall.confidence.ConfidenceConfig.engagePointsFor(entityId))?1D:0D);
         signals.put("confidence",result.value());signals.put("fear",1-result.value());signals.put("confidence.points",result.points());
         signals.put("bold",result.atLeast(settings.boldPoints())?1D:0D);
         signals.put("self.health",(double)mob.getHealth()/mob.getMaxHealth());
@@ -57,11 +58,12 @@ public final class CombatBehaviorController {
         extraSignals.accept(preliminary,signals);
         return new CombatSituation(new BehaviorContext(signals),result,visible?target:null,visible,lastSeen);
     }
+    public boolean diagnosticsDue(String action){return mob.level().getGameTime()>=nextDiagnostics || !Objects.equals(action==null?"none":action,diagnosticAction);}
     /** Called by the goal bridge; inspect with /data get entity ... NeoForgeData.RiftfallBehavior. */
     public void diagnostics(CombatSituation situation,BehaviorEngine.Decision decision) {
         long now=mob.level().getGameTime();String action=decision.selected().orElse("none");
         if (now<nextDiagnostics && Objects.equals(action,diagnosticAction)) return;
-        diagnosticAction=action;nextDiagnostics=now+5;
+        diagnosticAction=action;nextDiagnostics=SensingSchedule.next(now,5,mob.getId());
         var data=new net.minecraft.nbt.CompoundTag();data.putLong("ServerTick",now);
         data.put("ConfidenceDetails",confidence.diagnostics());
         data.put("Stamina",org.Azkerash.riftfall.stamina.MobStamina.diagnostics(mob));

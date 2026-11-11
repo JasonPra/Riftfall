@@ -26,9 +26,10 @@ final class GoblinTactics {
     /** Target selection does not occupy MOVE/LOOK, so bow/spell goals can provide cover. */
     static final class CoverRetreat extends Goal {
         final GoblinEntity mob;
-        GoblinEntity ally;
+        GoblinEntity ally;long nextCoverScan;
         CoverRetreat(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.TARGET)); }
         @Override public boolean canUse() {
+            long now=mob.level().getGameTime();if(now<nextCoverScan)return false;nextCoverScan=org.Azkerash.riftfall.behavior.SensingSchedule.next(now,5,mob.getId());
             ally=mob.level().getEntitiesOfClass(GoblinEntity.class,mob.getBoundingBox().inflate(16),
                 g->!g.isRanged() && g.isAlive() && mob.isAlliedTo(g) && needsCover(g) && !mob.isAlliedTo(g.retreatThreat))
                 .stream().min(Comparator.comparingDouble(g->g.distanceToSqr(mob))).orElse(null);
@@ -144,7 +145,7 @@ final class GoblinTactics {
         final GoblinEntity goblin;
         LivingEntity victim;
         int remaining,nextAttack;
-        boolean closing;
+        boolean closing;long nextClosingPath;
         SwordAttack attack;
         Melee(GoblinEntity mob) { super(mob,1.1,false); goblin=mob; }
         @Override public boolean canContinueToUse() {
@@ -170,8 +171,11 @@ final class GoblinTactics {
                     // Once in the correct formation sector, close until the actual equipped collider can contact.
                     // A block-centered ring slot may otherwise stop outside shortsword reach forever.
                     closing=true;goblin.setSprinting(false);
-                    var path=goblin.getNavigation().createPath(target.blockPosition(),0);
-                    if (path!=null) goblin.getNavigation().moveTo(path,1.1);
+                    if(goblin.level().getGameTime()>=nextClosingPath){
+                        nextClosingPath=goblin.level().getGameTime()+5;
+                        var path=goblin.getNavigation().createPath(target.blockPosition(),0);
+                        if(path!=null)goblin.getNavigation().moveTo(path,1.1);
+                    }
                     return;
                 }
                 if(!org.Azkerash.riftfall.stamina.MobStamina.spend(goblin,
@@ -282,7 +286,7 @@ final class GoblinTactics {
         StaffAttack attack;
         int ticks, nextAttack, approachTicks;
         boolean windingUp,opportunistic;
-        long ready;
+        long ready,nextApproachPath;
         float facing;
         StaffClub(GoblinEntity mob) {
             this.mob=mob; nextAttack=mob.getRandom().nextInt(2);
@@ -304,7 +308,7 @@ final class GoblinTactics {
         @Override public void start() {
             victim=mob.getTarget(); opportunistic=exposedToStaff(victim);
             attack=opportunistic ? StaffAttack.SMASH : StaffAttack.values()[nextAttack]; nextAttack=(nextAttack+1)%2;
-            ticks=0; approachTicks=0; windingUp=false; ready=mob.level().getGameTime()+10;
+            ticks=0; approachTicks=0;nextApproachPath=0; windingUp=false; ready=mob.level().getGameTime()+10;
             mob.getPersistentData().putBoolean("RiftfallStaffApproaching",true);
             facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
             if (inReach()) beginSwing();
@@ -328,7 +332,8 @@ final class GoblinTactics {
                 approachTicks++;
                 facing=staffFacing(victim.getX()-mob.getX(),victim.getZ()-mob.getZ()); face();
                 if (inReach()) beginSwing();
-                else {
+                else if(mob.level().getGameTime()>=nextApproachPath){
+                    nextApproachPath=mob.level().getGameTime()+5;
                     // Vanilla's one-node arrival tolerance can stop outside a short weapon's collider.
                     var path=mob.getNavigation().createPath(victim.blockPosition(),0);
                     if (path!=null) mob.getNavigation().moveTo(path,1.0);
@@ -355,13 +360,14 @@ final class GoblinTactics {
     static final class Heal extends Goal {
         final GoblinEntity mob;
         LivingEntity recipient;
-        int ticks,windup=20;
+        int ticks,windup=20;long nextHealSearch;
         MagicData data;
         Heal(GoblinEntity mob) { this.mob=mob; setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK)); }
         @Override public boolean canUse() {
             var spell=SpellRegistry.HEALING_CIRCLE_SPELL.get();MobMana.describe(mob,spell,1);
             if (mob.level().getGameTime()<mob.getPersistentData().getLong("RiftfallNextHeal") || mob.hurtTime>0
                 || mob.getTarget()!=null && mob.distanceToSqr(mob.getTarget())<Math.pow(mob.squad.panicRange(),2) && !coverSafe(mob) || !SpellRegistry.HEALING_CIRCLE_SPELL.get().isEnabled()) return false;
+            long now=mob.level().getGameTime();if(now<nextHealSearch)return false;nextHealSearch=org.Azkerash.riftfall.behavior.SensingSchedule.next(now,5,mob.getId());
             recipient=mob.level().getEntitiesOfClass(LivingEntity.class,mob.getBoundingBox().inflate(10),
                 g->g!=mob && g.isAlive() && mob.isAlliedTo(g) && needsHealing(g.getHealth(),g.getMaxHealth()) && mob.getSensing().hasLineOfSight(g))
                 .stream().min(Comparator.<LivingEntity>comparingInt(g->g instanceof GoblinEntity goblin

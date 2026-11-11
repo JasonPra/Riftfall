@@ -5,7 +5,9 @@ import org.Azkerash.riftfall.behavior.*;
 
 /** Goblin preferences, separate from the shared engine and the movement/animation executors. */
 final class GoblinBehaviorProfile {
-    static BehaviorEngine engine() {
+    private static final BehaviorEngine ENGINE=create();
+    static BehaviorEngine engine(){return ENGINE;}
+    private static BehaviorEngine create() {
         var rules=new ArrayList<BehaviorRule>();
         rules.add(new BehaviorRule("interrupted",5000,Map.of(),c->c.active("self.interrupted")));
         rules.add(rule("pant",4500,Map.of()));

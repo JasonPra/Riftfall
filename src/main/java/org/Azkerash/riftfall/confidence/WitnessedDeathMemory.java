@@ -12,10 +12,13 @@ public final class WitnessedDeathMemory {
         incidents.addLast(new Incident(victim,victimType,killer,killerType,now+settings.durationTicks()));
         active(now,settings.maxStacks());
     }
+    public int count(long now,int cap){
+        if(cap<0)throw new IllegalArgumentException("Negative stack cap");
+        if(incidents.isEmpty())return 0;
+        incidents.removeIf(i->i.expiresAt()<=now);while(incidents.size()>cap)incidents.removeFirst();return incidents.size();
+    }
     public List<Incident> active(long now,int cap) {
-        if (cap<0) throw new IllegalArgumentException("Negative stack cap");
-        incidents.removeIf(i->i.expiresAt()<=now);
-        while (incidents.size()>cap) incidents.removeFirst();
+        count(now,cap);
         return List.copyOf(incidents);
     }
 }

@@ -10,6 +10,6 @@ public record BehaviorContext(Map<String,Double> signals) {
             if (!Double.isFinite(value)) throw new IllegalArgumentException("Non-finite signal: "+key);
         });
     }
-    public double get(String key) { return signals.getOrDefault(key,0D); }
+    public double get(String key) { Double value=signals.get(key);return value==null?0:value; }
     public boolean active(String key) { return get(key)>0; }
 }

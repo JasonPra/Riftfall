@@ -13,6 +13,13 @@ public record BehaviorRule(String id,double base,Map<String,Double> weights,Pred
         });
     }
     public double score(BehaviorContext context) {
-        return base+weights.entrySet().stream().mapToDouble(e->e.getValue()*context.get(e.getKey())).sum();
+        double sum=0,correction=0,simple=0;
+        // Match DoubleStream.sum's compensated arithmetic without allocating a stream per rule.
+        for(var entry:weights.entrySet()){
+            double value=entry.getValue()*context.get(entry.getKey());simple+=value;
+            double adjusted=value-correction,next=sum+adjusted;correction=(next-sum)-adjusted;sum=next;
+        }
+        double total=sum-correction;
+        return base+(Double.isNaN(total)&&Double.isInfinite(simple)?simple:total);
     }
 }

@@ -11,7 +11,10 @@ public final class MobStamina {
         var a=mob.getAttribute(yesman.epicfight.registry.entries.EpicFightAttributes.MAX_STAMINA);
         if(a==null)return StaminaConfig.maximum();
         var data=mob.getPersistentData();double previous=data.contains("RiftfallStaminaBase")?data.getDouble("RiftfallStaminaBase"):15;
-        if(a.getBaseValue()==previous){a.setBaseValue(StaminaConfig.maximum());data.putDouble("RiftfallStaminaBase",StaminaConfig.maximum());}
+        if(a.getBaseValue()==previous){
+            double configured=StaminaConfig.maximum();if(a.getBaseValue()!=configured)a.setBaseValue(configured);
+            if(!data.contains("RiftfallStaminaBase")||data.getDouble("RiftfallStaminaBase")!=configured)data.putDouble("RiftfallStaminaBase",configured);
+        }
         // Curios reapplies transient equipment modifiers on its first post-tick after loading.
         return Math.max(a.getValue(),data.getDouble("RiftfallStaminaLoadingMaximum"));
     }

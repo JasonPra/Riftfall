@@ -17,15 +17,16 @@ public class WeightedBehaviorGoal extends Goal {
     @Override public boolean canUse() { return true; }
     @Override public boolean requiresUpdateEveryTick() { return true; }
     @Override public void tick() {
-        var situation=controller.observe();var decision=engine.select(situation.context(),current);
-        String selected=decision.selected().orElse(null);
+        var situation=controller.observe();String previous=current;
+        String selected=engine.selectAction(situation.context(),previous);
+        var diagnostic=controller.diagnosticsDue(selected)?engine.select(situation.context(),previous):null;
         if (!Objects.equals(current,selected)) {
             if (current!=null) actions.get(current).stop();
             current=selected;
             if (current!=null) actions.get(current).start(situation);
         }
         if (current!=null) actions.get(current).tick(situation);
-        controller.diagnostics(situation,decision);
+        if(diagnostic!=null)controller.diagnostics(situation,diagnostic);
     }
     @Override public void stop() {
         if (current!=null) actions.get(current).stop();

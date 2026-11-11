@@ -18,6 +18,18 @@ public final class BehaviorEngine {
         if (rules.stream().map(BehaviorRule::id).distinct().count()!=rules.size()) throw new IllegalArgumentException("Duplicate behavior IDs");
     }
     public Set<String> behaviorIds() { return Set.copyOf(rules.stream().map(BehaviorRule::id).toList()); }
+    /** Allocation-free selection path; detailed score maps are only built for diagnostic snapshots. */
+    public String selectAction(BehaviorContext context,String current) {
+        String best=null;double highest=Double.NEGATIVE_INFINITY,incumbent=Double.NEGATIVE_INFINITY;boolean currentEligible=false;
+        for(var rule:rules){
+            if(!rule.eligible().test(context))continue;
+            double score=rule.score(context);
+            if(!Double.isFinite(score))throw new IllegalArgumentException("Non-finite behavior score: "+rule.id());
+            if(rule.id().equals(current)){incumbent=score;currentEligible=true;}
+            if(score>highest){best=rule.id();highest=score;}
+        }
+        return currentEligible && highest<=incumbent+switchMargin?current:best;
+    }
     public Decision select(BehaviorContext context,String current) {
         Map<String,Double> scores=new LinkedHashMap<>();Map<String,Evaluation> evaluations=new LinkedHashMap<>();String best=null;double highest=Double.NEGATIVE_INFINITY;
         for (var rule:rules) {

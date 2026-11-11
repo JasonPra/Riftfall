@@ -25,6 +25,12 @@ public final class ConfidenceConfig {
     private static final ModConfigSpec.DoubleValue WITNESS_RADIUS;
     private static volatile WitnessSettings witness=WitnessSettings.defaults();
     private static volatile Map<String,Map<String,Double>> overrides=Map.of();
+    private record Cached<T>(Object base,Object overrides,T value){}
+    private static final java.util.concurrent.ConcurrentHashMap<String,Cached<Settings>> TUNED=new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<String,Cached<org.Azkerash.riftfall.behavior.HealingRetreatSettings>> HEALING_TUNED=new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<String,Cached<org.Azkerash.riftfall.behavior.PanicSettings>> PANIC_TUNED=new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<String,Cached<WitnessSettings>> WITNESS_TUNED=new java.util.concurrent.ConcurrentHashMap<>();
+
     private static final ModConfigSpec.DoubleValue SCALE,BOLD,WOUNDED,VULNERABLE,RETREATING,ENGAGE;
     private static volatile double engagePoints=12;
     private static volatile org.Azkerash.riftfall.behavior.HealingRetreatSettings healing=org.Azkerash.riftfall.behavior.HealingRetreatSettings.defaults();
@@ -97,16 +103,21 @@ public final class ConfidenceConfig {
         catch (NumberFormatException e) { return false; }
     }
     public static Settings forEntity(String id,Settings base) {
-        var values=overrides.get(id);return values==null?base:EntityConfidenceTuning.apply(base,values);
+        var all=overrides;var values=all.get(id);if(values==null)return base;
+        var cached=TUNED.get(id);if(cached!=null&&cached.base==base&&cached.overrides==all)return cached.value;
+        var result=EntityConfidenceTuning.apply(base,values);TUNED.put(id,new Cached<>(base,all,result));return result;
     }
     public static org.Azkerash.riftfall.behavior.HealingRetreatSettings healingSettingsFor(String id) {
-        var values=overrides.getOrDefault(id,Map.of());var base=healing;
-        return new org.Azkerash.riftfall.behavior.HealingRetreatSettings(values.getOrDefault("healingEntryHealthFraction",base.entryHealth()),
+        var all=overrides;var base=healing;var cached=HEALING_TUNED.get(id);if(cached!=null&&cached.base==base&&cached.overrides==all)return cached.value;
+        var values=all.getOrDefault(id,Map.of());
+        var result=new org.Azkerash.riftfall.behavior.HealingRetreatSettings(values.getOrDefault("healingEntryHealthFraction",base.entryHealth()),
             values.getOrDefault("healingExitHealthFraction",base.exitHealth()),values.getOrDefault("healingSearchRadius",base.searchRadius()),
             values.getOrDefault("healingDangerDistance",base.dangerDistance()),values.getOrDefault("healingRiskPoints",base.riskPoints()));
+        HEALING_TUNED.put(id,new Cached<>(base,all,result));return result;
     }
     public static org.Azkerash.riftfall.behavior.PanicSettings panicSettingsFor(String id) {
-        return panic.overrides(overrides.getOrDefault(id,Map.of()));
+        var all=overrides;var base=panic;var cached=PANIC_TUNED.get(id);if(cached!=null&&cached.base==base&&cached.overrides==all)return cached.value;
+        var result=base.overrides(all.getOrDefault(id,Map.of()));PANIC_TUNED.put(id,new Cached<>(base,all,result));return result;
     }
     public static double engagePointsFor(String id) { return overrides.getOrDefault(id,Map.of()).getOrDefault("engagePoints",engagePoints); }
     public static Settings settingsFor(String id) { return forEntity(id,current); }
@@ -114,7 +125,8 @@ public final class ConfidenceConfig {
         return Math.max(witness.radius(),overrides.values().stream().mapToDouble(v->v.getOrDefault("witnessRadius",0D)).max().orElse(0));
     }
     public static WitnessSettings witnessSettingsFor(String id) {
-        return EntityConfidenceTuning.witness(witness,overrides.getOrDefault(id,Map.of()));
+        var all=overrides;var base=witness;var cached=WITNESS_TUNED.get(id);if(cached!=null&&cached.base==base&&cached.overrides==all)return cached.value;
+        var result=EntityConfidenceTuning.witness(base,all.getOrDefault(id,Map.of()));WITNESS_TUNED.put(id,new Cached<>(base,all,result));return result;
     }
     public static void loaded(ModConfigEvent event) {
         if (event.getConfig().getSpec()==SPEC) {

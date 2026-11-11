@@ -10,8 +10,11 @@ import org.Azkerash.riftfall.confidence.*;
 /** Per-goblin engine integration. Only the shared weighted goal schedules combat actions. */
 final class GoblinBehavior {
     final GoblinEntity mob;
+    private final String entityId;
     final CombatConfidenceController confidence;
     final CombatBehaviorController awareness;
+    private static final Double ONE=1D,ZERO=0D;
+    private final Map<String,String> readyKeys=new HashMap<>(),committedKeys=new HashMap<>();
     private final Map<String,GoalBehaviorAction> executors=new LinkedHashMap<>();
     private final Map<String,BooleanSupplier> commitments=new HashMap<>();
     private final LookAtPlayerGoal look;
@@ -21,15 +24,15 @@ final class GoblinBehavior {
     private CombatSituation situation;
     private long nextSearchPath;
     GoblinBehavior(GoblinEntity mob) {
-        this.mob=mob;
+        this.mob=mob;entityId=net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString();
         confidence=new CombatConfidenceController(mob,ConfidenceConfig::settings,mob::isAlliedTo,
             ally->ally.getPersistentData().getBoolean("RiftfallRetreating")?settings().retreatingMultiplier():1,
             (target,factors)->{},16,10);
         awareness=new CombatBehaviorController(mob,confidence,100,this::sense);
         look=new LookAtPlayerGoal(mob,Player.class,8);
-        healing=new SeekHealingCircleGoal(mob,()->ConfidenceConfig.healingSettingsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()),
+        healing=new SeekHealingCircleGoal(mob,()->ConfidenceConfig.healingSettingsFor(entityId),
             ()->situation==null?0:situation.confidence().points(),caster->caster instanceof GoblinEntity shaman && shaman.isShaman() && mob.isAlliedTo(shaman));
-        panic=new PanicEscapeGoal(mob,()->ConfidenceConfig.panicSettingsFor(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString()),
+        panic=new PanicEscapeGoal(mob,()->ConfidenceConfig.panicSettingsFor(entityId),
             ()->!mob.isShaman(),()->!mob.isInRift(),()->GoblinTactics.interrupted(mob),
             (state,pos)->GoblinPanicVisuals.canDig(mob,state,pos),new GoblinPanicVisuals(mob));
         add("panic_escape",panic,()->true);
@@ -61,6 +64,7 @@ final class GoblinBehavior {
     }
     private ConfidenceConfig.Settings settings() { return confidence.settings(); }
     private void add(String id,Goal executor,BooleanSupplier committed) {
+        readyKeys.put(id,"ready."+id);committedKeys.put(id,"committed."+id);
         executors.put(id,new GoalBehaviorAction(executor));commitments.put(id,committed);
     }
     private void sense(CombatSituation snapshot,Map<String,Double> signals) {
@@ -82,11 +86,11 @@ final class GoblinBehavior {
             mob.getPersistentData().putBoolean("RiftfallScreening",false);
         }
         boolean interrupted=GoblinTactics.interrupted(mob);
-        signals.put("self.interrupted",interrupted?1D:0D);
+        signals.put("self.interrupted",interrupted?ONE:ZERO);
         signals.put("self.melee_role",mob.isRanged()?0D:1D);
-        signals.put("cover.safe",GoblinTactics.coverSafe(mob)?1D:0D);
-        signals.put("target.exposed",snapshot.targetVisible() && GoblinTactics.exposedToStaff(snapshot.target())?1D:0D);
-        signals.put("target.unaware",rearOpening?1D:0D);
+        signals.put("cover.safe",GoblinTactics.coverSafe(mob)?ONE:ZERO);
+        signals.put("target.exposed",snapshot.targetVisible() && GoblinTactics.exposedToStaff(snapshot.target())?ONE:ZERO);
+        signals.put("target.unaware",rearOpening?ONE:ZERO);
         Map<String,Boolean> prepared=new HashMap<>();String committed=null;
         if (!interrupted && !escaping) for (var entry:executors.entrySet()) {
             if (entry.getValue().running() && commitments.get(entry.getKey()).getAsBoolean()) {
@@ -99,9 +103,9 @@ final class GoblinBehavior {
             boolean combat=!id.equals("wander") && !id.equals("loot");
             // An unwatched opening temporarily overrides flight; a latched grapple or airborne leap finishes normally.
             if(id.equals("panic_escape") && (rearOpening || committedAmbush)) {
-                signals.put("ready."+id,0D);signals.put("committed."+id,0D);return;
+                signals.put(readyKeys.get(id),ZERO);signals.put(committedKeys.get(id),ZERO);return;
             }
-            if(escaping&&!id.equals("panic_escape")){signals.put("ready."+id,0D);signals.put("committed."+id,0D);return;}
+            if(escaping&&!id.equals("panic_escape")){signals.put(readyKeys.get(id),ZERO);signals.put(committedKeys.get(id),ZERO);return;}
             // Hidden targets cannot start new attacks or track through walls. Committed swings may finish naturally.
             boolean allowed=combat?(snapshot.targetVisible() || action.running() && commitments.get(id).getAsBoolean() || id.equals("heal") || id.equals("seek_healing") || id.equals("panic_escape") || id.equals("regroup")):
                 !snapshot.context().active("target.present");
@@ -111,15 +115,15 @@ final class GoblinBehavior {
             boolean willing=!advancing || snapshot.context().active("engage") || rearOpening || defensive || action.running() && commitments.get(id).getAsBoolean();
             if (id.equals("cautious_retreat")) willing=!snapshot.context().active("engage") && !rearOpening;
             boolean ready=!mob.isPanting() && !interrupted && allowed && willing && (committedAction==null || committedAction.equals(id))
-                && prepared.computeIfAbsent(id,key->action.prepare());
-            signals.put("ready."+id,ready?1D:0D);
-            signals.put("committed."+id,ready && action.running() && commitments.get(id).getAsBoolean()?1D:0D);
+                && (prepared.containsKey(id)?prepared.get(id):action.prepare());
+            signals.put(readyKeys.get(id),ready?ONE:ZERO);
+            signals.put(committedKeys.get(id),ready && action.running() && commitments.get(id).getAsBoolean()?ONE:ZERO);
         });
-        signals.put("ready.pant",mob.isPanting()?1D:0D);
-        if(mob.isPanting())executors.keySet().forEach(id->{signals.put("ready."+id,0D);signals.put("committed."+id,0D);});
+        signals.put("ready.pant",mob.isPanting()?ONE:ZERO);
+        if(mob.isPanting())executors.keySet().forEach(id->{signals.put(readyKeys.get(id),ZERO);signals.put(committedKeys.get(id),ZERO);});
         signals.put("stamina.current",mob.staminaState().current(org.Azkerash.riftfall.stamina.MobStamina.maximum(mob)));
         signals.put("stamina.maximum",org.Azkerash.riftfall.stamina.MobStamina.maximum(mob));
-        signals.put("stamina.panting",mob.isPanting()?1D:0D);
+        signals.put("stamina.panting",mob.isPanting()?ONE:ZERO);
         signals.put("stamina.regen_multiplier",org.Azkerash.riftfall.stamina.StaminaState.regenerationMultiplier(mob.isPanting(),mob.staminaFleeing(),mob.staminaConfident()));
         panic.signals(signals);
         healing.signals(signals);

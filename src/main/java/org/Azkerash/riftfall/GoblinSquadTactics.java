@@ -45,7 +45,7 @@ final class GoblinSquadTactics {
         var target=mob.getTarget();long now=mob.level().getGameTime();
         if (target==observedTarget && now<nextScan) return;
         if (target!=observedTarget) { warriorPlan=null;nextWarriorPlan=0; }
-        observedTarget=target;enemy=validEnemy(mob,target)?target:null;nextScan=now+10;
+        observedTarget=target;enemy=validEnemy(mob,target)?target:null;nextScan=org.Azkerash.riftfall.behavior.SensingSchedule.next(now,10,mob.getId());
         // This cache allocates physical formation slots only. Confidence and sensing belong to the shared engine.
         var goblins=mob.level().getEntitiesOfClass(GoblinEntity.class,mob.getBoundingBox().inflate(16,4,16),
             g->g.isAlive() && !g.isNoAi() && mob.isAlliedTo(g) && Math.abs(g.getY()-mob.getY())<=4
@@ -301,10 +301,11 @@ final class GoblinSquadTactics {
         }
     }
     static final class Assist extends Goal {
-        final GoblinEntity mob;LivingEntity enemy;
+        final GoblinEntity mob;LivingEntity enemy;long nextAssist;
         Assist(GoblinEntity mob) { this.mob=mob;setFlags(EnumSet.of(Flag.TARGET)); }
         @Override public boolean canUse() {
             if (validEnemy(mob,mob.getTarget())) return false;
+            long now=mob.level().getGameTime();if(now<nextAssist)return false;nextAssist=org.Azkerash.riftfall.behavior.SensingSchedule.next(now,10,mob.getId());
             enemy=mob.level().getEntitiesOfClass(GoblinEntity.class,mob.getBoundingBox().inflate(16),
                 g->g!=mob && g.isAlive() && mob.isAlliedTo(g) && validEnemy(mob,g.getTarget()))
                 .stream().min(Comparator.comparingDouble(g->g.distanceToSqr(mob))).map(GoblinEntity::getTarget).orElse(null);
