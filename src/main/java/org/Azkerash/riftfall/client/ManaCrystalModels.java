@@ -104,8 +104,8 @@ public final class ManaCrystalModels {
                 for(var surface:surfaces)for(var quad:surface.model().getQuads(surface.state(),side,random,ModelData.EMPTY,RenderType.translucent())){int id=fragment(surface,quad);if(id>=0&&((id/6)&1048576)!=0)bounds.computeIfAbsent(id,key->new Bounds()).add(quad);}
             }
             var selected=new HashMap<Integer,CrystalTier>();
-            // Each differently colored shared edge gets one visible daughter prism,
-            // with a chance of a second. Never recolor the central columns or root.
+            // Each differently colored shared edge gets two visible daughter prisms,
+            // with a stronger chance of a third. Never recolor the central columns or root.
             for(int side=0;side<6;side++){
                 if(palette[side]==null||palette[side]==own)continue;
                 var edgePalette=new CrystalTier[6];edgePalette[side]=palette[side];var candidates=new ArrayList<Integer>();
@@ -116,11 +116,11 @@ public final class ManaCrystalModels {
                 candidates.sort(Integer::compare);if(candidates.isEmpty())continue;
                 int first=Math.floorMod(pos.asLong()^((long)side*0x9e3779b97f4a7c15L),candidates.size());
                 selected.put(candidates.get(first),palette[side]);
-                for(int n=1;n<candidates.size();n++){
+                int borrowed=1;
+                for(int n=1;n<candidates.size()&&borrowed<3;n++){
                     int id=candidates.get((first+n)%candidates.size());if(selected.containsKey(id))continue;
                     var b=bounds.get(id);var box=new CrystalFragmentColors.Bounds(b.x0,b.y0,b.z0,b.x1,b.y1,b.z1);
-                    if(CrystalFragmentColors.choose(own,edgePalette,box,pos.asLong()^((long)id*0x9e3779b97f4a7c15L))!=own)selected.put(id,palette[side]);
-                    break;
+                    if(borrowed<2||CrystalFragmentColors.choose(own,edgePalette,box,pos.asLong()^((long)id*0x9e3779b97f4a7c15L),.65)!=own){selected.put(id,palette[side]);borrowed++;}
                 }
             }
             return Map.copyOf(selected);
