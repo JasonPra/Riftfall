@@ -139,6 +139,23 @@ class CrystalGlowTest {
             }assertEquals(prisms.size(),reached.size(),"No isolated growths in large preset "+preset);
         }
     }
+    @Test void eachLargeFormationHasTwoSubstantialLeaningCompanionsWithinItsCells()throws Exception{
+        for(int preset=0;preset<6;preset++){
+            int count=0;var axes=new HashSet<String>();
+            for(int quarter=0;quarter<4;quarter++)for(var value:model("template_mega_"+preset+"_"+quarter).getAsJsonArray("elements")){
+                var e=value.getAsJsonObject();if(!e.has("rotation"))continue;
+                var r=e.getAsJsonObject("rotation");var origin=r.getAsJsonArray("origin");String axis=r.get("axis").getAsString();
+                if(e.get("shade").getAsBoolean()){count++;axes.add(axis);assertTrue(e.getAsJsonArray("to").get(0).getAsDouble()-e.getAsJsonArray("from").get(0).getAsDouble()>=6);}
+                assertEquals(22.5,Math.abs(r.get("angle").getAsDouble()));
+                for(int bits=0;bits<8;bits++){
+                    double[] p=new double[3];for(int a=0;a<3;a++)p[a]=e.getAsJsonArray((bits&(1<<a))==0?"from":"to").get(a).getAsDouble();
+                    int a=axis.equals("x")?1:0,b=axis.equals("x")?2:1;double x=p[a]-origin.get(a).getAsDouble(),y=p[b]-origin.get(b).getAsDouble(),angle=Math.toRadians(r.get("angle").getAsDouble());
+                    p[a]=origin.get(a).getAsDouble()+x*Math.cos(angle)-y*Math.sin(angle);p[b]=origin.get(b).getAsDouble()+x*Math.sin(angle)+y*Math.cos(angle);
+                    for(double coordinate:p)assertTrue(coordinate>=-1e-6&&coordinate<=16+1e-6,"Leaning shell/core must stay inside its cell");
+                }
+            }assertEquals(2,count);assertEquals(Set.of("x","z"),axes);
+        }
+    }
     private boolean continuesIn(int preset,int quarter,JsonObject prism)throws Exception{
         var id=prism.getAsJsonObject("faces").entrySet().iterator().next().getValue().getAsJsonObject().get("tintindex");
         for(var value:model("template_mega_"+preset+"_"+quarter).getAsJsonArray("elements")){

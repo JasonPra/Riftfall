@@ -189,6 +189,15 @@ for preset,prisms in enumerate(mega_presets):
      axis=0 if side in ('north','south') else 2
      face['uv']=[(lo[axis]-a[axis])/(b[axis]-a[axis])*16,0,(hi[axis]-a[axis])/(b[axis]-a[axis])*16,16]
    e['from']=[lo[0]-ox,lo[1],lo[2]-oz];e['to']=[hi[0]-ox,hi[1],hi[2]-oz];elements.append(e)
+  # Each leaning companion stays within its own cell, so its rotated facets
+  # never need to be cut or duplicated across the four-block seams.
+  selected=[preset%4,(preset+2)%4]
+  if quarter in selected:
+   first=quarter==selected[0];axis='z' if first else 'x'
+   angle=(-22.5 if quarter%2==0 else 22.5) if first else (22.5 if quarter//2==0 else -22.5)
+   lx=(4 if quarter%2==0 else 6.2) if first else 5
+   lean=column(lx+(preset%3)*.15,5.25,6.5,5.5,.94 if first else .88,16,axis,angle)
+   elements.extend(geometry(None,[lean],emit=False)['elements'])
   result=copy.deepcopy(full);result['elements']=elements;write(model_dir/f'template_mega_{preset}_{quarter}.json',result)
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
