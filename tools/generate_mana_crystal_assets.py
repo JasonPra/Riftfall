@@ -41,7 +41,7 @@ def box(a,b,matrix=False,edge=False):
 rotations={'up':{},'down':{'x':180},'north':{'x':90},'east':{'x':90,'y':90},'south':{'x':90,'y':180},'west':{'x':90,'y':270}}
 model_dir=Path('assets/riftfall/models/block/mana_crystals')
 part_id=1000
-def geometry(name,elements):
+def geometry(name,elements,emit=True):
  global part_id
  shells=[];cores=[]
  for element in elements:
@@ -64,7 +64,9 @@ def geometry(name,elements):
   for face in core['faces'].values():face['texture']='#core';face['tintindex']=part_id|(1048576 if edge else 0);face.pop('cullface',None)
   part_id+=1
   cores.append(core)
- write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':True,'textures':{'particle':'#crystal'},'elements':shells+cores})
+ result={'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':True,'textures':{'particle':'#crystal'},'elements':shells+cores}
+ if emit:write(model_dir/(name+'.json'),result)
+ return result
 def column(x,z,w,d,height,h,axis=None,angle=0):
  scale=.3+.7*h/16
  x+=w*(1-scale)/2;z+=d*(1-scale)/2;w*=scale;d*=scale
@@ -132,6 +134,40 @@ for corner in range(4):
     points.append((rx,rz))
   elements.append(box([min(x for x,z in points),a[1],min(z for x,z in points)],[max(x for x,z in points),b[1],max(z for x,z in points)]))
  geometry(f'template_junction_{corner}',elements)
+# One large blunt prism with smaller intergrown daughters spans four mature cells.
+# Split the continuous shell AND core after insetting, omitting all artificial cut faces.
+mega_presets=[
+ [([9,0,9],[23,16,23]),([4,0,13],[12,10,21]),([20,0,18],[28,7,26])],
+ [([8,0,11],[22,16,25]),([19,0,6],[28,12,16]),([5,0,19],[13,8,28])],
+ [([10,0,7],[25,16,22]),([4,0,12],[13,12,22]),([19,0,20],[27,9,28])],
+ [([7,0,8],[22,15,24]),([19,0,15],[28,16,24]),([6,0,21],[14,8,29])],
+ [([10,0,10],[25,16,25]),([3,0,9],[13,11,19]),([15,0,3],[24,8,13])],
+ [([8,0,8],[24,16,23]),([4,0,18],[14,13,28]),([21,0,5],[29,9,15])]
+]
+for preset,prisms in enumerate(mega_presets):
+ a,b=prisms[0];cx=(a[0]+b[0])/2;cz=(a[2]+b[2])/2;wx=(b[0]-a[0])*.4;wz=(b[2]-a[2])*.4
+ body=box([cx-wx,0,cz-wz],[cx+wx,13,cz+wz])
+ crown=box([cx-wx+.75,9,cz-wz+.75],[cx+wx-.75,b[1],cz+wz-.75])
+ full=geometry(None,[body,crown]+[box(a,b) for a,b in prisms[1:]],emit=False)
+ for quarter in range(4):
+  ox=(quarter%2)*16;oz=(quarter//2)*16;elements=[]
+  for source in full['elements']:
+   e=copy.deepcopy(source);a=source['from'];b=source['to'];lo=[max(a[0],ox),a[1],max(a[2],oz)];hi=[min(b[0],ox+16),b[1],min(b[2],oz+16)]
+   if any(lo[k]>=hi[k] for k in range(3)):continue
+   for side,axis,positive in [('west',0,False),('east',0,True),('north',2,False),('south',2,True)]:
+    if (hi[axis]<b[axis] if positive else lo[axis]>a[axis]):e['faces'].pop(side,None)
+   for side,face in e['faces'].items():
+    face.pop('cullface',None)
+    # Keep UV scale continuous across cell cuts, with the clearer texture at the tip.
+    if side in ('up','down'):
+     face['uv']=[(lo[0]-a[0])/(b[0]-a[0])*16,(lo[2]-a[2])/(b[2]-a[2])*16,(hi[0]-a[0])/(b[0]-a[0])*16,(hi[2]-a[2])/(b[2]-a[2])*16]
+     if side=='up' and face['texture']=='#large_crystal':face['uv'][1]=0;face['uv'][3]=1
+     if side=='down' and face['texture']=='#large_crystal':face['uv'][1]=15;face['uv'][3]=16
+    else:
+     axis=0 if side in ('north','south') else 2
+     face['uv']=[(lo[axis]-a[axis])/(b[axis]-a[axis])*16,0,(hi[axis]-a[axis])/(b[axis]-a[axis])*16,16]
+   e['from']=[lo[0]-ox,lo[1],lo[2]-oz];e['to']=[hi[0]-ox,hi[1],hi[2]-oz];elements.append(e)
+  result=copy.deepcopy(full);result['elements']=elements;write(model_dir/f'template_mega_{preset}_{quarter}.json',result)
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
@@ -139,6 +175,8 @@ for tier,color in COLORS.items():
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_core.png'),GLOW[tier],core=True)
  for corner in range(4):write(model_dir/f'{tier}_junction_{corner}.json',{'parent':f'riftfall:block/mana_crystals/template_junction_{corner}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core','large_crystal':f'riftfall:block/{tier}_mana_crystal_large'}})
+ for preset in range(6):
+  for quarter in range(4):write(model_dir/f'{tier}_mega_{preset}_{quarter}.json',{'parent':f'riftfall:block/mana_crystals/template_mega_{preset}_{quarter}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','core':f'riftfall:block/{tier}_mana_crystal_core','large_crystal':f'riftfall:block/{tier}_mana_crystal_large'}})
  variants={}
  for layer in range(1,9):
   models=[]

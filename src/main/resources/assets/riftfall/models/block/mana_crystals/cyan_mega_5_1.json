@@ -1,0 +1,9 @@
+{
+  "parent": "riftfall:block/mana_crystals/template_mega_5_1",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "crystal": "riftfall:block/cyan_mana_crystal",
+    "core": "riftfall:block/cyan_mana_crystal_core",
+    "large_crystal": "riftfall:block/cyan_mana_crystal_large"
+  }
+}

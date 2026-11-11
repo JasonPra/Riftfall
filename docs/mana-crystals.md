@@ -64,3 +64,7 @@ Body presets use explicit model variants; cached edge meshes are composed direct
 Shared-corner overlap cleanup also compares neighboring block meshes. A stable positional owner keeps each coplanar surface once, clipping duplicate regions from the other mesh. Temporary neighbor masks never render; color mixing and shared shapes are preserved without depth bias.
 
 Larger prisms (at least six pixels tall) use a separate shell texture with a gentle transparency increase over the upper 30% of their length. Side UVs span each prism so the fade follows its tip, including tilted and wall-mounted crystals; top facets sample the clearer tip and bases retain the original density. Small buds keep their smoky texture.
+
+## Large mature formations
+
+A 2×2 patch can visually combine only when all four crystals are fully grown, share the same tier and primary attachment face. Eligible patches have a stable 35% formation roll; overlapping candidates compete by deterministic priority so a block belongs to at most one large formation. Six larger, blunt intergrown silhouettes are available on floors, walls and ceilings. Their shell and glowing core are split continuously across the four cells without internal cut faces, retaining the clearer tips. The outside edge buds and mixing remain. Mining a member dissolves the formation; the four blocks retain their normal drops, collision, light and mana behavior. Nearby changes refresh the affected render sections, including across borders, with no extra block entities or group ticks.

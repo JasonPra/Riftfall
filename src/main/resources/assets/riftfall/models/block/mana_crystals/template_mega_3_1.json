@@ -1,0 +1,305 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "ambientocclusion": true,
+  "textures": {
+    "particle": "#crystal"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        9.6
+      ],
+      "to": [
+        4.5,
+        13,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#large_crystal",
+          "tintindex": 2048,
+          "uv": [
+            10.0,
+            0,
+            16.0,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#large_crystal",
+          "tintindex": 2048,
+          "uv": [
+            0.0,
+            0,
+            8.000000000000002,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#large_crystal",
+          "tintindex": 2048,
+          "uv": [
+            10.0,
+            0,
+            16.0,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#large_crystal",
+          "tintindex": 2048,
+          "uv": [
+            10.0,
+            15,
+            16.0,
+            16
+          ]
+        }
+      },
+      "shade": true
+    },
+    {
+      "from": [
+        0,
+        9,
+        10.35
+      ],
+      "to": [
+        3.75,
+        15,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#large_crystal",
+          "tintindex": 2049,
+          "uv": [
+            10.285714285714286,
+            0,
+            16.0,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#large_crystal",
+          "tintindex": 2049,
+          "uv": [
+            0.0,
+            0,
+            8.000000000000002,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#large_crystal",
+          "tintindex": 2049,
+          "uv": [
+            10.285714285714286,
+            0,
+            16.0,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#large_crystal",
+          "tintindex": 2049,
+          "uv": [
+            10.285714285714286,
+            15,
+            16.0,
+            16
+          ]
+        }
+      },
+      "shade": true
+    },
+    {
+      "from": [
+        3,
+        0,
+        15
+      ],
+      "to": [
+        12,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#large_crystal",
+          "tintindex": 2050,
+          "uv": [
+            0.0,
+            0,
+            16.0,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#large_crystal",
+          "tintindex": 2050,
+          "uv": [
+            0.0,
+            0,
+            1.7777777777777777,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#large_crystal",
+          "tintindex": 2050,
+          "uv": [
+            0.0,
+            0,
+            1.7777777777777777,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#large_crystal",
+          "tintindex": 2050,
+          "uv": [
+            0.0,
+            0,
+            16.0,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#large_crystal",
+          "tintindex": 2050,
+          "uv": [
+            0.0,
+            15,
+            16.0,
+            16
+          ]
+        }
+      },
+      "shade": true
+    },
+    {
+      "from": [
+        0,
+        4.55,
+        10.799999999999999
+      ],
+      "to": [
+        3.3000000000000007,
+        12.35,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#core",
+          "tintindex": 2048,
+          "uv": [
+            10.5,
+            0,
+            16.0,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#core",
+          "tintindex": 2048,
+          "uv": [
+            0.0,
+            0,
+            8.000000000000002,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#core",
+          "tintindex": 2048,
+          "uv": [
+            10.5,
+            0.0,
+            16.0,
+            8.000000000000002
+          ]
+        },
+        "down": {
+          "texture": "#core",
+          "tintindex": 2048,
+          "uv": [
+            10.5,
+            0.0,
+            16.0,
+            8.000000000000002
+          ]
+        }
+      },
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      }
+    },
+    {
+      "from": [
+        0,
+        11.1,
+        11.549999999999999
+      ],
+      "to": [
+        2.5500000000000007,
+        14.35,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#core",
+          "tintindex": 2049,
+          "uv": [
+            10.962962962962962,
+            0,
+            16.0,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#core",
+          "tintindex": 2049,
+          "uv": [
+            0.0,
+            0,
+            8.000000000000002,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#core",
+          "tintindex": 2049,
+          "uv": [
+            10.962962962962962,
+            0.0,
+            16.0,
+            8.000000000000002
+          ]
+        },
+        "down": {
+          "texture": "#core",
+          "tintindex": 2049,
+          "uv": [
+            10.962962962962962,
+            0.0,
+            16.0,
+            8.000000000000002
+          ]
+        }
+      },
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      }
+    }
+  ]
+}

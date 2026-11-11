@@ -106,5 +106,29 @@ class CrystalGlowTest {
             }
         }
     }
+    @Test void largeFormationQuartersHaveNoInternalCutFacesOrOutOfBoundsUvs()throws Exception{
+        var presets=new HashSet<String>();
+        for(int preset=0;preset<6;preset++){
+            var silhouette=new StringBuilder();
+            for(int quarter=0;quarter<4;quarter++){
+                var elements=model("template_mega_"+preset+"_"+quarter).getAsJsonArray("elements");assertFalse(elements.isEmpty());
+                for(var value:elements){var e=value.getAsJsonObject();var a=e.getAsJsonArray("from");var b=e.getAsJsonArray("to");
+                    for(int axis=0;axis<3;axis++){assertTrue(a.get(axis).getAsDouble()>=0);assertTrue(b.get(axis).getAsDouble()<=16);assertTrue(a.get(axis).getAsDouble()<b.get(axis).getAsDouble());}
+                    var faces=e.getAsJsonObject("faces");int u=quarter%2,v=quarter/2;
+                    if(u==0&&b.get(0).getAsDouble()==16&&continuesIn(preset,quarter^1,e))assertFalse(faces.has("east"));if(u==1&&a.get(0).getAsDouble()==0&&continuesIn(preset,quarter^1,e))assertFalse(faces.has("west"));
+                    if(v==0&&b.get(2).getAsDouble()==16&&continuesIn(preset,quarter^2,e))assertFalse(faces.has("south"));if(v==1&&a.get(2).getAsDouble()==0&&continuesIn(preset,quarter^2,e))assertFalse(faces.has("north"));
+                    for(var face:faces.entrySet())for(var coordinate:face.getValue().getAsJsonObject().getAsJsonArray("uv"))assertTrue(coordinate.getAsDouble()>=0&&coordinate.getAsDouble()<=16);
+                    if(e.get("shade").getAsBoolean())silhouette.append(a).append(b);
+                }
+            }presets.add(silhouette.toString());
+        }assertEquals(6,presets.size());
+    }
+    private boolean continuesIn(int preset,int quarter,JsonObject prism)throws Exception{
+        var id=prism.getAsJsonObject("faces").entrySet().iterator().next().getValue().getAsJsonObject().get("tintindex");
+        for(var value:model("template_mega_"+preset+"_"+quarter).getAsJsonArray("elements")){
+            var other=value.getAsJsonObject();if(!other.get("shade").equals(prism.get("shade")))continue;
+            for(var face:other.getAsJsonObject("faces").entrySet())if(face.getValue().getAsJsonObject().get("tintindex").equals(id))return true;
+        }return false;
+    }
     private double luminance(int rgb){return .2126*((rgb>>16)&255)+.7152*((rgb>>8)&255)+.0722*(rgb&255);}
 }

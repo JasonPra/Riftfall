@@ -12,7 +12,8 @@
     "EndermanCarriedBlockLayerMixin",
     "EndermanCarryParticlesMixin",
     "HeldItemDebugMixin",
-    "GeckoLibOutlineBufferMixin"
+    "GeckoLibOutlineBufferMixin",
+    "CrystalGroupUpdatesMixin"
   ],
   "injectors": {
     "defaultRequire": 1
