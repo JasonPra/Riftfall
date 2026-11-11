@@ -19,11 +19,11 @@ class CrystalGlowTest {
         }
     }
 
-    @Test void coreTexturesAreOpaqueBrightAndShellTexturesRemainTranslucent()throws Exception{
+    @Test void coreTexturesHaveSoftEmissionAndShellTexturesRemainCloudy()throws Exception{
         for(var tier:CrystalTier.values()){
             try(var a=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png");var b=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal_core.png")){
                 assertNotNull(a);assertNotNull(b);var shell=ImageIO.read(a);var core=ImageIO.read(b);double outer=0,inner=0;
-                for(int y=0;y<32;y++)for(int x=0;x<32;x++){int s=shell.getRGB(x,y),c=core.getRGB(x,y);assertTrue((s>>>24)>=165&&(s>>>24)<=225);assertEquals(255,c>>>24);outer+=luminance(s);inner+=luminance(c);}assertTrue(inner>outer,tier.toString());
+                for(int y=0;y<32;y++)for(int x=0;x<32;x++){int s=shell.getRGB(x,y),c=core.getRGB(x,y);assertTrue((s>>>24)>=205&&(s>>>24)<=250);assertTrue((c>>>24)>0&&(c>>>24)<200);outer+=luminance(s);inner+=luminance(c);}assertTrue(inner>outer*.65,tier.toString());assertTrue((core.getRGB(16,16)>>>24)>(core.getRGB(0,0)>>>24)+80,"Emission must fade towards facet edges");assertTrue((shell.getRGB(16,31)>>>24)>(shell.getRGB(16,0)>>>24),"Bases should be denser");
             }
             for(String suffix:List.of("_1","_8_wild","_8_join_0","_junction_0","_bridge"))assertEquals("riftfall:block/"+tier.id()+"_mana_crystal_core",model(tier.id()+suffix).getAsJsonObject("textures").get("core").getAsString());
         }

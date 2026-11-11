@@ -16,10 +16,15 @@ def texture(path,color,cut=False,core=False):
     factor=1.15 if x<10 or y<9 else .65 if x>22 or y>23 else .95
     alpha=255 if inside else 0
    elif core:
-    factor=.95+.035*math.sin(x*.9)+.025*math.cos(y*.65)+noise.uniform(-.015,.015);alpha=255
+    # Cloudy emission fades at the sprite edges instead of outlining an opaque insert.
+    cloud=.09*math.sin(x*.31+y*.19)+.06*math.cos(y*.37-x*.14)+noise.uniform(-.025,.025)
+    edge=max(0,min(1,min(x,y,31-x,31-y)/7))
+    factor=.77+cloud;alpha=round(35+130*edge+cloud*70)
    else:
-    cloud=.12*math.sin(x*.62+y*.27)+.08*math.sin(y*.81-x*.21)+noise.uniform(-.06,.06)
-    factor=.89+cloud+(.09 if x%11 in (2,3) else 0);alpha=max(165,min(225,round(198+cloud*80)))
+    cloud=.10*math.sin(x*.32+y*.19)+.07*math.sin(y*.41-x*.16)+noise.uniform(-.035,.035)
+    # Denser cloudy mineral towards the lower face, without bright facet stripes.
+    base=y/31
+    factor=.94+cloud;alpha=max(205,min(250,round(218+base*23+cloud*55)))
    for value in (r,g,b):raw.append(max(0,min(255,round(value*factor+12))))
    raw.append(alpha)
  def chunk(tag,data):return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
