@@ -20,8 +20,8 @@ public final class CrystalBedModel extends BakedModelWrapper<BakedModel> {
         super(model);
         for(int i=0;i<7;i++)buckets.add(model.getQuads(state,i==6?null:Direction.values()[i],RandomSource.create(seed),ModelData.EMPTY,null));
     }
-    /** Stretch only existing floor-bed vertices on connected outer edges; prisms keep their coordinates. */
-    public void extendFloorEdges(Map<Direction,Double> extensions){
+    /** Stretch only existing bed vertices on connected outer edges; prisms keep their coordinates. */
+    public void extendConnectedEdges(Map<Direction,Double> extensions){
         if(extensions.isEmpty())return;
         for(int bucket=0;bucket<7;bucket++){
             var output=new ArrayList<BakedQuad>();

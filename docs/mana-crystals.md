@@ -94,4 +94,6 @@ Same-facing prism faces that occupy the same plane are partitioned once during c
 
 ## Floor-to-wall corner seam
 
-Where a floor cluster connects diagonally down around a shared support block to a wall cluster, only the floor bed’s connected outer edge extends to the wall bed’s outer plane. The extension matches that wall surface’s actual root thickness (0.6–1.2 model pixels). This works north, east, south and west. Missing or unrelated wall crystals cause no extension; wall surfaces, unconnected edges, ceiling surfaces, prism coordinates, textures and UVs stay unchanged. This is a cached mesh adjustment, not a growth or collision-rule change.
+Where a floor cluster connects diagonally down around a shared support block to a wall cluster, only the floor bed’s connected outer edge extends to the wall bed’s outer plane. The extension matches that wall surface’s actual root thickness (0.6–1.2 model pixels). This works north, east, south and west. Missing or unrelated wall crystals cause no extension; the receiving wall surface, unconnected edges, ceiling surfaces, prism coordinates, textures and UVs stay unchanged. This is a cached mesh adjustment, not a growth or collision-rule change.
+
+Vertical convex wall corners use the same thickness-matched extension. North/south-facing beds extend only along connected east/west edges; the east/west wall remains unchanged. This fixed ownership covers all four vertical corner orientations without double extensions. Only bed edge vertices move; wall prisms, UVs and opacity stay unchanged.
