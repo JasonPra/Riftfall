@@ -56,7 +56,19 @@ Changing altitude does not change membership. Crossing the footprint boundary re
 | Middle | `riftfall:geyser_gold_middle` | More open jungle woodland, lakes and connected streams | Yellow |
 | Outer | `riftfall:geyser_red_outer` | Plains-like fringe with a rare jungle tree | Red |
 
-The biomes use vanilla jungle trees and existing flora/fauna as temporary content. Surface elevations are generally around Y 49–92, with gentle hills, valleys, irregular lake shores and a winding river route crossing every ring. River bends and widths vary with deterministic smooth noise. The old four-way crossing is replaced by a broad irregular junction lake; its continuous river has one inlet and one outlet. Other basins can be isolated or meet that same route, rather than adding crossing channels. There is no raised impact-crater rim. The terrain blends back into the surrounding landscape over the field's outer 192 blocks. These stark colors are diagnostic placeholders, subject to Minecraft's biome-color blending.
+The biomes use vanilla jungle trees and existing flora/fauna as temporary content. Surface elevations are generally around Y 49–92, with gentle hills, valleys, irregular lake shores and a winding river route crossing every ring. River bends and widths vary with deterministic smooth noise. The old four-way crossing is replaced by a broad irregular junction lake; its continuous river has one inlet and one outlet. Other basins can be isolated or meet that same route, rather than adding crossing channels. There is no raised impact-crater rim. The field's outer fringe now joins a separate 384-block vanilla-biome transition belt; the terrain grade extends outside the mana footprint rather than turning back into the original ocean inside the red fringe. These stark colors are diagnostic placeholders, subject to Minecraft's biome-color blending.
+
+## Vanilla transition belt and native river outlets
+
+Each ecosystem field has a landscape-only buffer extending up to 384 blocks outside its mana footprint. It is kept inside the field's placement cell and excluded from preserved legacy fields. It grants no shared mana, crystal deposits or custom cave network to those outside chunks.
+
+The BIOMES stage selects actual vanilla biome IDs at quart resolution. Inland transitions use plains followed by forest, sparse jungle, taiga, savanna or meadow according to the original surroundings. Ocean-facing transitions use land, beach (snowy where appropriate), shallow ocean and the matching ocean/deep-ocean family. Warm shallows can use `minecraft:warm_ocean`, including its normal reef decoration. Farther out, coherent patches give way to the original biome palette; below Y 32 the belt retains the original cave biomes. All transition biomes participate in feature sorting and ordinary decoration.
+
+Surface profiles grade smoothly into the original ground and seabed. Beaches receive sand, and the outermost terrain retains its original top material. Water uses the generator's native sea level (highest source-water block normally Y 62), matching the surrounding ocean instead of creating a raised water lip. Structure exclusion and generation-only plant checks include the reshaped belt, while custom cave excavation remains inside the mana field.
+
+For each north/south river exit, generation samples the original biome source and base-height functions beyond the buffer, searching nearby for an existing wet vanilla river or ocean. When one is available, a continuous connector shifts the channel toward that outlet and assigns river biomes along the inland section. It never loads surrounding chunks just to locate an outlet. If no wet native outlet is found within the bounded scan, the generator does not invent a river through arbitrary dry terrain beyond the buffer.
+
+Minecraft 1.21.1 does not provide a standalone river-network API. The field interior still uses its custom lake/river profile; the buffer now uses native biome/terrain information to connect it to the surrounding generation. Existing already-generated borders are not rewritten.
 
 ## Underground tunnel network
 

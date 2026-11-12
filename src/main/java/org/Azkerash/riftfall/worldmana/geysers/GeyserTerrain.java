@@ -78,16 +78,27 @@ public final class GeyserTerrain {
         var pos=new BlockPos.MutableBlockPos();var plan=new int[256];java.util.Arrays.fill(plan,Integer.MIN_VALUE);
         for(int x=cx*16;x<cx*16+16;x++)for(int z=cz*16;z<cz*16+16;z++){
             int oldFloor=world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z)-1,oldTop=world.getHeight(Heightmap.Types.WORLD_SURFACE_WG,x,z)-1;
-            double edge=Math.min(Math.min(x-(g.centerChunkX()-g.halfWidth())*16,(g.centerChunkX()+g.halfWidth()+1)*16-1-x),Math.min(z-(g.centerChunkZ()-g.halfWidth())*16,(g.centerChunkZ()+g.halfWidth()+1)*16-1-z));
-            double mix=Math.clamp(edge/192,0,1);mix=mix*mix*(3-2*mix);
-            if(mix==0)continue;
-            int floor=(int)Math.round(oldFloor*(1-mix)+height(seed,g,x,z)*mix);
-            int water=floor<63&&(mix>.95||oldTop>=63)?63:Integer.MIN_VALUE;
+            double distance=GeyserTransition.distance(g,x,z);
+            if(distance>=GeyserTransition.WIDTH)continue;
+            int sea=world.getSeaLevel(),waterTop=sea-1,custom=height(seed,g,x,z),floor=custom;
+            if(distance>0){
+                double t=GeyserTransition.progress(distance,x,z);
+                int inland=GeyserTransition.floor(GeyserTransition.Climate.TEMPERATE,t,custom,oldFloor,sea);
+                int coast=GeyserTransition.floor(GeyserTransition.Climate.SEA,t,custom,oldFloor,sea);
+                double ocean=Math.clamp((sea+10-oldFloor)/24.0,0,1);ocean=ocean*ocean*(3-2*ocean);
+                floor=(int)Math.round(inland+(coast-inland)*ocean);
+                floor=Math.min(floor,GeyserCoast.channelBed(world.getLevel(),g,x,z,floor));
+            }
+            var originalTop=world.getBlockState(new BlockPos(x,oldFloor,z));
+            var surfaceBiome=world.getBiome(new BlockPos(x,floor+1,z));
+            boolean sandy=surfaceBiome.is(net.minecraft.tags.BiomeTags.IS_BEACH)||surfaceBiome.is(net.minecraft.world.level.biome.Biomes.DESERT);
+            var dryTop=distance>GeyserTransition.WIDTH*.85?originalTop:sandy?Blocks.SAND.defaultBlockState():Blocks.GRASS_BLOCK.defaultBlockState();
+            int water=floor<waterTop?waterTop:Integer.MIN_VALUE;
             plan[(x&15)*16+(z&15)]=(floor<<1)|(water>floor?1:0);
             int top=Math.min(world.getMaxBuildHeight()-1,Math.max(Math.max(oldTop,floor+1),water));
             for(int y=Math.max(world.getMinBuildHeight()+5,Math.min(oldFloor,floor)-4);y<=top;y++){
                 pos.set(x,y,z);if(!natural(world.getBlockState(pos)))continue;
-                BlockState state=y>floor?(y<=water?Blocks.WATER:Blocks.AIR).defaultBlockState():water>floor&&y>=floor-3?sediment(seed,x,z,floor-y):y==floor?Blocks.GRASS_BLOCK.defaultBlockState():y>=floor-3?Blocks.DIRT.defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                BlockState state=y>floor?(y<=water?Blocks.WATER:Blocks.AIR).defaultBlockState():water>floor&&y>=floor-3?sediment(seed,x,z,floor-y):y==floor?dryTop:y>=floor-3?(sandy?Blocks.SAND:Blocks.DIRT).defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
                 world.setBlock(pos,state,2);
             }
         }
@@ -101,7 +112,7 @@ public final class GeyserTerrain {
         for(int x=0;x<16;x++)for(int z=0;z<16;z++){
             int value=plan[x*16+z];if(value==Integer.MIN_VALUE||(value&1)==0)continue;
             int floor=value>>1,wx=cx*16+x,wz=cz*16+z;
-            for(int y=Math.max(world.getMinBuildHeight()+5,floor-4);y<=63;y++){
+            for(int y=Math.max(world.getMinBuildHeight()+5,floor-4);y<world.getSeaLevel();y++){
                 pos.set(wx,y,wz);world.setBlock(pos,y>floor?Blocks.WATER.defaultBlockState():sediment(seed,wx,wz,floor-y),2);
             }
         }

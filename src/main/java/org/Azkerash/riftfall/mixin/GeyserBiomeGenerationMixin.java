@@ -18,14 +18,14 @@ public abstract class GeyserBiomeGenerationMixin {
     }
     @Inject(method="generateStructureStarts",at=@At("HEAD"),cancellable=true)
     private static void riftfall$excludeStructureStarts(WorldGenContext context,ChunkStep step,StaticCache2D<GenerationChunkHolder> cache,ChunkAccess chunk,CallbackInfoReturnable<CompletableFuture<ChunkAccess>> cir){
-        var cp=chunk.getPos();if(GeyserBiomes.field(context.level(),cp.x,cp.z)==null)return;
+        var cp=chunk.getPos();if(GeyserBiomes.landscapeField(context.level(),cp.x,cp.z)==null)return;
         context.level().onStructureStartsAvailable(chunk);
         cir.setReturnValue(CompletableFuture.completedFuture(chunk));
     }
     @Inject(method="generateSurface",at=@At("RETURN"),cancellable=true)
     private static void riftfall$shapeSurface(WorldGenContext context,ChunkStep step,StaticCache2D<GenerationChunkHolder> cache,ChunkAccess chunk,CallbackInfoReturnable<CompletableFuture<ChunkAccess>> cir){
         cir.setReturnValue(cir.getReturnValue().thenApply(result->{
-            var cp=result.getPos();var field=GeyserBiomes.field(context.level(),cp.x,cp.z);
+            var cp=result.getPos();var field=GeyserBiomes.landscapeField(context.level(),cp.x,cp.z);
             if(field!=null)GeyserTerrain.reshape(new net.minecraft.server.level.WorldGenRegion(context.level(),cache,step,result),field,GeyserLayout.mix(context.level().getSeed()^0x474559534552L),cp.x,cp.z);
             return result;
         }));
@@ -33,10 +33,10 @@ public abstract class GeyserBiomeGenerationMixin {
     @Inject(method="generateCarvers",at=@At("RETURN"),cancellable=true)
     private static void riftfall$carveNetwork(WorldGenContext context,ChunkStep step,StaticCache2D<GenerationChunkHolder> cache,ChunkAccess chunk,CallbackInfoReturnable<CompletableFuture<ChunkAccess>> cir){
         cir.setReturnValue(cir.getReturnValue().thenApply(result->{
-            var cp=result.getPos();if(GeyserBiomes.field(context.level(),cp.x,cp.z)==null)return result;
+            var cp=result.getPos();if(GeyserBiomes.landscapeField(context.level(),cp.x,cp.z)==null)return result;
             var world=new net.minecraft.server.level.WorldGenRegion(context.level(),cache,step,result);
             var feature=world.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.CONFIGURED_FEATURE).get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("riftfall","geyser_caves"));
-            feature.place(world,context.generator(),net.minecraft.util.RandomSource.create(GeyserLayout.mix(world.getSeed()^cp.toLong())),cp.getWorldPosition());
+            if(GeyserBiomes.field(context.level(),cp.x,cp.z)!=null)feature.place(world,context.generator(),net.minecraft.util.RandomSource.create(GeyserLayout.mix(world.getSeed()^cp.toLong())),cp.getWorldPosition());
             GeyserTerrain.sealWater(world,cp.x,cp.z,GeyserLayout.mix(world.getSeed()^0x474559534552L));
             return result;
         }));

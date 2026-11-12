@@ -14,7 +14,7 @@ public abstract class GeyserPlantPlacementMixin {
     private void riftfall$validGeyserPlants(BlockPos pos,BlockState state,int flags,int recursion,CallbackInfoReturnable<Boolean> cir){
         if(!GeyserPlantRules.plant(state))return;
         var world=(WorldGenRegion)(Object)this;
-        if(GeyserBiomes.field(world.getLevel(),pos.getX()>>4,pos.getZ()>>4)!=null&&!GeyserPlantRules.valid(world,pos,state))cir.setReturnValue(false);
+        if(GeyserBiomes.landscapeField(world.getLevel(),pos.getX()>>4,pos.getZ()>>4)!=null&&!GeyserPlantRules.valid(world,pos,state))cir.setReturnValue(false);
     }
     // Features often skip neighbor updates when replacing a supporting block or a tall plant's lower half.
     @Inject(method="setBlock",at=@At("RETURN"))
@@ -23,7 +23,7 @@ public abstract class GeyserPlantPlacementMixin {
         var world=(WorldGenRegion)(Object)this;
         if(!world.getChunk(pos).getPersistedStatus().isOrAfter(net.minecraft.world.level.chunk.status.ChunkStatus.CARVERS))return;
         var above=pos.above();var plant=world.getBlockState(above);
-        if(GeyserPlantRules.plant(plant)&&GeyserBiomes.field(world.getLevel(),pos.getX()>>4,pos.getZ()>>4)!=null&&!GeyserPlantRules.valid(world,above,plant))
+        if(GeyserPlantRules.plant(plant)&&GeyserBiomes.landscapeField(world.getLevel(),pos.getX()>>4,pos.getZ()>>4)!=null&&!GeyserPlantRules.valid(world,above,plant))
             world.setBlock(above,plant.getFluidState().createLegacyBlock(),2);
     }
 }

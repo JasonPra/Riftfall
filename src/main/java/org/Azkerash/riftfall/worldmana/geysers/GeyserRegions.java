@@ -20,6 +20,7 @@ public final class GeyserRegions extends SavedData {
         synchronized(level.getDataStorage()){return level.getDataStorage().computeIfAbsent(factory,"riftfall_geyser_regions");}
     }
     public GeyserLayout layout(){return layout;}
+    public synchronized boolean legacyAt(int x,int z){var g=legacyCells.get(cell(x,z,LEGACY_CELL));return g!=null&&g.contains(x,z);}
     public synchronized int size(){return discovered.size();}
     private static long cell(int x,int z,int size){return ChunkPos.asLong(Math.floorDiv(x,size),Math.floorDiv(z,size));}
     public synchronized Optional<GeyserRegion> candidate(int cellX,int cellZ){

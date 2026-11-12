@@ -14,6 +14,6 @@ import org.Azkerash.riftfall.worldmana.geysers.GeyserBiomes;
 public abstract class GeyserStructurePlacementMixin {
     @Inject(method="placeInChunk",at=@At("HEAD"),cancellable=true)
     private void riftfall$excludeGeyserPieces(WorldGenLevel world,StructureManager manager,ChunkGenerator generator,RandomSource random,BoundingBox bounds,ChunkPos chunk,CallbackInfo ci){
-        if(world instanceof net.minecraft.server.level.WorldGenRegion&&GeyserBiomes.field(world.getLevel(),chunk.x,chunk.z)!=null)ci.cancel();
+        if(world instanceof net.minecraft.server.level.WorldGenRegion&&GeyserBiomes.landscapeField(world.getLevel(),chunk.x,chunk.z)!=null)ci.cancel();
     }
 }
