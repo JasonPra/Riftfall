@@ -4,7 +4,9 @@
   "ambientocclusion": false,
   "textures": {
     "particle": "#crystal",
-    "bed": "#crystal"
+    "bed": "#crystal",
+    "tip": "#crystal",
+    "tip_cap": "#crystal"
   },
   "elements": [
     {

@@ -34,6 +34,8 @@ public final class ManaCrystalModels {
         var registry=event.getModels();
         var neutral=event.getTextureGetter().apply(new Material(TextureAtlas.LOCATION_BLOCKS,ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/white_mana_crystal")));
         var bedNeutral=event.getTextureGetter().apply(new Material(TextureAtlas.LOCATION_BLOCKS,ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/white_mana_crystal_bed")));
+        var tipNeutral=event.getTextureGetter().apply(new Material(TextureAtlas.LOCATION_BLOCKS,ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/white_mana_crystal_tip")));
+        var tipCapNeutral=event.getTextureGetter().apply(new Material(TextureAtlas.LOCATION_BLOCKS,ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"block/white_mana_crystal_tip_cap")));
         for(var tier:CrystalTier.values()){
             var block=ManaCrystals.block(tier);Surface[][][] parts=new Surface[6][8][16];
             for(var face:Direction.values())for(int layers=1;layers<=8;layers++)for(int joins=0;joins<16;joins++){
@@ -43,14 +45,14 @@ public final class ManaCrystalModels {
                 if(raw==null)throw new IllegalStateException("Missing mana crystal surface model: "+state);
                 parts[face.ordinal()][layers-1][joins]=new Surface(state,raw);
             }
-            var wrapper=new SurfaceModel(parts,neutral,bedNeutral);
+            var wrapper=new SurfaceModel(parts,neutral,bedNeutral,tipNeutral,tipCapNeutral);
             for(var state:block.getStateDefinition().getPossibleStates())registry.put(BlockModelShaper.stateToModelLocation(state),wrapper);
         }
     }
     private static final class SurfaceModel extends BakedModelWrapper<BakedModel> {
         private final Surface[][][] parts;
-        private final TextureAtlasSprite neutral,bedNeutral;
-        SurfaceModel(Surface[][][] parts,TextureAtlasSprite neutral,TextureAtlasSprite bedNeutral){super(parts[Direction.UP.ordinal()][0][0].model());this.parts=parts;this.neutral=neutral;this.bedNeutral=bedNeutral;}
+        private final TextureAtlasSprite neutral,bedNeutral,tipNeutral,tipCapNeutral;
+        SurfaceModel(Surface[][][] parts,TextureAtlasSprite neutral,TextureAtlasSprite bedNeutral,TextureAtlasSprite tipNeutral,TextureAtlasSprite tipCapNeutral){super(parts[Direction.UP.ordinal()][0][0].model());this.parts=parts;this.neutral=neutral;this.bedNeutral=bedNeutral;this.tipNeutral=tipNeutral;this.tipCapNeutral=tipCapNeutral;}
         @Override public ChunkRenderTypeSet getRenderTypes(BlockState state,RandomSource random,ModelData data){return ChunkRenderTypeSet.of(RenderType.solid(),RenderType.translucent());}
         @Override public ModelData getModelData(BlockAndTintGetter level,BlockPos pos,BlockState state,ModelData incoming){
             int mask=ManaCrystalBlock.surfaceMask(level,pos,state),layers=state.getValue(ManaCrystalBlock.LAYERS);var primary=state.getValue(ManaCrystalBlock.FACING);
@@ -125,7 +127,8 @@ public final class ManaCrystalModels {
         private static double distance(Direction side,double x,double y,double z){return switch(side){case DOWN->y;case UP->1-y;case NORTH->z;case SOUTH->1-z;case WEST->x;case EAST->1-x;};}
         private BakedQuad blend(BakedQuad quad,Surface part,Mesh mesh,CrystalTier[] colors){
             int[] vertices=quad.getVertices().clone();int stride=vertices.length/4;var sprite=quad.getSprite();
-            boolean bed=CrystalBedModel.isBed(quad);var targetSprite=bed?bedNeutral:neutral;
+            boolean bed=CrystalBedModel.isBed(quad);var texture=sprite.contents().name().getPath();
+            var targetSprite=bed?bedNeutral:texture.endsWith("_tip_cap")?tipCapNeutral:texture.endsWith("_tip")?tipNeutral:neutral;
             int prismColor=bed?0:CrystalPrismColor.choose(mesh.tier(),colors,mesh.bounds().get(part).get(quad.getTintIndex()),mesh.pos().asLong(),quad.getTintIndex()).color();
             for(int vertex=0;vertex<4;vertex++){
                 int offset=vertex*stride;double x=Float.intBitsToFloat(vertices[offset]),y=Float.intBitsToFloat(vertices[offset+1]),z=Float.intBitsToFloat(vertices[offset+2]);

@@ -87,3 +87,5 @@ Mother positions and adjacent mature-tier snapshots are saved for unloaded simul
 ## Stable seed-bed rendering
 
 Seed-bed/root faces render in the solid chunk pass with opaque smoky textures. Their RGB detail and smooth edge colors remain the same; the crystal prisms retain the existing translucent textures and pass. These disjoint passes prevent camera-dependent alpha sorting from changing which bed faces are visible. Coplanar bed cleanup still runs during chunk rebuilding.
+
+Larger crystal prisms fade to greater transparency over their terminal 30%, reaching about 58% of their previous opacity at the end. End caps match that terminal opacity. The lower body keeps its existing opacity, RGB texture detail is unchanged, and the fade follows local prism growth even on walls, ceilings and leaning columns. Mixed-color prisms retain the same fade. Seed beds remain opaque in the solid pass.

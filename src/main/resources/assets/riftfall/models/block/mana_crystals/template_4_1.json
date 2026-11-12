@@ -4,7 +4,9 @@
   "ambientocclusion": false,
   "textures": {
     "particle": "#crystal",
-    "bed": "#crystal"
+    "bed": "#crystal",
+    "tip": "#crystal",
+    "tip_cap": "#crystal"
   },
   "elements": [
     {
@@ -98,23 +100,47 @@
       ],
       "faces": {
         "north": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            5.5,
+            0,
+            10,
+            16
+          ],
           "tintindex": 137
         },
         "south": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            6,
+            0,
+            10.5,
+            16
+          ],
           "tintindex": 137
         },
         "east": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            5.5,
+            0,
+            10,
+            16
+          ],
           "tintindex": 137
         },
         "west": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            6,
+            0,
+            10.5,
+            16
+          ],
           "tintindex": 137
         },
         "up": {
-          "texture": "#crystal",
+          "texture": "#tip_cap",
           "tintindex": 137
         },
         "down": {
@@ -146,23 +172,47 @@
       ],
       "faces": {
         "north": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            4.5,
+            0,
+            8,
+            16
+          ],
           "tintindex": 138
         },
         "south": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            8,
+            0,
+            11.5,
+            16
+          ],
           "tintindex": 138
         },
         "east": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            8,
+            0,
+            12,
+            16
+          ],
           "tintindex": 138
         },
         "west": {
-          "texture": "#crystal",
+          "texture": "#tip",
+          "uv": [
+            4,
+            0,
+            8,
+            16
+          ],
           "tintindex": 138
         },
         "up": {
-          "texture": "#crystal",
+          "texture": "#tip_cap",
           "tintindex": 138
         },
         "down": {
