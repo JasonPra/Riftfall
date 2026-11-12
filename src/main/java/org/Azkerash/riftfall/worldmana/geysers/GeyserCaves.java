@@ -21,33 +21,35 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
         var world=context.level();var level=world.getLevel();
         if(!level.dimension().equals(net.minecraft.world.level.Level.OVERWORLD))return false;
         int cx=context.origin().getX()>>4,cz=context.origin().getZ()>>4;
-        GeyserRegion field;
-        // Saved legacy exclusions must also apply to generation workers.
-        synchronized(level.getDataStorage()){
-            var fields=GeyserRegions.get(level);
-            field=fields.candidate(Math.floorDiv(cx,GeyserLayout.CELL_CHUNKS),Math.floorDiv(cz,GeyserLayout.CELL_CHUNKS)).filter(g->g.contains(cx,cz)).orElse(null);
-        }
-        if(field==null||field.legacy())return false;
+        var field=GeyserBiomes.field(level,cx,cz);if(field==null)return false;
         long seed=GeyserLayout.mix(world.getSeed()^0x474559534552L);
+        GeyserTerrain.reshape(world,field,seed,cx,cz);
         var pos=new BlockPos.MutableBlockPos();boolean changed=false;
         int left=(field.centerChunkX()-field.halfWidth())*16,right=(field.centerChunkX()+field.halfWidth()+1)*16;
         int front=(field.centerChunkZ()-field.halfWidth())*16,back=(field.centerChunkZ()+field.halfWidth()+1)*16;
         for(int x=cx*16;x<cx*16+16;x++)for(int z=cz*16;z<cz*16+16;z++){
             // Taper route openings at the field boundary.
             double fade=Math.clamp(Math.min(Math.min(x-left,right-1-x),Math.min(z-front,back-1-z))/32.0,0,1);
-            var column=GeyserCaveShape.column(seed,x,z);
             int roof=world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z)-24;
+            var network=GeyserCaveShape.network(seed,x,z,roof);
             int bottom=Math.max(-59,world.getMinBuildHeight()+5);
-            for(int y=bottom;y<=roof;y++){
+            int surface=world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z);
+            int entranceTop=fade>=1?surface+3:roof;
+            for(int y=bottom;y<=entranceTop;y++){
                 pos.set(x,y,z);var state=world.getBlockState(pos);
                 boolean natural=state.is(BlockTags.BASE_STONE_OVERWORLD)||state.isAir()||state.is(Blocks.WATER)||state.is(Blocks.LAVA);
                 if(!natural)continue;
-                boolean carve=Math.abs(y+8)<=52*fade&&column.contains(y);
-                boolean stream=column.streamLevel()!=Integer.MIN_VALUE&&fade>=1&&y>=column.streamLevel()-1&&y<=column.streamLevel()+2;
+                boolean entrance=fade>=1&&GeyserTerrain.entrance(seed,field,x,y,z);
+                if(y>roof&&!entrance)continue;
+                boolean carve=(fade>=1&&network.contains(y))||entrance;
+                var streamLayer=network.stream(y);
+                var column=streamLayer==null?null:streamLayer.shape();
+                int streamLevel=streamLayer==null?Integer.MIN_VALUE:column.streamLevel()+streamLayer.offset();
+                boolean stream=column!=null&&fade>=1;
                 var replacement=(carve||stream)?Blocks.CAVE_AIR.defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
-                if(carve&&y<=column.floodLevel())replacement=Blocks.WATER.defaultBlockState();
-                if(stream&&(y==column.streamLevel()-1||column.streamBank()&&y<=column.streamLevel()+1))replacement=(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
-                if(stream&&!column.streamBank()&&y==column.streamLevel()){
+                if(carve&&network.water(y))replacement=Blocks.WATER.defaultBlockState();
+                if(stream&&(y==streamLevel-1||column.streamBank()&&y<=streamLevel+1))replacement=(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                if(stream&&!column.streamBank()&&y==streamLevel){
                     replacement=Blocks.WATER.defaultBlockState().setValue(net.minecraft.world.level.block.LiquidBlock.LEVEL,column.streamSource()?0:Math.min(7,1+Math.floorMod(x-58,128)));
                     world.scheduleTick(pos.immutable(),net.minecraft.world.level.material.Fluids.WATER,1);
                 }
@@ -55,13 +57,14 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
             }
             // Sparse accents, after excavation, only on genuine dry floor/ceiling contacts.
             long hash=GeyserLayout.mix(seed^x*731L^z*997L);
+            boolean lush=GeyserCaveShape.column(seed,x,z).lush();
             if(fade<1)continue;
             for(int y=bottom+1;y<roof;y++){
                 pos.set(x,y,z);if(!world.getBlockState(pos).is(Blocks.CAVE_AIR))continue;
                 var below=pos.below();var above=pos.above();
                 boolean floor=world.getBlockState(below).is(BlockTags.BASE_STONE_OVERWORLD);
                 boolean ceiling=world.getBlockState(above).is(BlockTags.BASE_STONE_OVERWORLD);
-                if(column.lush()){
+                if(lush){
                     if(floor&&(hash&7)!=7){world.setBlock(below,Blocks.MOSS_BLOCK.defaultBlockState(),2);
                         if((hash&15)==0)world.setBlock(pos,Blocks.AZALEA.defaultBlockState(),2);
                         else if((hash&7)==0)world.setBlock(pos,Blocks.MOSS_CARPET.defaultBlockState(),2);
@@ -74,6 +77,16 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
                     world.setBlock(pos,Blocks.POINTED_DRIPSTONE.defaultBlockState()
                         .setValue(net.minecraft.world.level.block.PointedDripstoneBlock.TIP_DIRECTION,direction),2);
                 }
+            }
+        }
+        // Jungle trees are temporary flora. The fringe gets only a rare tree; middle-ring forest is more open.
+        var zone=field.zone(cx,cz);
+        int extraTrees=zone==GeyserZone.MIDDLE?2:zone==GeyserZone.OUTER&&context.random().nextInt(20)==0?1:0;
+        if(extraTrees>0){
+            var trees=world.registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE).get(net.minecraft.resources.ResourceLocation.withDefaultNamespace("trees_jungle"));
+            for(int i=0;i<extraTrees&&trees!=null;i++){
+                int x=cx*16+context.random().nextInt(16),z=cz*16+context.random().nextInt(16);
+                trees.place(world,context.chunkGenerator(),context.random(),world.getHeightmapPos(Heightmap.Types.OCEAN_FLOOR_WG,new BlockPos(x,0,z)));
             }
         }
         return changed;

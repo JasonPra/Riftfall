@@ -45,6 +45,33 @@ public final class GeyserCaveShape {
         long habitat=GeyserLayout.mix(seed^Math.floorDiv(x,64)*731L^Math.floorDiv(z,64)*997L);
         return new Column(terms.toArray(double[][]::new),(habitat&3)==0,flood,stream,source,bank);
     }
+    public record Layer(Column shape,int offset){}
+    public record Network(java.util.List<Layer> layers,double[][] shafts){
+        public boolean contains(int y){
+            for(var layer:layers)if(layer.shape.contains(y-layer.offset))return true;
+            for(var shaft:shafts)if(y>=shaft[0]&&y<=shaft[1])return true;
+            return false;
+        }
+        public Layer stream(int y){
+            for(var layer:layers)if(layer.shape.streamLevel!=Integer.MIN_VALUE&&y>=layer.shape.streamLevel+layer.offset-1&&y<=layer.shape.streamLevel+layer.offset+2)return layer;
+            return null;
+        }
+        public boolean water(int y){
+            for(var layer:layers)if(layer.shape.contains(y-layer.offset)&&y-layer.offset<=layer.shape.floodLevel)return true;
+            return false;
+        }
+    }
+    /** Fill the available depth with separate networks, linked at selected junctions. */
+    public static Network network(long seed,int x,int z,int roof){
+        var layers=new java.util.ArrayList<Layer>();
+        for(int offset=-28;offset-18<=roof-8;offset+=28)layers.add(new Layer(column(seed^GeyserLayout.mix(offset+101L),x,z),offset));
+        var shafts=new java.util.ArrayList<double[]>();
+        int nx=Math.floorDiv(x-64+64,128),nz=Math.floorDiv(z-64+64,128);
+        long h=GeyserLayout.mix(seed^nx*731L^nz*997L);
+        if((h&3)==0&&square(x-(nx*128+64))+square(z-(nz*128+64))<12)
+            for(int i=1;i<layers.size();i++)shafts.add(new double[]{-24+layers.get(i-1).offset,-4+layers.get(i).offset});
+        return new Network(java.util.List.copyOf(layers),shafts.toArray(double[][]::new));
+    }
     public static boolean contains(long seed,int x,int y,int z){return column(seed,x,z).contains(y);}
     private GeyserCaveShape(){}
 }
