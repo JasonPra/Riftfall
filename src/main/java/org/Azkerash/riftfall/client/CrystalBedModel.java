@@ -20,6 +20,25 @@ public final class CrystalBedModel extends BakedModelWrapper<BakedModel> {
         super(model);
         for(int i=0;i<7;i++)buckets.add(model.getQuads(state,i==6?null:Direction.values()[i],RandomSource.create(seed),ModelData.EMPTY,null));
     }
+    /** Stretch only existing floor-bed vertices on connected outer edges; prisms keep their coordinates. */
+    public void extendFloorEdges(Map<Direction,Double> extensions){
+        if(extensions.isEmpty())return;
+        for(int bucket=0;bucket<7;bucket++){
+            var output=new ArrayList<BakedQuad>();
+            for(var quad:buckets.get(bucket)){
+                if(!isBed(quad)){output.add(quad);continue;}
+                var data=quad.getVertices().clone();int stride=data.length/4;boolean changed=false;
+                for(int vertex=0;vertex<4;vertex++)for(var edge:extensions.entrySet()){
+                    int axis=edge.getKey().getAxis().ordinal();boolean positive=edge.getKey().getStepX()+edge.getKey().getStepZ()>0;
+                    float coordinate=Float.intBitsToFloat(data[vertex*stride+axis]);double boundary=positive?1:0;
+                    if(Math.abs(coordinate-boundary)>EPS)continue;
+                    data[vertex*stride+axis]=Float.floatToRawIntBits((float)(coordinate+(positive?1:-1)*edge.getValue()));changed=true;
+                }
+                output.add(changed?new BakedQuad(data,quad.getTintIndex(),quad.getDirection(),quad.getSprite(),quad.isShade(),quad.hasAmbientOcclusion()):quad);
+            }
+            buckets.set(bucket,List.copyOf(output));
+        }
+    }
     public static void clean(List<CrystalBedModel> models){
         CrystalCoplanarFaces.clean(models.stream().map(m->m.buckets).toList());
         var occupied=new HashMap<Plane,List<Rect>>();

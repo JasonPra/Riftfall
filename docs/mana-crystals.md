@@ -91,3 +91,7 @@ Seed-bed/root faces render in the solid chunk pass with opaque smoky textures. T
 ## Coplanar prism overlap
 
 Same-facing prism faces that occupy the same plane are partitioned once during chunk mesh construction so each surface area has one stable owner. This includes tilted faces. Uncovered surface portions retain their original positions, texture coordinates and opacity. Distinct planes and opposite-facing surfaces remain unchanged. Crystal dimensions, placement, density rules, model assets and textures are unchanged.
+
+## Floor-to-wall corner seam
+
+Where a floor cluster connects diagonally down around a shared support block to a wall cluster, only the floor bed’s connected outer edge extends to the wall bed’s outer plane. The extension matches that wall surface’s actual root thickness (0.6–1.2 model pixels). This works north, east, south and west. Missing or unrelated wall crystals cause no extension; wall surfaces, unconnected edges, ceiling surfaces, prism coordinates, textures and UVs stay unchanged. This is a cached mesh adjustment, not a growth or collision-rule change.

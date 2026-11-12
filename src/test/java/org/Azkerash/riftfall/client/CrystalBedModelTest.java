@@ -63,6 +63,17 @@ class CrystalBedModelTest {
             assertEquals(1,quads(a).size());assertTrue(quads(b).isEmpty(),direction.toString());
         }
     }
+    @Test void floorCornerExtensionOnlyMovesConnectedBedEdgeAndPreservesPrismsAndUvs(){
+        var bed=top(0,0,1,1,.1f,65537,Direction.UP);var prism=top(0,0,1,1,.2f,17,Direction.UP);
+        var model=model(bed,prism);model.extendFloorEdges(Map.of(Direction.EAST,1.2/16));var after=quads(model);
+        assertSame(prism,after.get(1));
+        for(int v=0;v<4;v++){
+            var before=bed.getVertices();var data=after.getFirst().getVertices();float x=Float.intBitsToFloat(before[v*8]);
+            assertEquals(x==1?1.075:x,Float.intBitsToFloat(data[v*8]),1e-6);
+            for(int attribute=1;attribute<8;attribute++)assertEquals(before[v*8+attribute],data[v*8+attribute]);
+        }
+        var untouched=model(bed,prism);untouched.extendFloorEdges(Map.of());assertSame(bed,quads(untouched).getFirst());
+    }
     @Test void solidBedsAndTranslucentPrismsAreDisjointPasses(){
         var bed=top(0,0,1,1,.1f,65537,Direction.UP);var prism=top(0,0,1,1,.1f,17,Direction.UP);
         var all=List.of(bed,prism);

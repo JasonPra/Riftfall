@@ -67,6 +67,11 @@ public final class ManaCrystalModels {
             var beds=new ArrayList<CrystalBedModel>();
             for(int i=0;i<surfaces.size();i++){
                 var part=surfaces.get(i);var bed=new CrystalBedModel(part.model(),part.state(),state.getSeed(pos));
+                var extension=CrystalFloorCorner.extensions(part.state().getValue(ManaCrystalBlock.FACING),offset->{
+                    var adjacent=pos.offset(offset.x(),offset.y(),offset.z());var other=level.getBlockState(adjacent);
+                    return other.getBlock() instanceof ManaCrystalBlock?new CrystalFloorCorner.Wall(ManaCrystalBlock.surfaceMask(level,adjacent,other),other.getValue(ManaCrystalBlock.LAYERS),other.getValue(ManaCrystalBlock.FACING)):null;
+                });
+                bed.extendFloorEdges(extension);
                 beds.add(bed);surfaces.set(i,new Surface(part.state(),bed));
             }
             CrystalBedModel.clean(beds);
