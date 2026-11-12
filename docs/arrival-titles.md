@@ -1,6 +1,6 @@
 # Biome arrival titles
 
-Entering a biome displays its localized name in a large, warm-white serif title, with a soft fade and thin tapered horizontal rules inspired by Dark Souls area names. The bundled font is **EB Garamond**, licensed under the SIL Open Font License (included beside the font). This is an open-source Garamond rather than a bundled copy of Adobe's proprietary font. Unsupported characters fall back to Minecraft's default font.
+Entering a biome displays its localized name in a large, warm-white serif title, with a soft fade and thin tapered horizontal rules inspired by Dark Souls area names. A smooth, feathered light sweep reveals the complete lettering in 1.1 seconds, with pale-gold and icy-white four-point sparkles drifting up behind it. The sweep is continuous rather than a character-by-character typewriter effect. Stars expire after the initial reveal, leaving the name readable for the rest of its hold. The bundled font is **EB Garamond**, licensed under the SIL Open Font License (included beside the font). This is an open-source Garamond rather than a bundled copy of Adobe's proprietary font. Unsupported characters fall back to Minecraft's default font.
 
 All registered biomes are supported, including the mana-geyser rings and other mods' biomes. Names use normal `biome.<namespace>.<path>` translations and can be changed by resource packs. Untranslated biome IDs receive readable names. The display has its own HUD layer, leaving story/command titles alone, and hides with F1.
 
