@@ -57,10 +57,12 @@ Changing altitude does not change membership. Crossing the footprint boundary re
 
 | Zone | Biome identifier | Temporary ecology | Test grass/foliage color |
 | --- | --- | --- | --- |
-| Core | `riftfall:geyser_white_core` | Dense jungle foliage; some fields have a sheltered lake basin | White |
-| Inner | `riftfall:geyser_blue_inner` | Dense jungle canopy and occasional larger lakes | Blue |
-| Middle | `riftfall:geyser_gold_middle` | More open jungle woodland, lakes and connected streams | Yellow |
+| Manaheart Grove (core) | `riftfall:geyser_white_core` | Dense jungle foliage; some fields have a sheltered lake basin | White |
+| Ancient Wilds (inner) | `riftfall:geyser_blue_inner` | Dense jungle canopy and occasional larger lakes | Blue |
+| Elderwood Reach (middle) | `riftfall:geyser_gold_middle` | More open jungle woodland, lakes and connected streams | Yellow |
 | Verdant Frontier | `riftfall:geyser_red_outer` | Plains-like fringe with a rare jungle tree | Subtly blue-tinged plains green |
+
+These display names describe the planned ecosystems: a mana-rich core grove, an ancient inner forest, and more open woodland toward the Frontier. Saved biome identifiers remain unchanged. The names do not imply that the future trees, flora or terrain are already implemented.
 
 The biomes use vanilla jungle trees and existing flora/fauna as temporary content. Surface elevations are generally around Y 49–92, with gentle hills, valleys, irregular lake shores and a winding river route crossing every ring. River bends and widths vary with deterministic smooth noise. The old four-way crossing is replaced by a broad irregular junction lake; its continuous river has one inlet and one outlet. Other basins can be isolated or meet that same route, rather than adding crossing channels. There is no raised impact-crater rim. The field's outer fringe now joins a separate 384-block vanilla-biome transition belt; the terrain grade extends outside the mana footprint rather than turning back into the original ocean inside the red fringe. The core, inner and middle ring colors remain diagnostic placeholders; Verdant Frontier now uses plains-like greens. All are subject to Minecraft's biome-color blending.
 
