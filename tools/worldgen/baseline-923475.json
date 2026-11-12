@@ -1,0 +1,131 @@
+{
+  "seed": 923475,
+  "dimension": "minecraft:overworld",
+  "preset": "minecraft:normal",
+  "noiseSettings": "minecraft:overworld",
+  "baselineCommit": "872a8f1",
+  "minecraft": "1.21.1",
+  "neoforge": "21.1.265",
+  "samples": [
+    {
+      "case": "coast",
+      "x": -3649,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 64,
+      "oceanFloorWG": 64
+    },
+    {
+      "case": "coast",
+      "x": -3648,
+      "z": -4096,
+      "biome": "minecraft:beach",
+      "worldSurfaceWG": 64,
+      "oceanFloorWG": 64
+    },
+    {
+      "case": "coast",
+      "x": -3647,
+      "z": -4096,
+      "biome": "minecraft:beach",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 63
+    },
+    {
+      "case": "coast",
+      "x": -3633,
+      "z": -4096,
+      "biome": "minecraft:beach",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 61
+    },
+    {
+      "case": "coast",
+      "x": -3632,
+      "z": -4096,
+      "biome": "minecraft:beach",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 60
+    },
+    {
+      "case": "inland",
+      "x": -2753,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 92,
+      "oceanFloorWG": 92
+    },
+    {
+      "case": "inland",
+      "x": -2752,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 93,
+      "oceanFloorWG": 93
+    },
+    {
+      "case": "inland",
+      "x": -2751,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 93,
+      "oceanFloorWG": 93
+    },
+    {
+      "case": "inland",
+      "x": -2737,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 90,
+      "oceanFloorWG": 90
+    },
+    {
+      "case": "inland",
+      "x": -2736,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 89,
+      "oceanFloorWG": 89
+    },
+    {
+      "case": "river",
+      "x": -2625,
+      "z": -4096,
+      "biome": "minecraft:river",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 62
+    },
+    {
+      "case": "river",
+      "x": -2624,
+      "z": -4096,
+      "biome": "minecraft:river",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 62
+    },
+    {
+      "case": "river",
+      "x": -2623,
+      "z": -4096,
+      "biome": "minecraft:river",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 62
+    },
+    {
+      "case": "river",
+      "x": -2609,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 63
+    },
+    {
+      "case": "river",
+      "x": -2608,
+      "z": -4096,
+      "biome": "minecraft:plains",
+      "worldSurfaceWG": 63,
+      "oceanFloorWG": 63
+    }
+  ]
+}
