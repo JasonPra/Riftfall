@@ -14,7 +14,7 @@ import org.Azkerash.riftfall.Riftfall;
 /** Generation-only excavation, before crystal surveys; writes only the current chunk. */
 public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
     private static final DeferredRegister<Feature<?>> FEATURES=DeferredRegister.create(Registries.FEATURE,Riftfall.MODID);
-    static {FEATURES.register("geyser_caves",GeyserCaves::new);FEATURES.register("geyser_surface",GeyserSurfaceVegetation::new);FEATURES.register("goblin_camp",GoblinCampFeature::new);}
+    static {FEATURES.register("geyser_caves",GeyserCaves::new);FEATURES.register("geyser_surface",GeyserSurfaceVegetation::new);}
     public static void register(IEventBus bus){FEATURES.register(bus);GeyserSurfacePlan.register(bus);}
     private GeyserCaves(){super(NoneFeatureConfiguration.CODEC);}
     @Override public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context){

@@ -4,47 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
-import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
-/** Small generation-time camp, wholly contained in one chunk; goblins come only from its spawner. */
-public final class GoblinCampFeature extends Feature<NoneFeatureConfiguration> {
-    public GoblinCampFeature() { super(NoneFeatureConfiguration.CODEC); }
-    @Override public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
-        var world = context.level();
-        int cx = context.origin().getX() >> 4, cz = context.origin().getZ() >> 4;
-        var field = GeyserBiomes.field(world.getLevel(), cx, cz);
-        if (field == null || field.zone(cx, cz) != GeyserZone.OUTER
-            || !GoblinCampLayout.eligible(world.getSeed(), field)
-            || !GoblinCampLayout.candidate(world.getSeed(), cx, cz)) return false;
-        var center = new BlockPos(cx * 16 + 8, 0, cz * 16 + 8);
-        int floor = suitableFloor(world, center);
-        if (floor == Integer.MIN_VALUE) return false;
-        build(world, center.atY(floor + 1));
-        return true;
-    }
-    /** Validate the entire footprint before writing: dry, open, gently graded grassland. */
-    static int suitableFloor(WorldGenLevel world, BlockPos center) {
-        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-        for (int dx = -6; dx <= 6; dx++) for (int dz = -6; dz <= 5; dz++) {
-            var p = world.getHeightmapPos(Heightmap.Types.OCEAN_FLOOR_WG, center.offset(dx, 0, dz));
-            int floor = p.getY() - 1; min = Math.min(min, floor); max = Math.max(max, floor);
-            if (max - min > 1 || !world.getBiome(p).is(GeyserBiomes.key(GeyserZone.OUTER))
-                || !world.getBlockState(p.below()).is(BlockTags.DIRT)) return Integer.MIN_VALUE;
-            for (int dy = 0; dy <= 5; dy++) {
-                var state = world.getBlockState(p.above(dy));
-                if (!state.getFluidState().isEmpty() || state.is(BlockTags.LEAVES)
-                    || !(state.isAir() || state.canBeReplaced())) return Integer.MIN_VALUE;
-            }
-        }
-        return max;
-    }
+/** Shared camp block layout for the serialized structure piece. */
+final class GoblinCampBuilder {
     static void build(WorldGenLevel world, BlockPos origin) {
         // Level at most one block, never excavate a platform into a hillside or river.
         for (int dx = -6; dx <= 6; dx++) for (int dz = -6; dz <= 5; dz++) {
@@ -104,5 +69,6 @@ public final class GoblinCampFeature extends Feature<NoneFeatureConfiguration> {
         tag.put("SpawnPotentials", potentials);
         return tag;
     }
+    private GoblinCampBuilder() {}
     private static void put(WorldGenLevel world, BlockPos pos, Block block) { world.setBlock(pos, block.defaultBlockState(), 2); }
 }

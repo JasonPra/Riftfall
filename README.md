@@ -4,7 +4,7 @@ Minecraft **1.21.1 / NeoForge**, Java **21**. This branch implements goblin comb
 
 ## Goblins and combat
 
-Goblins have three roles, authored Epic Fight attacks, approximately 1.5-block height, animated faces, fear trembling, and equipment rendering. They spawn from goblin-camp spawners in some newly generated Verdant Frontier fringes, or through eggs and `/summon`. They are not in natural biome spawn pools. See [goblin camps](docs/goblin-camps.md).
+Goblins have three roles, authored Epic Fight attacks, approximately 1.5-block height, animated faces, fear trembling, and equipment rendering. They spawn from goblin-camp spawners in some newly generated Verdant Frontier fringes, or through eggs and `/summon`. They are not in natural biome spawn pools. Locate new camps with `/locate structure riftfall:goblin_camp`; see [goblin camps](docs/goblin-camps.md).
 
 | Role | Current abilities |
 | --- | --- |

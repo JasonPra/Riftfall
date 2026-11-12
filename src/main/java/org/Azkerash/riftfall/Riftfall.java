@@ -27,6 +27,7 @@ public class Riftfall {
         GoblinItems.register(bus);
         org.Azkerash.riftfall.worldmana.WorldMana.register(bus);
         org.Azkerash.riftfall.worldmana.geysers.GeyserCaves.register(bus);
+        org.Azkerash.riftfall.worldmana.geysers.GoblinCampStructures.register(bus);
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,org.Azkerash.riftfall.crystals.CrystalRules.SPEC,"riftfall-crystals-server.toml");
         bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Loading e)->org.Azkerash.riftfall.crystals.CrystalRules.loaded(e));
         bus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Reloading e)->org.Azkerash.riftfall.crystals.CrystalRules.loaded(e));

@@ -19,6 +19,7 @@ public abstract class GeyserBiomeGenerationMixin {
     @Inject(method="generateStructureStarts",at=@At("HEAD"),cancellable=true)
     private static void riftfall$excludeStructureStarts(WorldGenContext context,ChunkStep step,StaticCache2D<GenerationChunkHolder> cache,ChunkAccess chunk,CallbackInfoReturnable<CompletableFuture<ChunkAccess>> cir){
         var cp=chunk.getPos();if(GeyserBiomes.landscapeField(context.level(),cp.x,cp.z)==null)return;
+        GoblinCampStructure.generateStart(context.level(),context.generator(),chunk);
         context.level().onStructureStartsAvailable(chunk);
         cir.setReturnValue(CompletableFuture.completedFuture(chunk));
     }
