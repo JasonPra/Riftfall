@@ -12,23 +12,26 @@ class GeyserLandscapeTest {
         }
         assertTrue(min<63);assertTrue(max>75);assertTrue(entrances>0&&entrances<100);
         for(int z=-1400;z<1400;z++){
-            int x=(int)Math.round(g.centerX()+75*Math.sin((z-g.centerZ())/210)+17*Math.sin((z-g.centerZ())/71));
+            int x=(int)Math.round(GeyserTerrain.riverCenter(g,z));
             assertTrue(GeyserTerrain.height(42,g,x,z)<63,"Broken cross-ring river");
         }
     }
-    @Test void networksOccupySeveralDepthsAndHaveVerticalLinks(){
-        int links=0;
-        for(int cell=0;cell<32;cell++){
-            int x=cell*128+64,z=64;var network=GeyserCaveShape.network(42,x,z,44);
-            assertTrue(network.layers().size()>=3);
-            for(var layer:network.layers()){
-                boolean open=false;for(int y=-24+layer.offset();y<=layer.offset();y++)open|=network.contains(y);
-                assertTrue(open);
-            }
-            if(network.shafts().length>0){links++;for(int y=-50;y<=24;y++)assertTrue(network.contains(y));}
+    @Test void junctionLakeHasOnlyTwoConnectedChannelExits(){
+        var g=new GeyserRegion(0,0,193,1000);int centerZ=(int)GeyserTerrain.junctionZ(g),centerX=(int)GeyserTerrain.riverCenter(g,centerZ);
+        int radius=288,step=4,n=radius*2/step+1;boolean[][] wet=new boolean[n][n],seen=new boolean[n][n];
+        for(int x=0;x<n;x++)for(int z=0;z<n;z++)wet[x][z]=GeyserTerrain.height(42,g,centerX-radius+x*step,centerZ-radius+z*step)<63;
+        var queue=new java.util.ArrayDeque<int[]>();queue.add(new int[]{n/2,n/2});
+        while(!queue.isEmpty()){
+            var p=queue.removeFirst();int x=p[0],z=p[1];if(x<0||z<0||x>=n||z>=n||seen[x][z]||!wet[x][z])continue;
+            seen[x][z]=true;queue.add(new int[]{x-1,z});queue.add(new int[]{x+1,z});queue.add(new int[]{x,z-1});queue.add(new int[]{x,z+1});
         }
-        assertTrue(links>0);
-        assertTrue(GeyserCaveShape.network(42,64,64,130).layers().size()>5);
+        var edge=new java.util.ArrayList<Boolean>();
+        for(int x=0;x<n;x++)edge.add(seen[x][0]);for(int z=1;z<n;z++)edge.add(seen[n-1][z]);
+        for(int x=n-2;x>=0;x--)edge.add(seen[x][n-1]);for(int z=n-2;z>0;z--)edge.add(seen[0][z]);
+        int exits=0;for(int i=0;i<edge.size();i++)if(edge.get(i)&&!edge.get((i+edge.size()-1)%edge.size()))exits++;
+        assertEquals(2,exits);assertTrue(GeyserTerrain.height(42,g,centerX,centerZ)<55);
+        double min=100,max=0;for(int z=-1400;z<1400;z+=8){double w=GeyserTerrain.riverWidth(g,z);min=Math.min(min,w);max=Math.max(max,w);}
+        assertTrue(max-min>5);
     }
     @Test void eachRingHasADifferentRealBiomeKey(){
         var keys=new java.util.HashSet<>();

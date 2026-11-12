@@ -3,26 +3,37 @@ package org.Azkerash.riftfall.worldmana.geysers;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class GeyserCaveShapeTest {
-    private boolean opening(long seed,int x,int z){for(int y=-54;y<=30;y++)if(GeyserCaveShape.contains(seed,x,y,z))return true;return false;}
-    @Test void windingTunnelsConnectAcrossEveryRingAndNegativeChunkBoundaries(){
-        for(long seed:new long[]{1,42,-781})for(int axis=0;axis<2;axis++)for(int coordinate=-2200;coordinate<=2200;coordinate++){
-            double t=Math.floorMod(coordinate-64,128)/128.0;
-            int bend=(int)Math.round(12*Math.sin(t*Math.PI*2));
-            assertTrue(opening(seed,axis==0?coordinate:64-bend,axis==0?64+bend:coordinate),"Disconnected winding route at "+coordinate);
+    @Test void junctionsVaryInElevationAndSizeInsteadOfRepeatingAFloorPlan(){
+        var heights=new java.util.HashSet<Double>();int narrow=0,broad=0,dry=0;
+        for(int cell=-12;cell<12;cell++){
+            var n=GeyserCaveShape.node(42,cell,0,0);heights.add(n.y());int width=0;
+            for(int dx=-36;dx<=36;dx++)if(GeyserCaveShape.network(42,(int)n.x()+dx,(int)n.z(),80).contains((int)n.y()))width++;
+            assertTrue(GeyserCaveShape.network(42,(int)n.x(),(int)n.z(),80).contains((int)n.y()));
+            if(width<16)narrow++;if(width>30)broad++;
+            if(!GeyserCaveShape.network(42,(int)n.x(),(int)n.z(),80).water((int)n.y()))dry++;
         }
+        assertTrue(heights.size()>12);assertTrue(narrow>0&&broad>0&&dry>0);
     }
-    @Test void modestChambersAreOccasionalAndHabitatsIncludeWaterAndLushSegments(){
-        boolean wet=false,lush=false,river=false,shaft=false;int chambers=0;
-        for(int cell=0;cell<64;cell++){
-            int x=cell*128+64,z=64,top=-100,bottom=100;
-            var column=GeyserCaveShape.column(42,x,z);
-            for(int y=-55;y<=30;y++)if(column.contains(y)){top=Math.max(top,y);bottom=Math.min(bottom,y);}
-            assertTrue(top-bottom<50);if(top-bottom>=15)chambers++;
-            wet|=column.floodLevel()!=Integer.MIN_VALUE;lush|=column.lush();
-            river|=column.streamLevel()!=Integer.MIN_VALUE;shaft|=bottom< -45;
-            assertFalse(GeyserCaveShape.contains(42,x,-60,z));assertFalse(GeyserCaveShape.contains(42,x,60,z));
-            assertFalse(opening(42,x+64,z+64));
+    @Test void someShaftsAreFloodedEvenAboveTheDeepWaterTable(){
+        int flooded=0,dry=0;
+        for(int x=-16;x<16;x++)for(int z=0;z<4;z++){
+            var low=GeyserCaveShape.node(42,x,-1,z);if((low.hash()&3072)!=0)continue;
+            var high=GeyserCaveShape.node(42,x,0,z);
+            var cave=GeyserCaveShape.network(42,(int)high.x(),(int)high.z(),100);
+            assertTrue(cave.contains((int)high.y()));
+            if((low.hash()&16384)==0){assertTrue(cave.water((int)high.y()));flooded++;}
+            else if(!cave.water((int)high.y()))dry++;
         }
-        assertTrue(chambers>0&&chambers<32);assertTrue(wet&&lush&&river&&shaft);
+        assertTrue(flooded>0&&dry>0);
+    }
+    @Test void cachedAndUncachedQueriesAgreeAcrossNegativeChunkEdges(){
+        for(int x:new int[]{-113,-112,-17,-16,-1,0,15,16,111,112}){
+            var first=GeyserCaveShape.network(73,x,-17,58);boolean[] before=new boolean[118];
+            for(int y=-59;y<59;y++)before[y+59]=first.contains(y);
+            for(int k=0;k<8;k++)GeyserCaveShape.network(73,x+256*k,900,100);
+            var again=GeyserCaveShape.network(73,x,-17,58);
+            for(int y=-59;y<59;y++)assertEquals(before[y+59],again.contains(y));
+            assertFalse(again.contains(-60));assertFalse(again.contains(59));
+        }
     }
 }

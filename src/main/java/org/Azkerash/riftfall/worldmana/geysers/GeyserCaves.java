@@ -15,7 +15,7 @@ import org.Azkerash.riftfall.Riftfall;
 public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
     private static final DeferredRegister<Feature<?>> FEATURES=DeferredRegister.create(Registries.FEATURE,Riftfall.MODID);
     static {FEATURES.register("geyser_caves",GeyserCaves::new);FEATURES.register("geyser_surface",GeyserSurfaceVegetation::new);}
-    public static void register(IEventBus bus){FEATURES.register(bus);}
+    public static void register(IEventBus bus){FEATURES.register(bus);GeyserSurfacePlan.register(bus);}
     private GeyserCaves(){super(NoneFeatureConfiguration.CODEC);}
     @Override public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context){
         var world=context.level();var level=world.getLevel();
@@ -24,34 +24,29 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
         var field=GeyserBiomes.field(level,cx,cz);if(field==null)return false;
         long seed=GeyserLayout.mix(world.getSeed()^0x474559534552L);
         var pos=new BlockPos.MutableBlockPos();boolean changed=false;
+        var plan=world.getChunk(cx,cz).getExistingDataOrNull(GeyserSurfacePlan.PLAN);
         int left=(field.centerChunkX()-field.halfWidth())*16,right=(field.centerChunkX()+field.halfWidth()+1)*16;
         int front=(field.centerChunkZ()-field.halfWidth())*16,back=(field.centerChunkZ()+field.halfWidth()+1)*16;
         for(int x=cx*16;x<cx*16+16;x++)for(int z=cz*16;z<cz*16+16;z++){
             // Taper route openings at the field boundary.
             double fade=Math.clamp(Math.min(Math.min(x-left,right-1-x),Math.min(z-front,back-1-z))/32.0,0,1);
-            int roof=world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z)-24;
+            int planned=plan!=null&&plan.length==256?plan[(x&15)*16+(z&15)]:Integer.MIN_VALUE;
+            int surface=planned==Integer.MIN_VALUE?world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z):(planned>>1)+1;
+            int roof=surface-24;
             var network=GeyserCaveShape.network(seed,x,z,roof);
             int bottom=Math.max(-59,world.getMinBuildHeight()+5);
-            int surface=world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z);
-            int entranceTop=fade>=1?surface+3:roof;
+            var entry=fade>=1?GeyserTerrain.entranceColumn(seed,field,x,z):null;
+            int entranceTop=entry!=null?surface+3:roof;
             for(int y=bottom;y<=entranceTop;y++){
                 pos.set(x,y,z);var state=world.getBlockState(pos);
                 boolean natural=state.is(BlockTags.BASE_STONE_OVERWORLD)||state.isAir()||state.is(Blocks.WATER)||state.is(Blocks.LAVA);
                 if(!natural)continue;
-                boolean entrance=fade>=1&&GeyserTerrain.entrance(seed,field,x,y,z);
+                boolean entrance=entry!=null&&entry.contains(y);
                 if(y>roof&&!entrance)continue;
                 boolean carve=(fade>=1&&network.contains(y))||entrance;
-                var streamLayer=network.stream(y);
-                var column=streamLayer==null?null:streamLayer.shape();
-                int streamLevel=streamLayer==null?Integer.MIN_VALUE:column.streamLevel()+streamLayer.offset();
-                boolean stream=column!=null&&fade>=1;
-                var replacement=(carve||stream)?Blocks.CAVE_AIR.defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
-                if(carve&&network.water(y))replacement=Blocks.WATER.defaultBlockState();
-                if(stream&&(y==streamLevel-1||column.streamBank()&&y<=streamLevel+1))replacement=(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
-                if(stream&&!column.streamBank()&&y==streamLevel){
-                    replacement=Blocks.WATER.defaultBlockState().setValue(net.minecraft.world.level.block.LiquidBlock.LEVEL,column.streamSource()?0:Math.min(7,1+Math.floorMod(x-58,128)));
-                    world.scheduleTick(pos.immutable(),net.minecraft.world.level.material.Fluids.WATER,1);
-                }
+                boolean wet=carve&&network.water(y);
+                var replacement=carve?(wet?Blocks.WATER:Blocks.CAVE_AIR).defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                if(wet&&(y&7)==0)world.scheduleTick(pos.immutable(),net.minecraft.world.level.material.Fluids.WATER,1);
                 if(!replacement.equals(state)){world.setBlock(pos,replacement,2);changed=true;}
             }
             // Sparse accents, after excavation, only on genuine dry floor/ceiling contacts.
