@@ -3,6 +3,8 @@ package org.Azkerash.riftfall.client.titles;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -16,6 +18,8 @@ import org.Azkerash.riftfall.Riftfall;
 @EventBusSubscriber(modid = Riftfall.MODID, value = Dist.CLIENT)
 public final class ArrivalTitles {
     private static final ArrivalTracker TRACKER = new ArrivalTracker();
+    private static final SoundEvent DISCOVERY = SoundEvent.createVariableRangeEvent(
+        ResourceLocation.fromNamespaceAndPath(Riftfall.MODID, "biome_discovery"));
     private static final ResourceLocation FONT = ResourceLocation.fromNamespaceAndPath(Riftfall.MODID, "area_title");
     private static final int FADE_IN = 20, HOLD = 60, FADE_OUT = 30, DURATION = FADE_IN + HOLD + FADE_OUT;
     private static Component title;
@@ -42,6 +46,7 @@ public final class ArrivalTitles {
         title = (I18n.exists(key) ? Component.translatable(key) : Component.literal(readable(id.getPath())))
             .withStyle(Style.EMPTY.withFont(FONT));
         age = 0;
+        mc.getSoundManager().play(SimpleSoundInstance.forUI(DISCOVERY, 1F, .45F));
     }
 
     private static String readable(String path) {

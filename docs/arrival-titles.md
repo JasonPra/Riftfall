@@ -4,6 +4,6 @@ Entering a biome displays its localized name in a large, warm-white serif title,
 
 All registered biomes are supported, including the mana-geyser rings and other mods' biomes. Names use normal `biome.<namespace>.<path>` translations and can be changed by resource packs. Untranslated biome IDs receive readable names. The display has its own HUD layer, leaving story/command titles alone, and hides with F1.
 
-A biome must remain current for 30 client ticks before being announced; at least 200 ticks separate announcements. Brief boundary crossings do not queue stale titles. Names fade in over 20 ticks, hold for 60, and fade out over 30. Disconnecting or changing dimension resets biome tracking; pausing singleplayer pauses the display. No dimension titles, sounds, or commands are added.
+A biome must remain current for 30 client ticks before being announced; at least 200 ticks separate announcements. Brief boundary crossings do not queue stale titles. Names fade in over 20 ticks, hold for 60, and fade out over 30. Disconnecting or changing dimension resets biome tracking; pausing singleplayer pauses the display. Each announced biome plays the supplied mystical chime locally as `riftfall:biome_discovery` (`sounds/ui/biome_discovery.ogg`), at 45% volume through the master sound channel. The title cooldown also prevents sound spam at borders. No dimension titles or commands are added.
 
 Disable locally with `enabled = false` in `config/riftfall-titles-client.toml`. No server setup or additional mod dependency is needed.
