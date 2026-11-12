@@ -59,45 +59,6 @@ class CrystalTest {
             }
         }
     }
-    @Test void generatedBedsOmitStoneFacingBacksAndNeverUseMissingTextures()throws Exception{
-        for(int layer=1;layer<=8;layer++)for(String suffix:List.of("0","1","join_0","join_1","join_2","join_3")){
-            var elements=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_"+suffix+".json").getAsJsonArray("elements");
-            for(var value:elements){var faces=value.getAsJsonObject().getAsJsonObject("faces");
-                for(var face:faces.entrySet()){
-                    var data=face.getValue().getAsJsonObject();if((data.get("tintindex").getAsInt()&65536)==0)continue;
-                    assertNotEquals("down",face.getKey());assertFalse(data.has("cullface"));assertEquals("#bed",data.get("texture").getAsString());
-                }
-            }
-        }
-    }
-    @Test void largeCrystalTipFadeChangesOnlyUpperAlphaAndPreservesRgb()throws Exception{
-        for(var tier:CrystalTier.values())try(var original=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png");var side=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal_tip.png");var cap=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal_tip_cap.png")){
-            assertNotNull(side);assertNotNull(cap);var a=ImageIO.read(original);var b=ImageIO.read(side);var c=ImageIO.read(cap);
-            for(int y=0;y<32;y++)for(int x=0;x<32;x++){
-                int base=a.getRGB(x,y),tip=b.getRGB(x,y),end=c.getRGB(x,y);
-                assertEquals(base&0xffffff,tip&0xffffff);assertEquals(base&0xffffff,end&0xffffff);
-                assertTrue((tip>>>24)<=(base>>>24));assertTrue((end>>>24)<(base>>>24));
-                if(y>=10)assertEquals(base,tip,"Lower body must keep its original opacity");
-                if(y==0)assertEquals(end>>>24,tip>>>24,"End cap and terminal side opacity must match");
-            }
-        }
-    }
-    @Test void tipUvFadeIsLimitedToLargerPrismsAndFollowsTheirLocalGrowthAxis()throws Exception{
-        for(int layer=1;layer<=8;layer++)for(int variant=0;variant<2;variant++){
-            int faded=0;
-            for(var value:json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_"+variant+".json").getAsJsonArray("elements")){
-                var element=value.getAsJsonObject();var faces=element.getAsJsonObject("faces");
-                if(!faces.has("up")||!faces.getAsJsonObject("up").get("texture").getAsString().equals("#tip_cap"))continue;
-                faded++;assertTrue(layer>=4);assertTrue(element.getAsJsonArray("to").get(1).getAsDouble()-element.getAsJsonArray("from").get(1).getAsDouble()>=5);
-                assertEquals("#crystal",faces.getAsJsonObject("down").get("texture").getAsString());
-                for(String name:List.of("north","south","east","west")){
-                    var face=faces.getAsJsonObject(name);assertEquals("#tip",face.get("texture").getAsString());
-                    assertEquals(0,face.getAsJsonArray("uv").get(1).getAsDouble());assertEquals(16,face.getAsJsonArray("uv").get(3).getAsDouble());
-                }
-            }
-            if(layer==8)assertTrue(faded>=2);if(layer<=3)assertEquals(0,faded);
-        }
-    }
     @Test void multipartModelsSelectRealNeighborConnectionsOnEveryAttachmentFace()throws Exception{
         for(var tier:CrystalTier.values()){
             var parts=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart");assertEquals(240,parts.size());

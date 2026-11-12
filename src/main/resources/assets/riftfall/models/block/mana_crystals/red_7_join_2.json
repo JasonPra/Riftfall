@@ -3,8 +3,6 @@
   "render_type": "minecraft:translucent",
   "textures": {
     "crystal": "riftfall:block/red_mana_crystal",
-    "bed": "riftfall:block/red_mana_crystal_bed",
-    "tip": "riftfall:block/red_mana_crystal_tip",
-    "tip_cap": "riftfall:block/red_mana_crystal_tip_cap"
+    "bed": "riftfall:block/red_mana_crystal_bed"
   }
 }

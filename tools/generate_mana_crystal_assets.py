@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]/'src/main/resources'
 COLORS={'red':0xB94D57,'orange':0xCB8450,'yellow':0xD0BB67,'green':0x619A72,'cyan':0x65A8B4,'blue':0x526FAE,'violet':0x8A64AD,'white':0xD8DFE8}
 def write(path,data):
  p=ROOT/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(data,indent=2)+'\n')
-def texture(path,color,cut=False,opaque=False,tip=False,cap=False):
+def texture(path,color,cut=False,opaque=False):
  r,g,b=(color>>16)&255,(color>>8)&255,color&255;noise=random.Random(41);raw=bytearray()
  for y in range(32):
   raw.append(0)
@@ -17,10 +17,6 @@ def texture(path,color,cut=False,opaque=False,tip=False,cap=False):
    else:
     cloud=.12*math.sin(x*.62+y*.27)+.08*math.sin(y*.81-x*.21)+noise.uniform(-.06,.06)
     factor=.89+cloud+(.09 if x%11 in (2,3) else 0);alpha=max(165,min(225,round(198+cloud*80)))
-   if tip:
-    fade=max(0,min(1,(.30-y/31)/.30));fade=fade*fade*(3-2*fade)
-    alpha=round(alpha*(1-.42*fade))
-   if cap:alpha=round(alpha*.58)
    if opaque:alpha=255
    for value in (r,g,b):raw.append(max(0,min(255,round(value*factor+12))))
    raw.append(alpha)
@@ -36,50 +32,21 @@ def box(a,b):
 # varied lengths and lean, and broad roots only where an actual neighboring cluster exists.
 rotations={'up':{},'down':{'x':180},'north':{'x':90},'east':{'x':90,'y':90},'south':{'x':90,'y':180},'west':{'x':90,'y':270}}
 model_dir=Path('assets/riftfall/models/block/mana_crystals')
-def subtract_rect(a,b):
- x0,y0,x1,y1=max(a[0],b[0]),max(a[1],b[1]),min(a[2],b[2]),min(a[3],b[3])
- if x1<=x0 or y1<=y0:return [a]
- return [r for r in [(a[0],a[1],x0,a[3]),(x1,a[1],a[2],a[3]),(x0,a[1],x1,y0),(x0,y1,x1,a[3])] if r[2]>r[0] and r[3]>r[1]]
-def bed_surfaces(elements):
- # Bake only the exposed root skin. Stone-facing backs and shared interior faces have no model face/texture.
- output=[]
- for index,element in enumerate(elements):
-  a,b=element['from'],element['to']
-  for side,axis,positive in [('north',2,False),('south',2,True),('east',0,True),('west',0,False),('up',1,True)]:
-   u,v=(axis+1)%3,(axis+2)%3;plane=b[axis] if positive else a[axis]
-   remaining=[(a[u],a[v],b[u],b[v])]
-   for other_index,other in enumerate(elements):
-    if index==other_index:continue
-    c,d=other['from'],other['to']
-    crosses=c[axis]<=plane<=d[axis] and (d[axis]>plane if positive else c[axis]<plane)
-    duplicate=other_index<index and (d[axis] if positive else c[axis])==plane
-    if not (crosses or duplicate):continue
-    remaining=[piece for rect in remaining for piece in subtract_rect(rect,(c[u],c[v],d[u],d[v]))]
-   for rect in remaining:
-    start,end=list(a),list(b);start[u],start[v],end[u],end[v]=rect
-    face=box(start,end);face['faces']={side:{'texture':'#bed'}};output.append(face)
- return output
 part_id=0
 def geometry(name,elements,base_count=2):
  global part_id
- beds=bed_surfaces(elements[:base_count]);elements=beds+elements[base_count:];base_count=len(beds)
  for index,element in enumerate(elements):
   for face in element['faces'].values():
    face['tintindex']=part_id | (65536 if index<base_count else 0)
    if index<base_count:face['texture']='#bed'
   part_id+=1
- write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':False,'textures':{'particle':'#crystal','bed':'#crystal','tip':'#crystal','tip_cap':'#crystal'},'elements':elements})
+ write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':False,'textures':{'particle':'#crystal','bed':'#crystal'},'elements':elements})
 def column(x,z,w,d,height,h,axis=None,angle=0):
  base=min(1.25,h*.20);top=max(base+.25,height*h)
  if axis and h>=6:
   half=(w if axis=='z'else d)/2;theta=math.radians(abs(angle))
   top=min(top,base+(h-base-half*math.sin(theta))/math.cos(theta))
  result=box([x,base,z],[x+w,top,z+d])
- if height>=.65 and top-base>=5:
-  # Only the terminal 30% fades; normalize vertical UVs along the prism before attachment/lean rotations.
-  horizontal={'north':(16-x-w,16-x),'south':(x,x+w),'west':(z,z+d),'east':(16-z-d,16-z)}
-  for side,(start,end) in horizontal.items():result['faces'][side].update(texture='#tip',uv=[start,0,end,16])
-  result['faces']['up']['texture']='#tip_cap'
  if axis and h>=6:result['rotation']={'origin':[x+w/2,base,z+d/2],'axis':axis,'angle':angle,'rescale':False}
  return result
 for layer in range(1,9):
@@ -112,17 +79,15 @@ for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_bed.png'),color,opaque=True)
- texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_tip.png'),color,tip=True)
- texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_tip_cap.png'),color,cap=True)
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
  multipart=[]
  for layer in range(1,9):
   models=[]
   for variant in range(2):
    name=f'{tier}_{layer}'+('_wild'if variant else '')
-   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','bed':f'riftfall:block/{tier}_mana_crystal_bed','tip':f'riftfall:block/{tier}_mana_crystal_tip','tip_cap':f'riftfall:block/{tier}_mana_crystal_tip_cap'}})
+   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','bed':f'riftfall:block/{tier}_mana_crystal_bed'}})
    models.append(f'riftfall:block/mana_crystals/{name}')
-  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','bed':f'riftfall:block/{tier}_mana_crystal_bed','tip':f'riftfall:block/{tier}_mana_crystal_tip','tip_cap':f'riftfall:block/{tier}_mana_crystal_tip_cap'}})
+  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','bed':f'riftfall:block/{tier}_mana_crystal_bed'}})
   for facing,rotation in rotations.items():
    condition={'facing':facing,'layers':str(layer)}
    multipart.append({'when':condition,'apply':[{'model':model,**rotation}for model in models]})
