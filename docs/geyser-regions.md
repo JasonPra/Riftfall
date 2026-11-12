@@ -1,39 +1,47 @@
-# Full-height mana geyser regions
+# Full-height mana geyser ecosystems
 
-This implementation on `prototyping` starts a new geyser design. Each geyser is one persistent horizontal region spanning the world's entire build height. It has no eruption depth, origin Y, bottom layer or depth-based multiplier. Existing terrain is not carved or replaced.
+Geysers are persistent horizontal influence regions spanning the entire build height. There is no eruption depth, physical energy shaft, terrain carving or rendered mana stream. Crystals occupy suitable underground cave surfaces. Zone labels are available for future biome sets; this change does not register new biomes.
 
-## Starting sizes and placement
+## New field sizes and zones
 
-- Small: 9 × 9 chunks, 81 chunks, 144 × 144 blocks.
-- Large: 17 × 17 chunks, 289 chunks, 272 × 272 blocks.
+| Size | Footprint | Blocks across | White core across | Inner ring width | Middle ring width | Outer fringe width |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Small | 129 × 129 chunks | 2,064 | 272 | 416 | 416 | 64 |
+| Medium | 193 × 193 chunks | 3,088 | 272 | 672 | 672 | 64 |
+| Large | 257 × 257 chunks | 4,112 | 272 | 928 | 928 | 64 |
 
-Odd widths provide a true center chunk. Each 128 × 128-chunk placement cell has a deterministic 50% chance to contain a geyser. Accepted fields have a 75% small / 25% large size split. Centers are inset from cell boundaries, so footprints cannot overlap. These are prototype balance defaults in `GeyserLayout`, not claims about novel canon.
+Ring widths measure a one-way crossing outward from one zone to the next. Zones are currently chunk-aligned square bands, using `GeyserRegion.zone(chunkX, chunkZ)`: `CORE`, `INNER`, `MIDDLE`, `OUTER`, and `OUTSIDE`. The compact core has an eight-chunk radius; the outer fringe is four chunks wide. The remaining radius is divided between the two biome-scale rings. These labels are full-height data and can later select separate biome sets without changing the mana ledger.
 
-The seed includes the world seed and dimension ID. Discovery order does not affect placement. One cell lookup identifies a chunk's field; no neighboring chunks are loaded. Entering any part of the footprint records the whole geyser descriptor. Discovered centers, sizes and output budgets are saved per dimension in `data/riftfall_geyser_regions.dat`.
+Each 512 × 512-chunk placement cell has a deterministic 50% chance of a field. Accepted candidates are 50% small, 37.5% medium and 12.5% large. Centers have a 160-chunk inset, leaving space between fields even at the largest size. The world seed and dimension determine layout; exploration order does not. Queries examine one placement cell and a bounded set of legacy index cells, without loading terrain.
+
+## Existing worlds
+
+Discovered legacy geysers keep their saved centers, 9/17-chunk footprints, output metadata, deposit rules, crystal-free centers, mana-pool identities and refinement records. Old 128-chunk spatial cells are indexed separately, so several legacy fields can safely coexist inside a new 512-chunk placement cell. New candidates that overlap any preserved field are excluded.
+
+`riftfall_geyser_regions.dat` version 2 reads version-1 saves and records legacy markers when saving. It does not resize existing fields or reset deposit survey flags. New ecosystems can be discovered elsewhere in an existing world.
 
 ## Shared mana pool
 
-The reservoir covers **every chunk in the footprint**, not just visited chunks:
+Every chunk in the footprint counts toward the shared reservoir, including undiscovered chunks:
 
-| Size | Chunks | Capacity | Mana/tick | Mana/minute |
-| --- | ---: | ---: | ---: | ---: |
-| Small | 81 | 162,000 | 40.50 | 24,300 |
-| Large | 289 | 578,000 | 144.50 | 86,700 |
+| Size | Chunks | Capacity | Mana per tick |
+| --- | ---: | ---: | ---: |
+| Small | 16,641 | 33,282,000 | 8,320.50 |
+| Medium | 37,249 | 74,498,000 | 18,624.50 |
+| Large | 66,049 | 132,098,000 | 33,024.50 |
 
-Capacity is `chunkCount × 2,000`; generation is `chunkCount × 0.50/tick`. Geyser chunks draw directly from this pool and do not regenerate independently. No output is duplicated per loaded chunk. Full pools discard excess generation.
+Capacity remains `chunkCount × 2,000`; regeneration remains `chunkCount × 0.50/tick`. Included chunks draw from one pool and do not regenerate independently. The pool advances from elapsed game time without chunk tickets or terrain access. Refinement still spends once per pending upgrade and applies deferred block changes when chunks reload. Preserved fields retain their original capacities and rates.
 
-`GeyserLedger` saves one balance, capacity, collective regeneration rate and last simulation tick per discovered geyser in `riftfall_geyser_mana.dat`. It advances using elapsed server game time, including time with no geyser terrain loaded. No chunk tickets or terrain access are needed. Crystal refinement spends from this authoritative balance even when physical upgrades are deferred. It never charges twice on reload.
+## Starting crystal ecosystem
 
-The original normalized center-to-edge profile remains a geological concentration profile used for initial deposit quality. It no longer allocates independent chunk mana or controls regeneration. Crystal generation and refinement do not depend on depth.
+The core is eligible for underground deposits; an invisible stream does not exclude it. Core patches contain up to 48 connected clusters by default, roughly three quarters mature. Mature starting clusters are 80% white, 15% violet and 5% blue, with a white anchor. Their outer juvenile growth is violet/blue/cyan and never starts white. The `naturalWhiteCrystals` switch disables initial white generation when desired. Other zones retain the 24-cluster default, with zone-specific lower-tier distributions.
 
-## Cave crystals
+Core density is configurable with `coreInitialDepositSize`. Deposits are seeded once and never carve caves. Recovery after complete mining still nucleates red seedlings, and ordinary mother spreading still follows the lower-tier offspring rules. See [mana-crystals.md](mana-crystals.md).
 
-Initial deposits occur only on natural stone in underground caves in the stable surrounding zone. The central stream is excluded. Terrain is not carved. See [mana-crystals.md](mana-crystals.md) for tiers, seeding, cutting and refinement.
+## Diagnostics
 
-## Testing in game
+- `/riftfall geyser locate` finds the nearest saved or new candidate without generating terrain; output identifies legacy and ecosystem fields.
+- `/riftfall geyser inspect` reports the footprint, zone, cave eligibility, shared capacity and regeneration.
+- `/riftfall ambient inspect` reports the actual reservoir balance and mana per second.
 
-- `/riftfall geyser locate` finds a candidate without generating terrain.
-- `/riftfall geyser inspect` shows footprint, shared capacity, collective mana/tick and crystal-zone membership.
-- `/riftfall ambient inspect` shows the actual reservoir balance and mana/second.
-
-Every chunk inside the same geyser reports the same pool. Changing altitude does not change membership. Crossing its footprint boundary returns to an ordinary independent chunk reservoir.
+Changing altitude does not change membership. Crossing the footprint boundary returns to ordinary independent chunk mana.

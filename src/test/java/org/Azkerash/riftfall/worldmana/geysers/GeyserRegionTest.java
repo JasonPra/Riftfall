@@ -27,16 +27,16 @@ class GeyserRegionTest {
     @Test void oneCellLookupWorksAcrossNegativeCoordinatesAndExplorationOrders(){
         var layout=new GeyserLayout(42);List<GeyserRegion> fields=new ArrayList<>();
         for(int x=-10;x<=10;x++)for(int z=-10;z<=10;z++)layout.cell(x,z).ifPresent(fields::add);
-        assertTrue(fields.size()>100&&fields.size()<350);assertTrue(fields.stream().anyMatch(g->g.width()==9));assertTrue(fields.stream().anyMatch(g->g.width()==17));
+        assertTrue(fields.size()>100&&fields.size()<350);assertTrue(fields.stream().anyMatch(g->g.width()==GeyserLayout.SMALL_WIDTH));assertTrue(fields.stream().anyMatch(g->g.width()==GeyserLayout.LARGE_WIDTH));
         Collections.reverse(fields);
-        for(var g:fields)for(int dx=-g.halfWidth();dx<=g.halfWidth();dx++)for(int dz=-g.halfWidth();dz<=g.halfWidth();dz++)assertEquals(g,layout.at(g.centerChunkX()+dx,g.centerChunkZ()+dz).orElseThrow());
+        for(var g:fields)for(int dx:new int[]{-g.halfWidth(),-1,0,1,g.halfWidth()})for(int dz:new int[]{-g.halfWidth(),-1,0,1,g.halfWidth()})assertEquals(g,layout.at(g.centerChunkX()+dx,g.centerChunkZ()+dz).orElseThrow());
     }
     @Test void fieldsStayInsideTheirCellsAndCannotOverlap(){
         var layout=new GeyserLayout(42);
         for(int x=-10;x<=10;x++)for(int z=-10;z<=10;z++){
             var candidate=layout.cell(x,z);if(candidate.isEmpty())continue;var g=candidate.orElseThrow();
-            assertEquals(x,Math.floorDiv(g.centerChunkX()-g.halfWidth(),128));assertEquals(x,Math.floorDiv(g.centerChunkX()+g.halfWidth(),128));
-            assertEquals(z,Math.floorDiv(g.centerChunkZ()-g.halfWidth(),128));assertEquals(z,Math.floorDiv(g.centerChunkZ()+g.halfWidth(),128));
+            assertEquals(x,Math.floorDiv(g.centerChunkX()-g.halfWidth(),GeyserLayout.CELL_CHUNKS));assertEquals(x,Math.floorDiv(g.centerChunkX()+g.halfWidth(),GeyserLayout.CELL_CHUNKS));
+            assertEquals(z,Math.floorDiv(g.centerChunkZ()-g.halfWidth(),GeyserLayout.CELL_CHUNKS));assertEquals(z,Math.floorDiv(g.centerChunkZ()+g.halfWidth(),GeyserLayout.CELL_CHUNKS));
         }
     }
     @Test void descriptorsAndSeedSurviveSaveAndReload(){

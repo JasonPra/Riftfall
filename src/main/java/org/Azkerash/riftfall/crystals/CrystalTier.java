@@ -1,6 +1,7 @@
 package org.Azkerash.riftfall.crystals;
 
 import java.util.*;
+import org.Azkerash.riftfall.worldmana.geysers.GeyserZone;
 
 public enum CrystalTier {
     RED("Red",0xB94D57),ORANGE("Orange",0xCB8450),YELLOW("Yellow",0xD0BB67),GREEN("Green",0x619A72),
@@ -15,6 +16,17 @@ public enum CrystalTier {
     public CrystalTier seedTier(double draw){
         if(!Double.isFinite(draw)||draw<0||draw>=1)throw new IllegalArgumentException("Invalid seed draw");
         int drop=draw<.70?1:draw<.95?2:3;return values()[Math.max(0,ordinal()-drop)];
+    }
+    /** Starting ecosystem deposits. Only mature core clusters can start white; their fringe is lower tier. */
+    public static CrystalTier naturalDeposit(GeyserZone zone,double draw,boolean white,boolean mother){
+        if(!Double.isFinite(draw)||draw<0||draw>=1)throw new IllegalArgumentException("Invalid crystal tier draw");
+        return switch(zone){
+            case CORE->!mother?(white?WHITE:VIOLET).seedTier(draw):white?(draw<.80?WHITE:draw<.95?VIOLET:BLUE):(draw<.80?VIOLET:BLUE);
+            case INNER->draw<.25?VIOLET:draw<.70?BLUE:CYAN;
+            case MIDDLE->draw<.20?YELLOW:draw<.70?GREEN:CYAN;
+            case OUTER->draw<.70?RED:draw<.95?ORANGE:YELLOW;
+            case OUTSIDE->throw new IllegalArgumentException("No crystal deposit outside the geyser");
+        };
     }
     /** Fraction inward from the field's stable outer fringe; draw is a seeded value in [0,1). */
     public static CrystalTier natural(double inward,double power,double draw,boolean white){

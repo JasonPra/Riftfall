@@ -55,14 +55,16 @@ public final class CrystalGrowth {
         }
         if(anchor==null)return 0;
         double cost=initial?0:CrystalRules.cost();if(!WorldMana.tryExtract(chunk,cost))return 0;
-        int target=initial?CrystalRules.depositSize():1,adults=initial?Math.max(1,target*3/4):0,placed=0;
+        boolean core=initial&&!field.legacy()&&field.zone(cp.x,cp.z)==GeyserZone.CORE;
+        int target=initial?(core?CrystalRules.coreDepositSize():CrystalRules.depositSize()):1,adults=initial?Math.max(1,target*3/4):0,placed=0;
         long distance=Math.max(Math.abs((long)cp.x-field.centerChunkX()),Math.abs((long)cp.z-field.centerChunkZ()));
         double inward=(field.halfWidth()-distance)/(double)Math.max(1,field.halfWidth()-Math.max(1,field.halfWidth()/3)-1);
         double power=field.totalOutput()/field.chunkCount()/5.0;
         var queue=new ArrayDeque<BlockPos>();var visited=new HashSet<BlockPos>();queue.add(anchor);
         while(!queue.isEmpty()&&visited.size()<1024&&placed<target){
             var pos=queue.removeFirst();if(!visited.add(pos)||pos.getX()>>4!=cp.x||pos.getZ()>>4!=cp.z||!underground(chunk,pos))continue;
-            var tier=initial?CrystalTier.natural(inward,power,random.nextDouble(),CrystalRules.naturalWhite()):CrystalTier.RED;
+            double draw=initial?(core&&placed==0?0:random.nextDouble()):0;
+            var tier=!initial?CrystalTier.RED:field.legacy()?CrystalTier.natural(inward,power,draw,CrystalRules.naturalWhite()):CrystalTier.naturalDeposit(field.zone(cp.x,cp.z),draw,CrystalRules.naturalWhite(),placed<adults);
             var state=seedState(level,pos,tier,Direction.UP);if(state==null)continue;
             int layers=placed<adults?8:initial?1+random.nextInt(7):1;
             if(level.setBlock(pos,state.setValue(ManaCrystalBlock.LAYERS,layers),Block.UPDATE_ALL)){

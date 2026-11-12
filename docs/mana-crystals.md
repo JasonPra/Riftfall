@@ -20,7 +20,7 @@ Geyser chunks draw these costs from their shared pool. Ordinary chunks use their
 
 ## Ancient deposits and recovery
 
-Each eligible cave chunk receives one initial deposit of up to 24 connected clusters, about three quarters mature. Outer deposits favor red/orange/yellow, middle deposits green/cyan, and inner deposits blue/violet with exceptionally rare white. These are starting ancient deposits, not spontaneous high-tier formation.
+Each eligible cave chunk receives one initial connected deposit, about three quarters mature. New ecosystem cores use up to 48 clusters (`coreInitialDepositSize`): mature clusters are mostly white, with violet/blue mixed in, surrounded by lower-tier juveniles. Other zones use up to 24 (`initialDepositSize`): outer red/orange/yellow, middle yellow/green/cyan, inner cyan/blue/violet. White starting deposits are confined to the core. These are ancient starting conditions; new spontaneous seeds still begin red, and normal offspring remain lower-tier. Preserved legacy geysers retain their original deposit rules and excluded center.
 
 A persistent survey flag prevents mining or reloading from granting a fresh free deposit. Completely mined-out eligible chunks need at least 2,000 mana available to nucleate a single young **red** seed, costing 600. Replacement attempts are spaced about a minute apart and require a suitable underground stone surface. No suitable cave means no terrain replacement or artificial cave creation.
 
