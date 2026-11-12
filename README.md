@@ -1,63 +1,117 @@
 # Riftfall
 
-Minecraft **1.21.1 / NeoForge**. This branch is a fresh gameplay foundation containing the goblins, their equipment and combat behaviors, and the Enderman rendering fixes. The previous rift, dungeon, soul essence, and crystal systems have been removed.
+Minecraft **1.21.1 / NeoForge**, Java **21**. This branch implements goblin combat and squad behavior, shared mob resources and equipment, mana-crystal cultivation, and biome-scale mana geyser ecosystems. The current mana systems are separate from the removed rift/soul-essence prototype.
 
-## Goblins
+## Goblins and combat
 
-- **Warrior:** the Goblin Shortsword chains a regular cut, a reverse cut, then the one-handed four-cut figure-eight flurry when attacks continue. The flurry works with a shield too; the shield stance retains its overhead cut as a fourth combo attack. Without a shield, the regular 0.6-second swipes keep the empty arm relaxed. Warriors also retain high-ground plunges. Only warriors without a shield equipped can use rear grapples; equipping a shield also releases an ongoing grapple. Mash the attack button to escape a grapple. The flurry keeps a short walking shuffle throughout, transfers rotation through the hips and chest, and snaps out of each loaded pose into a fast cut with follow-through. A collision-aware native animation step carries it forward slightly. The one-handed flurry uses native Epic Fight short stuns and impact: accepted stuns on low-poise targets last at least 0.35 seconds, connecting consecutive landed cuts through the 1.4-second animation. Shield blocks, stun immunity, and native poise checks still apply. Each flurry cut deals 65% of normal weapon damage. These stances are also registered on the shortsword’s Epic Fight capability for players; equipping other weapons retains their original basic combo. New warriors carry the shortsword; existing default stone swords migrate on load. The shortsword has stone-sword damage and durability and is available in the Combat tab.
-- **Archer:** bow attacks, panicked retreats when unsupported, cover for retreating warriors, formation positioning behind warriors, and reachable elevated firing positions.
-- **Shaman:** Iron's Spells casting through the Bone Staff, two close-range staff attacks: a continuous 0.6-second wind-up into an accelerating sweep (3 hearts base damage, original knockback) or a dramatic two-handed overhead smash with a 0.8-second wind-up (4½ hearts base damage). The smash leans back before snapping forward into a full ground-reaching follow-through; physical ground contact produces an ender-purple dust cloud with no area damage. Staff hits also emit a cosmetic purple impact burst to convey the knockback. Shamans favor overhead attacks against nearby stunned targets or targets committed to long Epic Fight attacks, closing up to six blocks for those openings with the same wind-up timing. Shamans also heal allied goblins. Bone helmet, tooth necklace, and primitive clothing are retained.
-- Weighted confidence controls boldness, panic, retreat, and trembling; nearby warriors contribute 5 points, archers 1, and shamans 10, alongside personal equipment and situational modifiers. Confident groups with at least two actual warriors can flank and surround shared enemies. See the [calculation tree and configuration](docs/combat-confidence.md). Warriors screen archers. Larger groups and weakened enemies make goblins bolder. Combat animations retain the head and limb tremor. Its strength scales from **2× at zero confidence** down to **0.35× at full confidence**, using the same server confidence that drives retreat and boldness. Client smoothing prevents abrupt changes when allies join or leave. The torso and root stay steady.
-- Zombies and skeletons hunt goblins; goblins recognize them as enemies.
-- Goblins retain their approximately 1.5-block height, models, textures, held-item alignment, Epic Fight attacks, and animations.
+Goblins have three roles, authored Epic Fight attacks, approximately 1.5-block height, animated faces, fear trembling, and equipment rendering. Spawn them through eggs or `/summon`; natural goblin spawning is not implemented.
 
-Goblins are available through spawn eggs and `/summon`. This reset adds no natural spawning or dungeon-based spawning.
+| Role | Current abilities |
+| --- | --- |
+| Warrior | Goblin Shortsword combos, buckler guarding, high-ground plunges, flanking/screening, wounded retreat, and opportunistic rear ambushes. Unshielded warriors grapple; shielded warriors learn Backstab. |
+| Archer | Bow attacks, friendly-fire avoidance, rear/elevated positions, retreat, and covering fire for withdrawing warriors. |
+| Shaman | Bone Staff sweep/smash, Iron's Spells offensive casting, allied Healing Circle, and ranged positioning. Shamans do not burrow-escape. |
 
-## Equipment
+The **Goblin Shortsword** uses stone-sword stats and an item-bound Epic Fight moveset usable by players. Its three-attack unshielded chain ends in a four-cut flurry; a shield adds an overhead fourth attack. Actual weapon colliders determine hits. Raised shields use physical shield contact, with native guard reactions and stamina costs. See [goblin combat, sword and action priorities](docs/goblin-combat.md) and [shield collision](docs/shield-colliders.md).
 
-- **Bone Staff:** the shaman's casting weapon and melee club.
-- **Goblin Buckler:** a small octagonal wood-and-bone shield with 180 durability. Warriors have a one-in-three chance to spawn holding one, including when spawned from eggs. This uses normal spawn initialization, ready for future natural spawning; archers and shamans do not receive shields. The buckler attaches to the forearm with rear straps. Shield-bearing warriors raise it while approaching visible enemies, using an Epic Fight blocking pose alongside movement and flanking. They lower it for sword attacks, plunges, grapples, and stuns, then raise it again between attacks.
+All roles use one weighted behavior engine. Readiness, confidence, target awareness, commitment, exhaustion, healing and panic determine the action; scores are not a fixed list of unconditional orders. Goblins remember the last seen target position rather than tracking hidden targets through walls. They regroup, sprint tactically, seek safe allied healing circles, and exploit an unwatched player's rear even when normally too frightened to advance. Detailed scores and eligibility are in the [combat reference](docs/goblin-combat.md); engine APIs and diagnostics are in [behavior-engine.md](docs/behavior-engine.md).
 
-Both items are in the Combat creative tab. Goblin spawn eggs are in Spawn Eggs. Existing item and mob registry names are preserved.
+Goblins scavenge dropped items, carry 36 storage slots, upgrade permitted one-handed gear and armor, and return collected loot on death. A thief that successfully burrows away is preserved in saved data for a future encounter system; it is not automatically respawned. See [loot and stash](docs/goblin-loot-and-stash.md).
+
+## Resources, skills and equipment
+
+- Non-undead mobs share a persistent stamina resource for physical actions. Exhaustion causes exposed panting until fully recovered; players retain Epic Fight stamina. See [mob stamina](docs/mob-stamina.md).
+- Mob spellcasting uses Iron's mana, including equipment-derived capacity/regeneration, spell costs, and full-refill recovery after exhaustion. Casting does not spend stamina. The mob mana pool is separate from world ambient mana. See [mana, Curios and equipment](docs/mob-mana-and-equipment.md).
+- Five reusable active-skill slots support NPC adapters. Backstab has player and mob implementations, including a dedicated greatsword sequence. Equipping a skill book as loot does not teach a goblin the skill. See [mob skills](docs/mob-skills.md).
+- The Bone Staff, Goblin Buckler, Goblin Shortsword and Backstab skill book are in the Combat tab. Spawn eggs are in Spawn Eggs. Crystals use Natural Blocks (raw) and Ingredients (cut).
+
+## Mana crystals
+
+Eight tiers progress **red → orange → yellow → green → cyan → blue → violet → white**. Raw crystals can be planted on natural stone and tagged ores, including underwater, on floors, walls and ceilings. Eight layers form a mature mother. Only mothers spread and refine; offspring are lower-tier, with red clamped to red. Water modestly accelerates growth/spreading, while higher-tier height growth is slower. Spreading spends ambient mana.
+
+Connected clusters follow supporting surfaces and corners. Same-tier adults pack more closely together; mixed-tier edges blend only their seed beds and choose whole prism colors from neighbors. Smoky translucent prisms, opaque seed beds, coplanar seam cleanup, and fullbright star sparkles provide the current appearance.
+
+Initial geyser deposits, recovery after mining, slow tier refinement, assistance from the highest adjacent higher-tier mother, unloaded progression, drops, stonecutting and all balance settings are covered in [mana-crystals.md](docs/mana-crystals.md).
+
+## Mana geysers and world generation
+
+New fields span approximately **2,064, 3,088 or 4,112 blocks**. Each has a compact white core, two broad rings and a narrow outer fringe. Their full footprint contributes to one shared mana pool; ordinary chunks use their own reservoirs. The mana stream has no rendered shaft. See [ambient mana](docs/ambient-mana.md).
+
+| Zone | Current biome profile | Test grass/foliage color |
+| --- | --- | --- |
+| White core | Dense jungle, occasional sheltered lake basin; dense white mother deposits below | White |
+| Inner ring | Dense jungle and occasional larger lakes | Blue |
+| Middle ring | More open jungle woodland, lakes and connected streams | Yellow |
+| Outer fringe | Plains-like grassland with rare jungle trees | Red |
+
+Terrain uses gentle hills, valleys, irregular lakes and connected river channels. Underground routes occupy several depths, connected by shafts, with occasional caverns, sparse dripstone, lush sections, flooded pockets and rare sloping surface entrances. Riverbeds have depth variation and layered gravel, sand, clay, mud and coarse dirt; suitable water receives seagrass. Jungle trees and vanilla flora/fauna are placeholders for future custom ecosystems.
+
+Generation follows Minecraft's stages: structure starts are excluded from fields, biomes are assigned at `BIOMES`, terrain is shaped at `SURFACE`, and caves are excavated at `CARVERS`, before vegetation at `FEATURES`. Structures cannot extend pieces into fields from outside starts. Plant placement checks reject unsupported/submerged land plants and maintain support when other decoration replaces blocks.
+
+River currents also affect existing vanilla rivers. They apply physical drift without requiring flowing-water block states: downhill outlets take precedence; otherwise direction points away from the broadest sampled connected water body. The bounded, cached search estimates water-body size and does not load terrain.
+
+New generation does not repair already-generated floating vegetation or buried structures. Discovered legacy geysers keep their old footprints and deposits. Use the random teleport command to test fresh fields in the same save. Sizes, biome identifiers, generation stages, persistence and limits are documented in [geyser-regions.md](docs/geyser-regions.md).
+
+## In-game testing
+
+Most `/riftfall` diagnostics and world commands require operator permission. Client collider/model overlays do not.
 
 ```mcfunction
 /summon riftfall:goblin
 /summon riftfall:goblin_archer
 /summon riftfall:goblin_shaman
+/summon riftfall:behavior_tester
+/give @s riftfall:goblin_shortsword
 /give @s riftfall:bone_staff
 /give @s riftfall:goblin_buckler
-/item replace entity @e[type=riftfall:goblin,limit=1,sort=nearest] weapon.offhand with riftfall:goblin_buckler
+/give @s riftfall:backstab_skill_book
+/give @s riftfall:raw_red_mana_crystal
+/riftfall behavior debug on
+/riftfall behavior inspect @e[type=riftfall:goblin,sort=nearest,limit=1]
+/riftfall geyser locate
+/riftfall geyser inspect
+/riftfall geyser teleport
+/riftfall ambient inspect
 ```
 
-Shamans drop bones instead of the removed soul essence crystal item. Previously spell-trained living Pillagers retain their casting behavior; no system grants new rift-based caster upgrades.
+`geyser locate` finds the nearest candidate without generating terrain. `geyser teleport` sends the executing player to a **random undiscovered field**, with a safe dry surface arrival; repeat it to visit another field. Teleporting generates destination terrain. Spawned goblins ignore creative/spectator players as ordinary combat targets; use survival for behavior tests.
 
-## Weapon collision and debugging
+**F8** / `/riftfall debug helditems` shows model bounds (cyan shields, gold other items). **F3+B** / `/riftfall debug colliders` shows entity hurtboxes, native Epic Fight attack colliders and raised physical shield boxes. `/riftfall debug off` disables both overlays.
 
-Custom goblin sword combos, plunges, staff attacks, and grapple stabs use Epic Fight `AttackAnimation` phases and swept weapon colliders. Distance only starts an attack or drives navigation; it never awards a melee hit. The equipped weapon collider must intersect a target hurtbox during the contact phase. Existing Epic Fight enemy attacks retain their native collision systems. Arrows and spells continue using their projectile collisions.
+## Documentation index
 
-- **F8** or `/riftfall debug helditems`: toggle held-item **model bounds**, cyan for shields and gold for other items. These follow the rendered hand/forearm transforms in first and third person, including held swords, staffs, and bucklers.
-- **F3+B** or `/riftfall debug colliders`: toggle entity hurtboxes and Epic Fight's native attack-collider visualizer. Attack colliders appear during attacks; these are the actual damage-contact shapes.
-- `/riftfall debug off`: disable both overlays.
+| Topic | Reference |
+| --- | --- |
+| Sword, role movesets and exact goblin action scores | [Goblin combat](docs/goblin-combat.md) |
+| Shared engine, awareness, healing and debug overlays | [Behavior engine](docs/behavior-engine.md) |
+| Confidence weights, equipment threats and losses | [Combat confidence](docs/combat-confidence.md) |
+| Panic, burrowing, audio completion and future rift flag | [Panic escape](docs/panic-escape.md) |
+| Grapples, struggle and shared NPC ambush cooldown | [Grapples and ambushes](docs/grapples-and-ambush-cooldowns.md) |
+| Backstab and NPC active-skill adapters | [Mob skills](docs/mob-skills.md) |
+| Scavenging, equipment restrictions and saved thieves | [Loot and stash](docs/goblin-loot-and-stash.md) |
+| Physical resources and exhaustion | [Mob stamina](docs/mob-stamina.md) |
+| Spell resources, attributes and Curios | [Mob mana and equipment](docs/mob-mana-and-equipment.md) |
+| Independent chunk and shared field reservoirs | [Ambient mana](docs/ambient-mana.md) |
+| Crystal cultivation, visuals and refinement | [Mana crystals](docs/mana-crystals.md) |
+| Biomes, terrain, caves, rivers and compatibility | [Geyser ecosystems](docs/geyser-regions.md) |
+| Shield contact and custom shield profiles | [Shield colliders](docs/shield-colliders.md) |
+| Animation/moveset integration | [Epic Fight registration](docs/epic-fight-registration.md) |
+| Reusable eyes, expressions and skin layout | [Facial animation](docs/facial-animation.md) |
+| Third-person controls and collision | [Third-person camera](docs/third-person-camera.md) |
+| Scheduling and behavior costs | [Behavior performance](docs/behavior-performance.md) |
+| GeckoLib outline rendering compatibility | [Outline compatibility](docs/geckolib-outline-compatibility.md) |
 
-Shamans and warriors predict contact using the equipped Epic Fight weapon collider across the planned attack phases before winding up. The public `WeaponReach.canContact` helper supports future mob variants and add-on weapons without a fixed reach value. A shaman under close pressure moves in until that query succeeds; longer properly configured weapons can begin attacks farther away. Staff attack damage scales with the equipped weapon (1.2× sweep, 1.8× smash), preserving fully blocked shield hits. They commit to the swing after the warning; a target that moves out of the weapon path can still dodge it.
+## Other current features and scope
 
-The Bone Staff's collider is editable in `data/riftfall/capabilities/weapons/bone_staff.json`: `center` is the joint-local offset, `size` contains half-extents before entity scaling, and `number` controls sweep samples. Model bounds are visual alignment aids, not damage or shield-blocking shapes. Shield defense still uses Minecraft's raised-shield frontal blocking rules. Debug toggles are client-only and need no operator permission.
+Goblins have independent blinking and eye tracking, context-driven expressions, fear-scaled limb tremor, and mouth/voice presentation. Panic escape retains digging particles/audio and waits for current voice playback to finish; actual health loss and fully blocked hits use different vocal reactions. The configurable rear third-person camera adds shoulder/height offsets, terrain collision and smooth extension. Backstab keeps the attacker anchored while allowing camera orbit, with victim-perspective restoration through recovery or respawn.
 
-## Enderman fixes
+Block-carrying Endermen use the vanilla carrying pose outside combat. Combat hides the rendered block, retaining the actual held block; hiding emits one purple puff, suppressed immediately after teleporting. Epic Fight combat animations retain priority.
 
-Outside combat, block-carrying Endermen use the correct vanilla carrying pose. In combat, the carried block is hidden and Epic Fight animations take priority. Hiding a previously visible block produces one purple ender-particle puff, suppressed immediately after a teleport. The actual held block is retained and becomes visible again after combat.
+Previously spell-trained living Pillagers retain opted-in casting. Shamans drop bones instead of the removed soul-essence item. There is no current rift portal/dungeon generation, arena dimension, rift economy, natural goblin spawning or escaped-thief encounter/respawn system. The panic `RiftfallInRift` flag is an integration hook, not a working rift system. Custom ecosystem trees/flora/fauna, crystal metal refinement and harvesting hazards are future work.
 
-## Removed systems
+## Development
 
-There are no portals, pocket dimensions, dungeon construction or blocks, biome dungeon rosters, dungeon bosses or breaks, rift banks or power levels, replenishment, spacing checks, essence attachments or cultivation, crystals or crystal world generation, or `/rift` commands. The old server configuration and rift saved data are no longer read. No chunk scans or rift/essence server-tick handlers remain.
-
-Use a new world for the new gameplay baseline. Removed blocks, items, and the arena dimension are no longer registered; existing world files are not automatically edited or deleted.
-
-## Dependencies and development
-
-Required integrations are retained: Epic Fight **21.17.3.1** (CurseForge file **8175609**), Iron's Spells 'n Spellbooks **1.21.1-3.16.3** (file **8680204**), and NeoForge GeckoLib **4.9.3** (file **8893490**). Gradle resolves their supporting dependencies.
-
-Java **21** is required.
+Java **21** is required. Pinned integrations include Epic Fight **21.17.3.1**, Iron's Spells **1.21.1-3.16.3**, GeckoLib **4.9.3**, Curios, Iron's Lib and Player Animator. Exact versions/file IDs are in [gradle.properties](gradle.properties); Gradle resolves supporting dependencies.
 
 ```sh
 ./gradlew build
@@ -65,10 +119,6 @@ Java **21** is required.
 ./gradlew runServer
 ```
 
-Tests cover goblin combat geometry, squad positioning and confidence, grapple escape, combat tremor, spell eligibility, and Enderman block-hiding transitions. Existing combat previews are in [docs/previews](docs/previews).
+World-specific server configuration lives in `<world>/serverconfig`: `riftfall-server.toml` (confidence/behavior), `riftfall-stamina-server.toml`, `riftfall-mana-server.toml`, and `riftfall-crystals-server.toml`. Existing values can override documented defaults. Cosmetic camera settings are client configuration; see the camera reference.
 
-The independent [weighted behavior engine and test entity](docs/behavior-engine.md) demonstrate reusable confidence sensing, situational awareness, and utility-based action selection. Warriors, archers and shamans now use this engine while retaining their established movesets and tactical actions.
-
-[Reusable facial animation](docs/facial-animation.md) adds blinking, target-tracking eyes, idle glances and expression previews to all goblin roles, with separate controller/profile and skin-layout APIs for future mobs.
-
-Panic and burrow escape: [behavior, tuning, rift flag and integration](docs/panic-escape.md).
+The automated suite covers combat geometry, action selection, resources, crystal growth/refinement, saved mana fields, terrain functions and river direction. Native generation checks additionally verify generation-stage order, neighboring chunks, supported plants, sediment/seagrass and physical drift. Animation previews remain in [docs/previews](docs/previews).

@@ -167,7 +167,9 @@ Structured equivalents live under `NeoForgeData.RiftfallBehavior`; `ConfidenceDe
 For a witnessed-kill test, use an actual enemy attack (for example, kill a tester with your weapon). `/kill` has no attacking enemy and deliberately does not simulate this penalty. Check `self.witnessed_ally_death` and `WitnessedDeaths` to distinguish temporary fear from the separate loss of ordinary ally support.
 
 
-## Goblin migration
+## Goblin integration
+
+For the current sword movesets, role summary and exact utility/readiness table, see [goblin-combat.md](goblin-combat.md). The table describes the goblin profile; the independent tester policy above has different scores.
 
 All goblin roles register one `WeightedBehaviorGoal` for action selection, alongside the higher-priority vanilla floating goal. The previous parallel combat-goal priority scheduler and the confidence tally in `GoblinSquadTactics` are removed. Ordinary target acquisition, ally assistance, and selecting an enemy threatening a retreating warrior remain target goals; they do not schedule movement or attacks.
 

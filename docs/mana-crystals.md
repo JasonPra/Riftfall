@@ -8,7 +8,22 @@ Connections follow each supported surface independently, regardless of the origi
 
 Visual topology is computed from the client’s existing chunk render data, with no extra block entities, packets, or chunk loads. Server collision shapes follow the same surfaces. Placement requires natural stone or an ore block; removing the original support reanchors the cluster to another valid stone or ore face if one remains. Legacy connection properties are retained for saved-world compatibility, but the obsolete cap flag is always cleared. Connection/index repair waits until chunks are fully ready, avoiding reads during an unfinished load.
 
-Neighboring tiers intermingle visually in a four-pixel band at their shared edges. Stable world-position grain makes this a patchy mineral transition; matching seam vertices agree on the color from either side. Centers retain their tier color. Only internal boundary quads fully covered by a neighbor’s continuous root are hidden, preserving exposed faces at unequal growth stages. This is client mesh generation, not a per-frame simulation. It does not alter block tiers, drops, energy costs or refinement.
+Neighboring tiers intermingle at supported shared edges and corners. Only root/seed-bed colors blend smoothly; boundary prisms choose a whole neighboring color with a stable 50% chance. Centers retain their own tier color. Root and coplanar cleanup operate during chunk meshing, preserving exposed surfaces at unequal growth stages. Visual mixing does not change tiers, drops, mana costs or refinement.
+
+## Items and in-game checks
+
+Each tier has a `raw_<tier>_mana_crystal` planting item, `cut_<tier>_mana_crystal` ingredient and `<tier>_mana_crystal_cluster` block, under the `riftfall` namespace. Raw items appear in Natural Blocks; cut items appear in Ingredients.
+
+```mcfunction
+/give @s riftfall:raw_red_mana_crystal
+/give @s riftfall:raw_white_mana_crystal
+/give @s riftfall:cut_blue_mana_crystal
+/riftfall ambient inspect
+/riftfall geyser inspect
+/riftfall geyser teleport
+```
+
+Place raw items normally; stacking items on an existing cluster adds layers up to eight. An immature white seed can be planted as an investment, but cannot assist refinement until mature. To observe natural deposits and automatic tier refinement, use a geyser field; automatic refinement indexing is field-scoped. Outside fields, planted clusters still grow/spread using ordinary chunk mana, but do not enter the automatic geyser refinement ledger.
 
 ## Placement and growth
 
@@ -26,7 +41,7 @@ A persistent survey flag prevents mining or reloading from granting a fresh free
 
 ## Refinement ledger
 
-Only mature, uncut clusters refine. Default red-to-orange pace is **215 minutes**, costing **600 mana per tier upgrade**. Each higher step takes ×1.25 longer. Server config `riftfall-crystals-server.toml` exposes `refinementMinutes`, `refinementManaCost` and `refinementTimeMultiplierPerTier`, as well as deposit/spread settings.
+Automatic tier refinement runs for indexed mature clusters inside geyser fields. Only mature, uncut clusters refine. Default red-to-orange pace is **215 minutes**, costing **600 mana per tier upgrade**. Each higher step takes ×1.25 longer. Server config `riftfall-crystals-server.toml` exposes `refinementMinutes`, `refinementManaCost` and `refinementTimeMultiplierPerTier`, as well as deposit/spread settings.
 
 Progress is tracked in chunk batches; crystals progress in parallel. When insufficient mana is available, progress pauses rather than being lost. Ready upgrades are funded from one shared geyser pool: **one upgrade per eligible chunk per round, ordered center-out**, then another round if funds remain. Partially completed rounds survive saves.
 
@@ -97,3 +112,29 @@ Same-facing prism faces that occupy the same plane are partitioned once during c
 Where a floor cluster connects diagonally down around a shared support block to a wall cluster, only the floor bed’s connected outer edge extends to the wall bed’s outer plane. The extension matches that wall surface’s actual root thickness (0.6–1.2 model pixels). This works north, east, south and west. Missing or unrelated wall crystals cause no extension; the receiving wall surface, unconnected edges, ceiling surfaces, prism coordinates, textures and UVs stay unchanged. This is a cached mesh adjustment, not a growth or collision-rule change.
 
 Vertical convex wall corners use the same thickness-matched extension. North/south-facing beds extend only along connected east/west edges; the east/west wall remains unchanged. This fixed ownership covers all four vertical corner orientations without double extensions. Only bed edge vertices move; wall prisms, UVs and opacity stay unchanged.
+
+## Default balance reference
+
+Values below are defaults from `CrystalRules`; world `serverconfig/riftfall-crystals-server.toml` can override them. Random-tick probabilities are not per-game-tick guarantees.
+
+| Setting | Default | Applies to |
+| --- | ---: | --- |
+| `nucleationThreshold` | 2,000 mana | Replacement after complete mining |
+| `spreadCost` | 600 mana | Successful offspring/replacement; also required available for height growth |
+| `spreadChance` | 0.10 | Mature branching per random tick |
+| `initialDepositSize` | 24 | Maximum starting clusters in non-core eligible chunks |
+| `coreInitialDepositSize` | 48 | Maximum starting clusters in new white cores |
+| `naturalWhiteCrystals` | true | Allow initial core white mothers |
+| `refinementMinutes` | 215 minutes | Red-to-orange base time |
+| `refinementManaCost` | 600 mana | Each funded tier upgrade |
+| `refinementTimeMultiplierPerTier` | 1.25 | Slower successive refinement steps |
+| `growthTimeMultiplierPerTier` | 1.10 | Slower higher-tier layer growth; spreading timing unchanged |
+| `motherRefinementBonusPercent` | Recipient/donor table | Highest face-adjacent mature donor only |
+
+Red height growth has a base 1/6 chance per random tick when enough mana is available. Divide this by `1.10^tierOrdinal` for higher tiers; water multiplies the chance by 1.2. Mature branching uses its independent 10% default (12% underwater), and only successful placements spend mana. White is the terminal tier.
+
+## Generation and current scope
+
+[geyser-regions.md](geyser-regions.md) defines the actual ring biomes, initial tier distributions, forest/grassland profiles, sediment rivers and layered cave generation. Crystal deposits survey eligible existing cave surfaces after chunk loading; they do not reshape terrain. Terrain shaping and carving occur earlier in Minecraft's generation pipeline, before vegetation.
+
+The current visuals use two deterministic clump variants, eight layer states and connected surface composition. Whole-piece boundary colors and same-tier adult widening reuse existing prisms. The six-preset and separate four-block giant-crystal experiments are not part of this current model set. Sparkles are client particles; block light remains level nine. Cutting creates ingredients; metal processing, special harvesting hazards and custom ecosystem flora/fauna remain future systems.
