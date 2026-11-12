@@ -8,7 +8,7 @@ Connections follow each supported surface independently, regardless of the origi
 
 Visual topology is computed from the client’s existing chunk render data, with no extra block entities, packets, or chunk loads. Server collision shapes follow the same surfaces. Placement requires natural stone or an ore block; removing the original support reanchors the cluster to another valid stone or ore face if one remains. Legacy connection properties are retained for saved-world compatibility, but the obsolete cap flag is always cleared. Connection/index repair waits until chunks are fully ready, avoiding reads during an unfinished load.
 
-Neighboring tiers intermingle visually in a four-pixel band at their shared edges. Stable world-position grain makes this a patchy mineral transition; matching seam vertices agree on the color from either side. Centers retain their tier color. Only internal boundary quads fully covered by a neighbor’s continuous root are hidden, preserving exposed faces at unequal growth stages. This is client mesh generation, not a per-frame simulation. It does not alter block tiers, drops, energy costs or refinement.
+Neighboring tiers intermingle visually in a four-pixel band at their shared edges. Stable world-position grain makes this a patchy mineral transition; matching seam vertices agree on the color from either side. Centers retain their tier color. Known internal seed-bed faces are omitted from generated tile assets; exposed prism faces remain textured. This is client mesh generation, not a per-frame simulation. It does not alter block tiers, drops, energy costs or refinement.
 
 ## Placement and growth
 
@@ -40,7 +40,7 @@ Each layer drops one raw crystal of its tier (a mature cluster drops eight). Raw
 
 ## Matching adult density
 
-Fully grown clusters widen their existing prisms when touching adults of the same tier on a shared growth surface. A pair packs toward its common edge, complete 2×2 corners add a further bonus, and larger connected patches approach the block footprint. Only immediate neighbors and their corner diagonals are inspected. Young clusters, unlike tiers and isolated adults do not activate packing. No new crystal meshes, tiers, drops or mana costs are introduced. Each complete prism is fitted affinely within its own cell, preserving all original faces, UVs, growth depth and connections. This runs during chunk meshing rather than each frame.
+Fully grown clusters widen their existing prisms when touching adults of the same tier on a shared growth surface. A pair packs toward its common edge, complete 2×2 corners add a further bonus, and larger connected patches approach the block footprint. Only immediate neighbors and their corner diagonals are inspected. Young clusters, unlike tiers and isolated adults do not activate packing. No new crystal meshes, tiers, drops or mana costs are introduced. Each complete prism is fitted affinely within its own cell, preserving its textured faces and UVs. Contact packing limits its width or length where needed to avoid another prism. This runs during chunk meshing rather than each frame.
 
 ## Seed-bed and prism colors
 
@@ -89,3 +89,9 @@ Mother positions and adjacent mature-tier snapshots are saved for unloaded simul
 Seed-bed/root faces render in the solid chunk pass with opaque smoky textures. Their RGB detail and smooth edge colors remain the same; the crystal prisms retain the existing translucent textures and pass. These disjoint passes prevent camera-dependent alpha sorting from changing which bed faces are visible. Coplanar bed cleanup still runs during chunk rebuilding.
 
 Larger crystal prisms fade to greater transparency over their terminal 30%, reaching about 58% of their previous opacity at the end. End caps match that terminal opacity. The lower body keeps its existing opacity, RGB texture detail is unchanged, and the fade follows local prism growth even on walls, ceilings and leaning columns. Mixed-color prisms retain the same fade. Seed beds remain opaque in the solid pass.
+
+## Non-intersecting growth meshes
+
+Prisms reserve space in a stable largest-first order. A prism that would overlap an existing one fits into a nearby free slot, reducing width or limiting length when needed. Tilted prisms and dense adult groups use the same contact tests. All six exposed prism faces stay textured, with their UVs and tip transparency preserved; faces are not removed based on camera direction. Layouts are cached (up to 512) and computed during chunk rebuilding, not during camera movement.
+
+Generated seed-bed assets omit stone-facing backs and internal joining surfaces before model baking. Their combined exposed coverage is preserved. Across the templates, bed face count drops from 960 to 720. The previous renderer-side root-face suppression is removed. Combined tiles and shared neighboring beds have their buried skin removed once during chunk mesh construction, including unequal-height contacts; exposed pieces remain.

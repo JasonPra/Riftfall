@@ -71,11 +71,20 @@ class CrystalBedModelTest {
         assertSame(bed,CrystalBedModel.layer(all,true).getFirst());
         assertSame(prism,CrystalBedModel.layer(all,false).getFirst());
     }
-    @Test void exactDuplicatesDisappearButPrismsAndDifferentPlanesStay(){
+    @Test void bedSkinInsideOtherTilesOrNeighborContactsIsNotSubmitted(){
+        var lower=model(top(0,0,1,1,.1f,65537,Direction.UP));var higher=model(top(.5f,0,1,1,.2f,65538,Direction.UP));
+        CrystalBedModel.clean(List.of(lower,higher));
+        assertEquals(.5,area(quads(lower)),1e-8);assertEquals(.5,area(quads(higher)),1e-8);
+        var contact=model(top(0,0,1,1,.1f,65539,Direction.UP));
+        CrystalBedModel.clean(List.of(contact),List.of(new CrystalBedModel.OccupiedBox(0,.1,0,.5,1,1)));
+        assertEquals(.5,area(quads(contact)),1e-8);assertEquals(65539,quads(contact).getFirst().getTintIndex());
+    }
+    private double area(List<BakedQuad> quads){double result=0;for(var q:quads){var b=bounds(q);result+=(b[2]-b[0])*(b[3]-b[1]);}return result;}
+    @Test void buriedOpaqueBedFacesDisappearButPrismTexturesStay(){
         var bed=top(0,0,1,1,.1f,65537,Direction.UP);var prism=top(0,0,1,1,.1f,17,Direction.UP);
         var raised=top(0,0,1,1,.2f,65538,Direction.UP);var back=top(0,0,1,1,.1f,65539,Direction.DOWN);
         var first=model(bed);var second=model(bed,prism,raised,back);
         CrystalBedModel.clean(List.of(first,second));
-        assertEquals(List.of(bed),quads(first));assertEquals(List.of(prism,raised,back),quads(second));
+        assertTrue(quads(first).isEmpty());assertEquals(List.of(prism,raised),quads(second));
     }
 }

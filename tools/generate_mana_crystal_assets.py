@@ -36,9 +36,33 @@ def box(a,b):
 # varied lengths and lean, and broad roots only where an actual neighboring cluster exists.
 rotations={'up':{},'down':{'x':180},'north':{'x':90},'east':{'x':90,'y':90},'south':{'x':90,'y':180},'west':{'x':90,'y':270}}
 model_dir=Path('assets/riftfall/models/block/mana_crystals')
+def subtract_rect(a,b):
+ x0,y0,x1,y1=max(a[0],b[0]),max(a[1],b[1]),min(a[2],b[2]),min(a[3],b[3])
+ if x1<=x0 or y1<=y0:return [a]
+ return [r for r in [(a[0],a[1],x0,a[3]),(x1,a[1],a[2],a[3]),(x0,a[1],x1,y0),(x0,y1,x1,a[3])] if r[2]>r[0] and r[3]>r[1]]
+def bed_surfaces(elements):
+ # Bake only the exposed root skin. Stone-facing backs and shared interior faces have no model face/texture.
+ output=[]
+ for index,element in enumerate(elements):
+  a,b=element['from'],element['to']
+  for side,axis,positive in [('north',2,False),('south',2,True),('east',0,True),('west',0,False),('up',1,True)]:
+   u,v=(axis+1)%3,(axis+2)%3;plane=b[axis] if positive else a[axis]
+   remaining=[(a[u],a[v],b[u],b[v])]
+   for other_index,other in enumerate(elements):
+    if index==other_index:continue
+    c,d=other['from'],other['to']
+    crosses=c[axis]<=plane<=d[axis] and (d[axis]>plane if positive else c[axis]<plane)
+    duplicate=other_index<index and (d[axis] if positive else c[axis])==plane
+    if not (crosses or duplicate):continue
+    remaining=[piece for rect in remaining for piece in subtract_rect(rect,(c[u],c[v],d[u],d[v]))]
+   for rect in remaining:
+    start,end=list(a),list(b);start[u],start[v],end[u],end[v]=rect
+    face=box(start,end);face['faces']={side:{'texture':'#bed'}};output.append(face)
+ return output
 part_id=0
 def geometry(name,elements,base_count=2):
  global part_id
+ beds=bed_surfaces(elements[:base_count]);elements=beds+elements[base_count:];base_count=len(beds)
  for index,element in enumerate(elements):
   for face in element['faces'].values():
    face['tintindex']=part_id | (65536 if index<base_count else 0)

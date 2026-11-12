@@ -59,6 +59,17 @@ class CrystalTest {
             }
         }
     }
+    @Test void generatedBedsOmitStoneFacingBacksAndNeverUseMissingTextures()throws Exception{
+        for(int layer=1;layer<=8;layer++)for(String suffix:List.of("0","1","join_0","join_1","join_2","join_3")){
+            var elements=json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_"+suffix+".json").getAsJsonArray("elements");
+            for(var value:elements){var faces=value.getAsJsonObject().getAsJsonObject("faces");
+                for(var face:faces.entrySet()){
+                    var data=face.getValue().getAsJsonObject();if((data.get("tintindex").getAsInt()&65536)==0)continue;
+                    assertNotEquals("down",face.getKey());assertFalse(data.has("cullface"));assertEquals("#bed",data.get("texture").getAsString());
+                }
+            }
+        }
+    }
     @Test void largeCrystalTipFadeChangesOnlyUpperAlphaAndPreservesRgb()throws Exception{
         for(var tier:CrystalTier.values())try(var original=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png");var side=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal_tip.png");var cap=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal_tip_cap.png")){
             assertNotNull(side);assertNotNull(cap);var a=ImageIO.read(original);var b=ImageIO.read(side);var c=ImageIO.read(cap);
@@ -76,7 +87,7 @@ class CrystalTest {
             int faded=0;
             for(var value:json("assets/riftfall/models/block/mana_crystals/template_"+layer+"_"+variant+".json").getAsJsonArray("elements")){
                 var element=value.getAsJsonObject();var faces=element.getAsJsonObject("faces");
-                if(!faces.getAsJsonObject("up").get("texture").getAsString().equals("#tip_cap"))continue;
+                if(!faces.has("up")||!faces.getAsJsonObject("up").get("texture").getAsString().equals("#tip_cap"))continue;
                 faded++;assertTrue(layer>=4);assertTrue(element.getAsJsonArray("to").get(1).getAsDouble()-element.getAsJsonArray("from").get(1).getAsDouble()>=5);
                 assertEquals("#crystal",faces.getAsJsonObject("down").get("texture").getAsString());
                 for(String name:List.of("north","south","east","west")){
