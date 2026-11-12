@@ -14,7 +14,7 @@ import org.Azkerash.riftfall.Riftfall;
 /** Generation-only excavation, before crystal surveys; writes only the current chunk. */
 public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
     private static final DeferredRegister<Feature<?>> FEATURES=DeferredRegister.create(Registries.FEATURE,Riftfall.MODID);
-    static {FEATURES.register("geyser_caves",GeyserCaves::new);}
+    static {FEATURES.register("geyser_caves",GeyserCaves::new);FEATURES.register("geyser_surface",GeyserSurfaceVegetation::new);}
     public static void register(IEventBus bus){FEATURES.register(bus);}
     private GeyserCaves(){super(NoneFeatureConfiguration.CODEC);}
     @Override public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context){
@@ -23,7 +23,6 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
         int cx=context.origin().getX()>>4,cz=context.origin().getZ()>>4;
         var field=GeyserBiomes.field(level,cx,cz);if(field==null)return false;
         long seed=GeyserLayout.mix(world.getSeed()^0x474559534552L);
-        GeyserTerrain.reshape(world,field,seed,cx,cz);
         var pos=new BlockPos.MutableBlockPos();boolean changed=false;
         int left=(field.centerChunkX()-field.halfWidth())*16,right=(field.centerChunkX()+field.halfWidth()+1)*16;
         int front=(field.centerChunkZ()-field.halfWidth())*16,back=(field.centerChunkZ()+field.halfWidth()+1)*16;
@@ -77,16 +76,6 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
                     world.setBlock(pos,Blocks.POINTED_DRIPSTONE.defaultBlockState()
                         .setValue(net.minecraft.world.level.block.PointedDripstoneBlock.TIP_DIRECTION,direction),2);
                 }
-            }
-        }
-        // Jungle trees are temporary flora. The fringe gets only a rare tree; middle-ring forest is more open.
-        var zone=field.zone(cx,cz);
-        int extraTrees=zone==GeyserZone.MIDDLE?2:zone==GeyserZone.OUTER&&context.random().nextInt(20)==0?1:0;
-        if(extraTrees>0){
-            var trees=world.registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE).get(net.minecraft.resources.ResourceLocation.withDefaultNamespace("trees_jungle"));
-            for(int i=0;i<extraTrees&&trees!=null;i++){
-                int x=cx*16+context.random().nextInt(16),z=cz*16+context.random().nextInt(16);
-                trees.place(world,context.chunkGenerator(),context.random(),world.getHeightmapPos(Heightmap.Types.OCEAN_FLOOR_WG,new BlockPos(x,0,z)));
             }
         }
         return changed;

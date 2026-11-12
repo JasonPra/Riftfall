@@ -37,7 +37,14 @@ public final class GeyserTerrain {
             double d=Math.sqrt(sq((a-25)/48)+sq((b+18)/35))+.1*Math.sin(a/11)+.08*Math.cos(b/9);
             if(d<1.6)height=Math.min(height,57+24*sq(Math.max(0,d-.45)/1.15));
         }
+        if(height<63)height+=.65*Math.sin(x/11.0)+.45*Math.cos(z/17.0)+.25*Math.sin((x+z)/7.0)-.4;
         return (int)Math.floor(height);
+    }
+    /** Coherent sediment patches with small-scale variation, extending several blocks into the bed. */
+    public static BlockState sediment(long seed,int x,int z,int depth){
+        long patch=GeyserLayout.mix(seed^Math.floorDiv(x,7)*731L^Math.floorDiv(z,7)*997L);
+        int value=(int)Math.floorMod(patch+depth*3,12);
+        return (value<4?Blocks.GRAVEL:value<7?Blocks.SAND:value<9?Blocks.CLAY:value<11?Blocks.MUD:Blocks.COARSE_DIRT).defaultBlockState();
     }
     private static boolean natural(BlockState s){
         return s.isAir()||!s.getFluidState().isEmpty()||s.is(BlockTags.BASE_STONE_OVERWORLD)||s.is(BlockTags.DIRT)||s.is(BlockTags.SAND)
@@ -56,7 +63,7 @@ public final class GeyserTerrain {
             int top=Math.min(world.getMaxBuildHeight()-1,Math.max(Math.max(oldTop,floor+1),water));
             for(int y=Math.max(world.getMinBuildHeight()+5,Math.min(oldFloor,floor)-4);y<=top;y++){
                 pos.set(x,y,z);if(!natural(world.getBlockState(pos)))continue;
-                BlockState state=y>floor?(y<=water?Blocks.WATER:Blocks.AIR).defaultBlockState():y==floor?(water>floor?Blocks.SAND:Blocks.GRASS_BLOCK).defaultBlockState():y>=floor-3?Blocks.DIRT.defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                BlockState state=y>floor?(y<=water?Blocks.WATER:Blocks.AIR).defaultBlockState():water>floor&&y>=floor-3?sediment(seed,x,z,floor-y):y==floor?Blocks.GRASS_BLOCK.defaultBlockState():y>=floor-3?Blocks.DIRT.defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
                 world.setBlock(pos,state,2);
             }
         }

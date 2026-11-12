@@ -23,7 +23,9 @@
     "ShieldPhaseContactsMixin",
     "ShieldOnlyContactMixin",
     "GeyserBiomeGenerationMixin",
-    "GeyserBiomeSourceMixin"
+    "GeyserBiomeSourceMixin",
+    "GeyserStructurePlacementMixin",
+    "GeyserPlantPlacementMixin"
   ],
   "client": [
     "CameraAccess",

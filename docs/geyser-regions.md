@@ -61,7 +61,11 @@ The biomes use vanilla jungle trees and existing flora/fauna as temporary conten
 
 New geyser terrain replaces vanilla underground air and aquifers below a protected surface layer. Separate winding networks repeat through the available depth at 28-block intervals, starting near bedrock and rising into higher ground; selected junctions link the levels with shafts. Routes are roughly 8–11 blocks wide, with occasional 26–40-block chambers. Sparse dripstone, lush patches, flooded chambers and stepped streams remain. A few narrow sloping entrances break the surface, spaced on a 256-block grid with a low chance and excluded from river channels.
 
-Terrain replacement runs during raw generation before ores/decorations. It changes natural terrain in new chunks, leaving existing generated chunks and legacy fields unchanged.
+Surface shaping now runs in the SURFACE generation stage; network excavation runs in CARVERS. Minecraft requires neighboring chunks to finish those stages before FEATURES, so later terrain edits cannot remove the ground underneath neighboring vegetation. Decoration no longer reshapes terrain. These operations apply to new chunks; existing generated chunks and legacy fields remain unchanged.
+
+Structure starts are explicitly suppressed inside ecosystem fields, and structure-piece placement cannot extend into the fields from an outside start. This is independent of the original terrain biome used for vanilla structure eligibility. Ordinary explicit operator structure placement remains available.
+
+Underwater beds have several layers of coherent gravel, sand, clay, mud and coarse-dirt patches, with subtle depth relief. Seagrass grows sparsely where water depth and support permit it. Generation rejects unsupported plants and terrestrial plants attempting to replace water, including melons and pumpkins. Additional jungle-tree attempts require a dry, supported root position.
 
 ## River currents
 

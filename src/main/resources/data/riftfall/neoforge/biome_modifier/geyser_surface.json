@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_features",
   "biomes": "#minecraft:is_overworld",
-  "features": "riftfall:geyser_caves",
-  "step": "raw_generation"
+  "features": "riftfall:geyser_surface",
+  "step": "top_layer_modification"
 }
