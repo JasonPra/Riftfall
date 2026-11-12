@@ -34,7 +34,7 @@ An unshielded warrior can climb onto a humanoid victim from behind and grapple; 
 
 **Shamans** cast offensive Iron's Spells and Healing Circle, preferring wounded retreating warriors when selecting a healing recipient. They also use the Bone Staff physically: an accelerating 0.6-second sweep (1.2× equipped weapon damage) or a two-handed 0.8-second-windup overhead smash (1.8×). The original staff's base values are three and 4½ hearts respectively, before mitigation. Staff contact and ground contact emit cosmetic purple particles; the ground cloud is not area damage. Exposed/stunned targets or long attack commitments favor an opportunistic overhead, with approach from up to six blocks when eligible. Spellcasting spends mana; staff attacks spend stamina. Shaman presentation retains the bone helmet, tooth necklace and primitive clothing. Shamans are exempt from panic burrow escape.
 
-All three roles can loot, store items, upgrade permitted equipment and seek an allied active healing circle. Loot does not teach spells or skills. Their initial spawn routes remain spawn eggs and `/summon`, with no natural goblin spawner. See [loot and stash](goblin-loot-and-stash.md).
+All three roles can loot, store items, upgrade permitted equipment and seek an allied active healing circle. Loot does not teach spells or skills. They can spawn from [Verdant Frontier camp spawners](goblin-camps.md), spawn eggs and `/summon`; no natural biome spawn pool contains goblins. See [loot and stash](goblin-loot-and-stash.md).
 
 ## How selection works
 

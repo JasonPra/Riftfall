@@ -4,7 +4,7 @@ Minecraft **1.21.1 / NeoForge**, Java **21**. This branch implements goblin comb
 
 ## Goblins and combat
 
-Goblins have three roles, authored Epic Fight attacks, approximately 1.5-block height, animated faces, fear trembling, and equipment rendering. Spawn them through eggs or `/summon`; natural goblin spawning is not implemented.
+Goblins have three roles, authored Epic Fight attacks, approximately 1.5-block height, animated faces, fear trembling, and equipment rendering. They spawn from goblin-camp spawners in some newly generated Verdant Frontier fringes, or through eggs and `/summon`. They are not in natural biome spawn pools. See [goblin camps](docs/goblin-camps.md).
 
 | Role | Current abilities |
 | --- | --- |
@@ -111,7 +111,7 @@ Goblins have independent blinking and eye tracking, context-driven expressions, 
 
 Block-carrying Endermen use the vanilla carrying pose outside combat. Combat hides the rendered block, retaining the actual held block; hiding emits one purple puff, suppressed immediately after teleporting. Epic Fight combat animations retain priority.
 
-Previously spell-trained living Pillagers retain opted-in casting. Shamans drop bones instead of the removed soul-essence item. There is no current rift portal/dungeon generation, arena dimension, rift economy, natural goblin spawning or escaped-thief encounter/respawn system. The panic `RiftfallInRift` flag is an integration hook, not a working rift system. Custom ecosystem trees/flora/fauna, crystal metal refinement and harvesting hazards are future work.
+Previously spell-trained living Pillagers retain opted-in casting. Shamans drop bones instead of the removed soul-essence item. There is no current rift portal/dungeon generation, arena dimension, rift economy, natural biome-pool goblin spawning or escaped-thief encounter/respawn system. The panic `RiftfallInRift` flag is an integration hook, not a working rift system. Custom ecosystem trees/flora/fauna, crystal metal refinement and harvesting hazards are future work.
 
 ## Development
 
