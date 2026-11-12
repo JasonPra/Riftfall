@@ -33,17 +33,47 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
         int left=(field.centerChunkX()-field.halfWidth())*16,right=(field.centerChunkX()+field.halfWidth()+1)*16;
         int front=(field.centerChunkZ()-field.halfWidth())*16,back=(field.centerChunkZ()+field.halfWidth()+1)*16;
         for(int x=cx*16;x<cx*16+16;x++)for(int z=cz*16;z<cz*16+16;z++){
-            // Fade the roof/floor together at the field boundary rather than making a cut wall.
+            // Taper route openings at the field boundary.
             double fade=Math.clamp(Math.min(Math.min(x-left,right-1-x),Math.min(z-front,back-1-z))/32.0,0,1);
             var column=GeyserCaveShape.column(seed,x,z);
-            int roof=Math.min(44,world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z)-24);
-            for(int y=Math.max(-52,world.getMinBuildHeight()+5);y<=roof;y++){
-                if(Math.abs(y+8)>52*fade||!column.contains(y))continue;
+            int roof=world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z)-24;
+            int bottom=Math.max(-59,world.getMinBuildHeight()+5);
+            for(int y=bottom;y<=roof;y++){
                 pos.set(x,y,z);var state=world.getBlockState(pos);
-                if(!state.is(BlockTags.BASE_STONE_OVERWORLD))continue;
-                // Keep water/lava barriers intact. Existing aquifers remain vanilla terrain.
-                boolean fluid=false;for(var d:net.minecraft.core.Direction.values())if(!world.getFluidState(pos.relative(d)).isEmpty()){fluid=true;break;}
-                if(!fluid){world.setBlock(pos,Blocks.CAVE_AIR.defaultBlockState(),2);changed=true;}
+                boolean natural=state.is(BlockTags.BASE_STONE_OVERWORLD)||state.isAir()||state.is(Blocks.WATER)||state.is(Blocks.LAVA);
+                if(!natural)continue;
+                boolean carve=Math.abs(y+8)<=52*fade&&column.contains(y);
+                boolean stream=column.streamLevel()!=Integer.MIN_VALUE&&fade>=1&&y>=column.streamLevel()-1&&y<=column.streamLevel()+2;
+                var replacement=(carve||stream)?Blocks.CAVE_AIR.defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                if(carve&&y<=column.floodLevel())replacement=Blocks.WATER.defaultBlockState();
+                if(stream&&(y==column.streamLevel()-1||column.streamBank()&&y<=column.streamLevel()+1))replacement=(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                if(stream&&!column.streamBank()&&y==column.streamLevel()){
+                    replacement=Blocks.WATER.defaultBlockState().setValue(net.minecraft.world.level.block.LiquidBlock.LEVEL,column.streamSource()?0:Math.min(7,1+Math.floorMod(x-58,128)));
+                    world.scheduleTick(pos.immutable(),net.minecraft.world.level.material.Fluids.WATER,1);
+                }
+                if(!replacement.equals(state)){world.setBlock(pos,replacement,2);changed=true;}
+            }
+            // Sparse accents, after excavation, only on genuine dry floor/ceiling contacts.
+            long hash=GeyserLayout.mix(seed^x*731L^z*997L);
+            if(fade<1)continue;
+            for(int y=bottom+1;y<roof;y++){
+                pos.set(x,y,z);if(!world.getBlockState(pos).is(Blocks.CAVE_AIR))continue;
+                var below=pos.below();var above=pos.above();
+                boolean floor=world.getBlockState(below).is(BlockTags.BASE_STONE_OVERWORLD);
+                boolean ceiling=world.getBlockState(above).is(BlockTags.BASE_STONE_OVERWORLD);
+                if(column.lush()){
+                    if(floor&&(hash&7)!=7){world.setBlock(below,Blocks.MOSS_BLOCK.defaultBlockState(),2);
+                        if((hash&15)==0)world.setBlock(pos,Blocks.AZALEA.defaultBlockState(),2);
+                        else if((hash&7)==0)world.setBlock(pos,Blocks.MOSS_CARPET.defaultBlockState(),2);
+                    }
+                    if(ceiling&&(hash&31)==0)world.setBlock(pos,Blocks.CAVE_VINES.defaultBlockState().setValue(net.minecraft.world.level.block.CaveVines.BERRIES,true),2);
+                }else if((hash&31)==0&&(floor||ceiling)){
+                    var direction=ceiling?net.minecraft.core.Direction.DOWN:net.minecraft.core.Direction.UP;
+                    var support=ceiling?above:below;
+                    world.setBlock(support,Blocks.DRIPSTONE_BLOCK.defaultBlockState(),2);
+                    world.setBlock(pos,Blocks.POINTED_DRIPSTONE.defaultBlockState()
+                        .setValue(net.minecraft.world.level.block.PointedDripstoneBlock.TIP_DIRECTION,direction),2);
+                }
             }
         }
         return changed;

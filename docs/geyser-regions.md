@@ -46,10 +46,10 @@ Core density is configurable with `coreInitialDepositSize`. Deposits are seeded 
 
 Changing altitude does not change membership. Crossing the footprint boundary returns to ordinary independent chunk mana.
 
-## Underground cavern network
+## Underground tunnel network
 
-New Overworld terrain within ecosystem fields generates a connected cave network across all rings. Chambers are approximately 76–120 blocks wide and 42–60 blocks tall, spaced 128 blocks apart, with branching curved passages roughly 22–28 blocks wide. Chamber elevations vary so the routes climb and descend naturally. Vanilla caves can intersect the network.
+New Overworld geyser terrain replaces vanilla underground air and aquifers within the generation band (from Y -59 up to 24 blocks below the surface) with a smaller connected network. Replacement runs during raw generation before ores/decorations and only changes natural stone, air and fluids in the current chunk. Existing generated chunks and legacy fields remain unchanged.
 
-Excavation runs during world generation before ores and crystal deposits, only in base stone and only in the generating chunk. It retains at least 24 blocks of surface cover, avoids bedrock and fluid boundaries, and fades at the field edge. Existing generated chunks and legacy geysers are not excavated. No visible mana-stream shaft is created.
+Snaking routes cross every ring, roughly 8–11 blocks wide. Only about a quarter of the 128-block-spaced junctions open into chambers, approximately 26–40 blocks wide and 16–24 blocks high. Rare junctions have deeper drop shafts. Some chambers flood; others have short, stepped underground streams with upstream sources and scheduled water flow. Sparse floor/ceiling dripstone alternates with occasional moss, azalea, carpet and glow-berry sections. No mana-stream shaft is rendered.
 
-Operators can use `/riftfall geyser teleport` to travel to the nearest field found by `/riftfall geyser locate`. The command brings the executing player to a safe surface spot near the center, generating that destination chunk if needed. It preserves view direction and changes no blocks; if the center chunk has no safe dry arrival, it reports failure instead. Console users must execute as a player.
+Operators can use `/riftfall geyser teleport` repeatedly to choose a random undiscovered field away from the current field, making it convenient to test new world generation in one save. It finds a safe dry surface arrival near the target center and does not build a platform. `/riftfall geyser locate` still finds the nearest field without generating terrain.
