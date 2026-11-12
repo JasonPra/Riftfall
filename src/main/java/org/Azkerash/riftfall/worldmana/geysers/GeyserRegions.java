@@ -17,12 +17,12 @@ public final class GeyserRegions extends SavedData {
     public static GeyserRegions get(ServerLevel level){
         long seed=GeyserLayout.mix(level.getSeed()^level.dimension().location().toString().hashCode());
         var factory=new Factory<GeyserRegions>(()->{var data=new GeyserRegions(seed);data.setDirty();return data;},GeyserRegions::load,null);
-        return level.getDataStorage().computeIfAbsent(factory,"riftfall_geyser_regions");
+        synchronized(level.getDataStorage()){return level.getDataStorage().computeIfAbsent(factory,"riftfall_geyser_regions");}
     }
     public GeyserLayout layout(){return layout;}
-    public int size(){return discovered.size();}
+    public synchronized int size(){return discovered.size();}
     private static long cell(int x,int z,int size){return ChunkPos.asLong(Math.floorDiv(x,size),Math.floorDiv(z,size));}
-    public Optional<GeyserRegion> candidate(int cellX,int cellZ){
+    public synchronized Optional<GeyserRegion> candidate(int cellX,int cellZ){
         var saved=modernCells.get(ChunkPos.asLong(cellX,cellZ));if(saved!=null)return Optional.of(saved);
         return layout.cell(cellX,cellZ).filter(g->!overlapsLegacy(g));
     }
@@ -35,8 +35,8 @@ public final class GeyserRegions extends SavedData {
             }
         return false;
     }
-    public Collection<GeyserRegion> discovered(){return List.copyOf(discovered.values());}
-    public Optional<GeyserRegion> discover(int chunkX,int chunkZ){
+    public synchronized Collection<GeyserRegion> discovered(){return List.copyOf(discovered.values());}
+    public synchronized Optional<GeyserRegion> discover(int chunkX,int chunkZ){
         var old=legacyCells.get(cell(chunkX,chunkZ,LEGACY_CELL));if(old!=null&&old.contains(chunkX,chunkZ))return Optional.of(old);
         int x=Math.floorDiv(chunkX,GeyserLayout.CELL_CHUNKS),z=Math.floorDiv(chunkZ,GeyserLayout.CELL_CHUNKS);
         var field=candidate(x,z).filter(g->g.contains(chunkX,chunkZ));
@@ -51,7 +51,7 @@ public final class GeyserRegions extends SavedData {
         var index=legacy?legacyCells:modernCells;
         if(index.put(cell(region.centerChunkX(),region.centerChunkZ(),size),region)!=null||discovered.put(GeyserLedger.key(region),region)!=null)throw new IllegalArgumentException("Duplicate geyser region");
     }
-    @Override public CompoundTag save(CompoundTag tag,HolderLookup.Provider provider){
+    @Override public synchronized CompoundTag save(CompoundTag tag,HolderLookup.Provider provider){
         tag.putInt("Version",2);tag.putLong("Seed",layout.seed());var fields=new ListTag();
         for(var g:discovered.values()){
             var entry=new CompoundTag();entry.putInt("X",g.centerChunkX());entry.putInt("Z",g.centerChunkZ());entry.putInt("Width",g.width());entry.putDouble("Output",g.totalOutput());entry.putBoolean("Legacy",g.legacy());fields.add(entry);

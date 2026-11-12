@@ -45,3 +45,9 @@ Core density is configurable with `coreInitialDepositSize`. Deposits are seeded 
 - `/riftfall ambient inspect` reports the actual reservoir balance and mana per second.
 
 Changing altitude does not change membership. Crossing the footprint boundary returns to ordinary independent chunk mana.
+
+## Underground cavern network
+
+New Overworld terrain within ecosystem fields generates a connected cave network across all rings. Chambers are approximately 76–120 blocks wide and 42–60 blocks tall, spaced 128 blocks apart, with branching curved passages roughly 22–28 blocks wide. Chamber elevations vary so the routes climb and descend naturally. Vanilla caves can intersect the network.
+
+Excavation runs during world generation before ores and crystal deposits, only in base stone and only in the generating chunk. It retains at least 24 blocks of surface cover, avoids bedrock and fluid boundaries, and fades at the field edge. Existing generated chunks and legacy geysers are not excavated. No visible mana-stream shaft is created.
