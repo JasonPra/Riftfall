@@ -25,11 +25,10 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
         long seed=GeyserLayout.mix(world.getSeed()^0x474559534552L);
         var pos=new BlockPos.MutableBlockPos();boolean changed=false;
         var plan=world.getChunk(cx,cz).getExistingDataOrNull(GeyserSurfacePlan.PLAN);
-        int left=(field.centerChunkX()-field.halfWidth())*16,right=(field.centerChunkX()+field.halfWidth()+1)*16;
-        int front=(field.centerChunkZ()-field.halfWidth())*16,back=(field.centerChunkZ()+field.halfWidth()+1)*16;
         for(int x=cx*16;x<cx*16+16;x++)for(int z=cz*16;z<cz*16+16;z++){
             // Taper route openings at the field boundary.
-            double fade=Math.clamp(Math.min(Math.min(x-left,right-1-x),Math.min(z-front,back-1-z))/32.0,0,1);
+            double fade=Math.clamp(-GeyserTransition.distance(field,x,z)/32.0,0,1);
+            if(GeyserTransition.distance(field,x,z)>0)continue;
             int planned=plan!=null&&plan.length==256?plan[(x&15)*16+(z&15)]:Integer.MIN_VALUE;
             int surface=planned==Integer.MIN_VALUE?world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z):(planned>>1)+1;
             int roof=surface-24;

@@ -4,7 +4,7 @@ import java.util.Optional;
 
 /** Stateless regional generation. Each lookup examines one cell, never neighboring chunks. */
 public final class GeyserLayout {
-    public static final int CELL_CHUNKS=512,INSET_CHUNKS=160;
+    public static final int CELL_CHUNKS=512,INSET_CHUNKS=192;
     public static final int SMALL_WIDTH=129,MEDIUM_WIDTH=193,LARGE_WIDTH=257;
     public static final double SMALL_OUTPUT=SMALL_WIDTH*SMALL_WIDTH*5.0,MEDIUM_OUTPUT=MEDIUM_WIDTH*MEDIUM_WIDTH*7.5,LARGE_OUTPUT=LARGE_WIDTH*LARGE_WIDTH*10.0;
     private final long seed;
@@ -19,9 +19,10 @@ public final class GeyserLayout {
         int kind=(int)(mix(hash+3)&7); // 50% small, 37.5% medium, 12.5% large.
         int width=kind<4?SMALL_WIDTH:kind<7?MEDIUM_WIDTH:LARGE_WIDTH;
         double output=kind<4?SMALL_OUTPUT:kind<7?MEDIUM_OUTPUT:LARGE_OUTPUT;
-        long limit=1_875_000L-width/2-1;
+        var field=new GeyserRegion((int)x,(int)z,width,output,1);
+        long limit=1_875_000L-field.extentChunks()-1;
         if(Math.abs(x)>limit||Math.abs(z)>limit)return Optional.empty();
-        return Optional.of(new GeyserRegion((int)x,(int)z,width,output));
+        return Optional.of(field);
     }
     public Optional<GeyserRegion> at(int chunkX,int chunkZ){return cell(Math.floorDiv(chunkX,CELL_CHUNKS),Math.floorDiv(chunkZ,CELL_CHUNKS)).filter(g->g.contains(chunkX,chunkZ));}
 }

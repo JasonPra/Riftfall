@@ -39,14 +39,14 @@ Initial geyser deposits, recovery after mining, slow tier refinement, assistance
 
 ## Mana geysers and world generation
 
-New fields span approximately **2,064, 3,088 or 4,112 blocks**. Each has a compact white core, two broad rings and a narrow outer fringe. Their full footprint contributes to one shared mana pool; ordinary chunks use their own reservoirs. The mana stream has no rendered shaft. See [ambient mana](docs/ambient-mana.md).
+New circular fields span approximately **2,571, 3,724 or 4,879 blocks** before boundary noise. Each has a wider white core, two broad rings and a Verdant Frontier fringe. Circular, noise-frayed boundaries use 4-block biome resolution, and every zone retains at least its previous area. Their full footprint contributes to one shared mana pool; ordinary chunks use their own reservoirs. The mana stream has no rendered shaft. See [ambient mana](docs/ambient-mana.md).
 
 | Zone | Current biome profile | Test grass/foliage color |
 | --- | --- | --- |
 | White core | Dense jungle, occasional sheltered lake basin; dense white mother deposits below | White |
 | Inner ring | Dense jungle and occasional larger lakes | Blue |
 | Middle ring | More open jungle woodland, lakes and connected streams | Yellow |
-| Outer fringe | Plains-like grassland with rare jungle trees | Red |
+| Verdant Frontier | Plains-like grassland with rare jungle trees | Subtly blue-tinged plains green |
 
 A 384-block landscape-only belt cushions the fields with vanilla plains/woodland, climate-appropriate beaches, shallow oceans and deeper water where the surrounding generator calls for them. It preserves native cave biomes below the belt and does not enlarge the mana footprint. Terrain uses gentle hills, valleys, irregular lakes and a meandering river with changing width. The junction lake has two channel connections instead of a four-way crossing. Underground routes follow a jittered 3D graph with tight fractures, changing ceiling heights, winding passages, irregular caverns and steep drops. Low tunnels and some shafts flood; dripstone, lush sections and rare sloping surface entrances provide variety. Riverbeds have depth variation and layered gravel, sand, clay, mud and coarse dirt; suitable water receives seagrass. Jungle trees and vanilla flora/fauna are placeholders for future custom ecosystems.
 

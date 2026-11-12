@@ -29,7 +29,7 @@ class GeyserRegionTest {
         for(int x=-10;x<=10;x++)for(int z=-10;z<=10;z++)layout.cell(x,z).ifPresent(fields::add);
         assertTrue(fields.size()>100&&fields.size()<350);assertTrue(fields.stream().anyMatch(g->g.width()==GeyserLayout.SMALL_WIDTH));assertTrue(fields.stream().anyMatch(g->g.width()==GeyserLayout.LARGE_WIDTH));
         Collections.reverse(fields);
-        for(var g:fields)for(int dx:new int[]{-g.halfWidth(),-1,0,1,g.halfWidth()})for(int dz:new int[]{-g.halfWidth(),-1,0,1,g.halfWidth()})assertEquals(g,layout.at(g.centerChunkX()+dx,g.centerChunkZ()+dz).orElseThrow());
+        for(var g:fields)for(int dx:new int[]{-g.halfWidth(),-1,0,1,g.halfWidth()})for(int dz:new int[]{-g.halfWidth(),-1,0,1,g.halfWidth()}){var found=layout.at(g.centerChunkX()+dx,g.centerChunkZ()+dz);if(g.contains(g.centerChunkX()+dx,g.centerChunkZ()+dz))assertEquals(g,found.orElseThrow());else assertTrue(found.isEmpty());}
     }
     @Test void fieldsStayInsideTheirCellsAndCannotOverlap(){
         var layout=new GeyserLayout(42);

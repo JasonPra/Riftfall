@@ -4,15 +4,21 @@ Geysers are persistent horizontal influence regions spanning the entire build he
 
 ## New field sizes and zones
 
-| Size | Footprint | Blocks across | White core across | Inner ring width | Middle ring width | Outer fringe width |
+| Size | Preserved mana budget | Approx. circular diameter | White core diameter | Inner ring width | Middle ring width | Outer fringe width |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Small | 129 × 129 chunks | 2,064 | 272 | 416 | 416 | 64 |
-| Medium | 193 × 193 chunks | 3,088 | 272 | 672 | 672 | 64 |
-| Large | 257 × 257 chunks | 4,112 | 272 | 928 | 928 | 64 |
+| Small | 129 × 129 chunk equivalents | 2,571 blocks | 336 blocks | 484 blocks | 502 blocks | 131 blocks |
+| Medium | 193 × 193 chunk equivalents | 3,724 blocks | 336 blocks | 771 blocks | 791 blocks | 133 blocks |
+| Large | 257 × 257 chunk equivalents | 4,879 blocks | 336 blocks | 1,059 blocks | 1,079 blocks | 134 blocks |
 
-Ring widths measure a one-way crossing outward from one zone to the next. Zones are currently chunk-aligned square bands, using `GeyserRegion.zone(chunkX, chunkZ)`: `CORE`, `INNER`, `MIDDLE`, `OUTER`, and `OUTSIDE`. The compact core has an eight-chunk radius; the outer fringe is four chunks wide. The remaining radius is divided between the two biome-scale rings. These labels select real full-height biome palettes during the BIOMES generation step, before terrain surfacing and decoration. Existing chunks and preserved legacy fields retain their biomes.
+New fields are **circles with softly frayed edges**, using continuous world-space distance, not chunk-aligned square bands. Ring widths above measure an outward radial crossing and are nominal values before noise. Deterministic, smoothly interpolated noise at 144-, 48- and 16-block scales offsets every zone boundary: up to about 11 blocks at the core, 22 at the inner ring, and 32 at the middle/outer boundaries. Adjacent zone boundaries stay ordered. Biomes are assigned per Minecraft quart cell (4 × 4 × 4 blocks), so several ring biomes can occupy the same chunk. Core/inner/middle/outer palettes still span the full build height within their horizontal footprint.
 
-Each 512 × 512-chunk placement cell has a deterministic 50% chance of a field. Accepted candidates are 50% small, 37.5% medium and 12.5% large. Centers have a 160-chunk inset, leaving space between fields even at the largest size. The world seed and dimension determine layout; exploration order does not. Queries examine one placement cell and a bounded set of legacy index cells, without loading terrain.
+The core was widened from the old 272-block square to a nominal 336-block-diameter circle. Each successive radius is calculated from the old zone's area plus enough room for both adjacent noisy boundaries. Even the conservative stable annulus between their maximum excursions retains at least the old zone's area. The full terrain footprint therefore expands, while shared mana capacity, regeneration and total output retain their old chunk-equivalent budgets; radial per-chunk output is normalized over the circular footprint.
+
+**Verdant Frontier** is the outer grassland biome, retaining the saved ID `riftfall:geyser_red_outer`. Its plains-like grass/foliage greens have a slight blue tint and use Minecraft's ordinary biome-color blending. Goblin camps and spawners are not implemented yet.
+
+Existing discovered descriptors retain their saved shape: pre-change modern fields and legacy fields remain square, and explored chunks are not rewritten. Newly discovered fields use the new circle. Descriptor format version 3 stores a shape marker alongside the existing center, size and output; version 1/2 saves load without changing their old footprint.
+
+Each 512 × 512-chunk placement cell has a deterministic 50% chance of a field. Accepted candidates are 50% small, 37.5% medium and 12.5% large. Centers have a 192-chunk inset, leaving space between fields even at the largest size. The world seed and dimension determine layout; exploration order does not. Queries examine one placement cell and a bounded set of legacy index cells, without loading terrain.
 
 ## Existing worlds
 
@@ -54,7 +60,7 @@ Changing altitude does not change membership. Crossing the footprint boundary re
 | Core | `riftfall:geyser_white_core` | Dense jungle foliage; some fields have a sheltered lake basin | White |
 | Inner | `riftfall:geyser_blue_inner` | Dense jungle canopy and occasional larger lakes | Blue |
 | Middle | `riftfall:geyser_gold_middle` | More open jungle woodland, lakes and connected streams | Yellow |
-| Outer | `riftfall:geyser_red_outer` | Plains-like fringe with a rare jungle tree | Red |
+| Verdant Frontier | `riftfall:geyser_red_outer` | Plains-like fringe with a rare jungle tree | Subtly blue-tinged plains green |
 
 The biomes use vanilla jungle trees and existing flora/fauna as temporary content. Surface elevations are generally around Y 49–92, with gentle hills, valleys, irregular lake shores and a winding river route crossing every ring. River bends and widths vary with deterministic smooth noise. The old four-way crossing is replaced by a broad irregular junction lake; its continuous river has one inlet and one outlet. Other basins can be isolated or meet that same route, rather than adding crossing channels. There is no raised impact-crater rim. The field's outer fringe now joins a separate 384-block vanilla-biome transition belt; the terrain grade extends outside the mana footprint rather than turning back into the original ocean inside the red fringe. These stark colors are diagnostic placeholders, subject to Minecraft's biome-color blending.
 

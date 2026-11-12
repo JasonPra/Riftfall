@@ -10,8 +10,7 @@ public final class GeyserTransition {
     public static boolean ocean(Climate c){return c==Climate.WARM_SEA||c==Climate.SEA||c==Climate.COLD_SEA||c==Climate.FROZEN_SEA;}
     /** Negative inside the field, positive outside, in blocks. */
     public static double distance(GeyserRegion g,double x,double z){
-        double extent=g.halfWidth()*16.0+8;
-        return Math.max(Math.abs(x-g.centerX()),Math.abs(z-g.centerZ()))-extent;
+        return GeyserShape.distance(g,x,z);
     }
     public static double progress(double distance,double x,double z){
         double t=Math.clamp(distance/WIDTH,0,1);

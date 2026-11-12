@@ -15,7 +15,7 @@ public final class GeyserCommands {
                 var source=c.getSource();var field=GeyserQueries.at(source.getLevel(),BlockPos.containing(source.getPosition()));
                 if(field.isEmpty()){source.sendSuccess(()->Component.literal("This chunk is outside a mana geyser."),false);return 0;}
                 var g=field.orElseThrow();int x=BlockPos.containing(source.getPosition()).getX()>>4,z=BlockPos.containing(source.getPosition()).getZ()>>4;
-                source.sendSuccess(()->Component.literal(String.format(Locale.ROOT,"Geyser center %.0f, %.0f; %dx%d chunks (%d blocks wide), full world height; shared capacity %.0f; collective %.2f mana/tick; zone: %s; crystal caves: %s",g.centerX(),g.centerZ(),g.width(),g.width(),g.blockWidth(),GeyserLedger.capacity(g),GeyserLedger.regeneration(g),g.legacy()&&g.zone(x,z)==GeyserZone.CORE?"reserved legacy center":g.zone(x,z).title(),g.crystalZone(x,z)?"yes":"no")),false);return 1;
+                source.sendSuccess(()->Component.literal(String.format(Locale.ROOT,"Geyser center %.0f, %.0f; %dx%d chunk-equivalent area (%d blocks across before boundary noise), full world height; shared capacity %.0f; collective %.2f mana/tick; zone: %s; crystal caves: %s",g.centerX(),g.centerZ(),g.width(),g.width(),g.circular()?(int)Math.round(GeyserShape.radius(g)*2):g.blockWidth(),GeyserLedger.capacity(g),GeyserLedger.regeneration(g),g.legacy()&&g.zone(x,z)==GeyserZone.CORE?"reserved legacy center":g.zone(x,z).title(),g.crystalZone(x,z)?"yes":"no")),false);return 1;
             }))
             .then(Commands.literal("locate").executes(c->{
                 var source=c.getSource();var best=nearest(source);
