@@ -17,6 +17,9 @@ public class Riftfall {
             org.Azkerash.riftfall.stamina.StaminaConfig.SPEC,"riftfall-stamina-server.toml");
         if(net.neoforged.fml.loading.FMLEnvironment.dist==net.neoforged.api.distmarker.Dist.CLIENT)
             container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT,org.Azkerash.riftfall.client.CameraConfig.SPEC,"riftfall-camera-client.toml");
+        if(net.neoforged.fml.loading.FMLEnvironment.dist==net.neoforged.api.distmarker.Dist.CLIENT)
+            container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT,
+                org.Azkerash.riftfall.client.titles.ArrivalTitleConfig.SPEC,"riftfall-titles-client.toml");
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,org.Azkerash.riftfall.mana.ManaConfig.SPEC,"riftfall-mana-server.toml");
         bus.addListener(org.Azkerash.riftfall.equipment.MobEquipment::attributes);
         BehaviorTestEntities.register(bus);

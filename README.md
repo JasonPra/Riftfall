@@ -25,6 +25,10 @@ Goblins scavenge dropped items, carry 36 storage slots, upgrade permitted one-ha
 - Five reusable active-skill slots support NPC adapters. Backstab has player and mob implementations, including a dedicated greatsword sequence. Equipping a skill book as loot does not teach a goblin the skill. See [mob skills](docs/mob-skills.md).
 - The Bone Staff, Goblin Buckler, Goblin Shortsword and Backstab skill book are in the Combat tab. Spawn eggs are in Spawn Eggs. Crystals use Natural Blocks (raw) and Ingredients (cut).
 
+## Arrival titles
+
+Entering a biome displays its name with a fading Garamond serif title and fine horizontal rules inspired by Dark Souls, including geyser rings and modded biomes. See [biome arrival titles](docs/arrival-titles.md).
+
 ## Mana crystals
 
 Eight tiers progress **red → orange → yellow → green → cyan → blue → violet → white**. Raw crystals can be planted on natural stone and tagged ores, including underwater, on floors, walls and ceilings. Eight layers form a mature mother. Only mothers spread and refine; offspring are lower-tier, with red clamped to red. Water modestly accelerates growth/spreading, while higher-tier height growth is slower. Spreading spends ambient mana.
