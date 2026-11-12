@@ -74,7 +74,7 @@ Most `/riftfall` diagnostics and world commands require operator permission. Cli
 /riftfall ambient inspect
 ```
 
-`geyser locate` finds the nearest candidate without generating terrain. `geyser teleport` sends the executing player to a **random undiscovered field**, with a safe dry surface arrival; repeat it to visit another field. Teleporting generates destination terrain. Spawned goblins ignore creative/spectator players as ordinary combat targets; use survival for behavior tests.
+`geyser locate` finds the nearest candidate without generating terrain. `geyser teleport` sends the executing player to a **random undiscovered field**, arriving above its center’s canopy or water surface without landing-safety checks; repeat it to visit another field. Teleporting generates destination terrain. Spawned goblins ignore creative/spectator players as ordinary combat targets; use survival for behavior tests.
 
 **F8** / `/riftfall debug helditems` shows model bounds (cyan shields, gold other items). **F3+B** / `/riftfall debug colliders` shows entity hurtboxes, native Epic Fight attack colliders and raised physical shield boxes. `/riftfall debug off` disables both overlays.
 

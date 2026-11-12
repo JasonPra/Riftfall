@@ -41,7 +41,7 @@ Core density is configurable with `coreInitialDepositSize`. Deposits are seeded 
 ## Diagnostics
 
 - `/riftfall geyser locate` finds the nearest saved or new candidate without generating terrain; output identifies legacy and ecosystem fields.
-- `/riftfall geyser teleport` selects a random undiscovered field away from the current field and generates a safe dry surface arrival for the executing player.
+- `/riftfall geyser teleport` selects a random undiscovered field away from the current field and brings the executing player above its center’s canopy or water surface. This development command does not require a safe or dry landing.
 - `/riftfall geyser inspect` reports the footprint, zone, cave eligibility, shared capacity and regeneration.
 - `/riftfall ambient inspect` reports the actual reservoir balance and mana per second.
 
@@ -77,7 +77,7 @@ Surface rivers exert gentle physical drift on entities, including players, boats
 
 The current follows connected water toward lower outlets first. On level stretches it moves away from the broadest connected body found by a bounded water-network search. Body size is estimated by sampled water width; this is not an unlimited global watershed simulation. Loaded terrain supplies actual water elevations, with biome/landscape metadata extending the search beyond loaded chunks. Results are cached, and current calculation never generates terrain. Underground generated streams retain their ordinary fluid flow.
 
-Operators can use `/riftfall geyser teleport` repeatedly to choose a random undiscovered field away from the current field, testing the new generation without a new world. It finds a safe dry surface arrival near the target center. `/riftfall geyser locate` still finds the nearest field without generating terrain.
+Operators can use `/riftfall geyser teleport` repeatedly to choose a random undiscovered field away from the current field, testing the new generation without a new world. It loads the center chunk and arrives two blocks above its highest surface, including trees or water. Flooded, hazardous or obstructed ground does not reject a field; the player’s game mode is preserved. `/riftfall geyser locate` still finds the nearest field without generating terrain.
 
 ## Reproducible checks and limits
 
