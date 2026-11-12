@@ -87,3 +87,7 @@ Mother positions and adjacent mature-tier snapshots are saved for unloaded simul
 ## Stable seed-bed rendering
 
 Seed-bed/root faces render in the solid chunk pass with opaque smoky textures. Their RGB detail and smooth edge colors remain the same; the crystal prisms retain the existing translucent textures and pass. These disjoint passes prevent camera-dependent alpha sorting from changing which bed faces are visible. Coplanar bed cleanup still runs during chunk rebuilding.
+
+## Coplanar prism overlap
+
+Same-facing prism faces that occupy the same plane are partitioned once during chunk mesh construction so each surface area has one stable owner. This includes tilted faces. Uncovered surface portions retain their original positions, texture coordinates and opacity. Distinct planes and opposite-facing surfaces remain unchanged. Crystal dimensions, placement, density rules, model assets and textures are unchanged.

@@ -21,6 +21,7 @@ public final class CrystalBedModel extends BakedModelWrapper<BakedModel> {
         for(int i=0;i<7;i++)buckets.add(model.getQuads(state,i==6?null:Direction.values()[i],RandomSource.create(seed),ModelData.EMPTY,null));
     }
     public static void clean(List<CrystalBedModel> models){
+        CrystalCoplanarFaces.clean(models.stream().map(m->m.buckets).toList());
         var occupied=new HashMap<Plane,List<Rect>>();
         for(var model:models)for(int bucket=0;bucket<7;bucket++){
             var output=new ArrayList<BakedQuad>();
