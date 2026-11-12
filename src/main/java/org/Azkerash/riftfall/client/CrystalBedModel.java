@@ -44,6 +44,8 @@ public final class CrystalBedModel extends BakedModelWrapper<BakedModel> {
             model.buckets.set(bucket,List.copyOf(output));
         }
     }
+    public static boolean isBed(BakedQuad quad){return (quad.getTintIndex()&65536)!=0;}
+    public static List<BakedQuad> layer(List<BakedQuad> quads,boolean bed){return quads.stream().filter(q->isBed(q)==bed).toList();}
     private static void subtract(Rect a,Rect b,List<Rect> out){
         double x0=Math.max(a.x0,b.x0),y0=Math.max(a.y0,b.y0),x1=Math.min(a.x1,b.x1),y1=Math.min(a.y1,b.y1);
         if(x1-x0<EPS||y1-y0<EPS){out.add(a);return;}

@@ -3,7 +3,8 @@
   "render_type": "minecraft:translucent",
   "ambientocclusion": false,
   "textures": {
-    "particle": "#crystal"
+    "particle": "#crystal",
+    "bed": "#crystal"
   },
   "elements": [
     {
@@ -19,27 +20,27 @@
       ],
       "faces": {
         "north": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65746
         },
         "south": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65746
         },
         "east": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65746
         },
         "west": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65746
         },
         "up": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65746
         },
         "down": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "cullface": "down",
           "tintindex": 65746
         }
@@ -58,27 +59,27 @@
       ],
       "faces": {
         "north": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65747
         },
         "south": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65747
         },
         "east": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65747
         },
         "west": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65747
         },
         "up": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "tintindex": 65747
         },
         "down": {
-          "texture": "#crystal",
+          "texture": "#bed",
           "cullface": "down",
           "tintindex": 65747
         }

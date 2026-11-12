@@ -83,3 +83,7 @@ Mother positions and adjacent mature-tier snapshots are saved for unloaded simul
 ## Time to maturity by color
 
 `growthTimeMultiplierPerTier` defaults to 1.10: each higher tier takes 10% longer on average to gain growth layers (white is about 1.95× red). The 20% underwater height-growth bonus remains multiplicative. This changes seed-to-mother growth only: mature spreading probability, spreading cost, and refinement settings are independent.
+
+## Stable seed-bed rendering
+
+Seed-bed/root faces render in the solid chunk pass with opaque smoky textures. Their RGB detail and smooth edge colors remain the same; the crystal prisms retain the existing translucent textures and pass. These disjoint passes prevent camera-dependent alpha sorting from changing which bed faces are visible. Coplanar bed cleanup still runs during chunk rebuilding.

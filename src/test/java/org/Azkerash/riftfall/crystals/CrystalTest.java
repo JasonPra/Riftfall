@@ -47,6 +47,18 @@ class CrystalTest {
             for(int y=0;y<32;y++)for(int x=0;x<32;x++){int pixel=image.getRGB(x,y);assertTrue((pixel>>>24)>100&&(pixel>>>24)<255);colors.add(pixel&0xffffff);}assertTrue(colors.size()>20);
         }
     }
+    @Test void seedBedTexturesAreOpaqueWithoutChangingTheirSmokyRgb()throws Exception{
+        for(var tier:CrystalTier.values()){
+            try(var original=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal.png");var bed=getClass().getResourceAsStream("/assets/riftfall/textures/block/"+tier.id()+"_mana_crystal_bed.png")){
+                assertNotNull(original);assertNotNull(bed);var a=ImageIO.read(original);var b=ImageIO.read(bed);
+                for(int y=0;y<32;y++)for(int x=0;x<32;x++){assertEquals(255,b.getRGB(x,y)>>>24);assertEquals(a.getRGB(x,y)&0xffffff,b.getRGB(x,y)&0xffffff);}
+            }
+            for(int layer=1;layer<=8;layer++)for(String suffix:List.of("","_wild","_join_0","_join_1","_join_2","_join_3")){
+                var model=json("assets/riftfall/models/block/mana_crystals/"+tier.id()+"_"+layer+suffix+".json");
+                assertEquals("riftfall:block/"+tier.id()+"_mana_crystal_bed",model.getAsJsonObject("textures").get("bed").getAsString());
+            }
+        }
+    }
     @Test void multipartModelsSelectRealNeighborConnectionsOnEveryAttachmentFace()throws Exception{
         for(var tier:CrystalTier.values()){
             var parts=json("assets/riftfall/blockstates/"+tier.id()+"_mana_crystal_cluster.json").getAsJsonArray("multipart");assertEquals(240,parts.size());

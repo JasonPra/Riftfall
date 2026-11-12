@@ -63,6 +63,14 @@ class CrystalBedModelTest {
             assertEquals(1,quads(a).size());assertTrue(quads(b).isEmpty(),direction.toString());
         }
     }
+    @Test void solidBedsAndTranslucentPrismsAreDisjointPasses(){
+        var bed=top(0,0,1,1,.1f,65537,Direction.UP);var prism=top(0,0,1,1,.1f,17,Direction.UP);
+        var all=List.of(bed,prism);
+        assertEquals(List.of(bed),CrystalBedModel.layer(all,true));
+        assertEquals(List.of(prism),CrystalBedModel.layer(all,false));
+        assertSame(bed,CrystalBedModel.layer(all,true).getFirst());
+        assertSame(prism,CrystalBedModel.layer(all,false).getFirst());
+    }
     @Test void exactDuplicatesDisappearButPrismsAndDifferentPlanesStay(){
         var bed=top(0,0,1,1,.1f,65537,Direction.UP);var prism=top(0,0,1,1,.1f,17,Direction.UP);
         var raised=top(0,0,1,1,.2f,65538,Direction.UP);var back=top(0,0,1,1,.1f,65539,Direction.DOWN);

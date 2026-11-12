@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]/'src/main/resources'
 COLORS={'red':0xB94D57,'orange':0xCB8450,'yellow':0xD0BB67,'green':0x619A72,'cyan':0x65A8B4,'blue':0x526FAE,'violet':0x8A64AD,'white':0xD8DFE8}
 def write(path,data):
  p=ROOT/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(data,indent=2)+'\n')
-def texture(path,color,cut=False):
+def texture(path,color,cut=False,opaque=False):
  r,g,b=(color>>16)&255,(color>>8)&255,color&255;noise=random.Random(41);raw=bytearray()
  for y in range(32):
   raw.append(0)
@@ -17,6 +17,7 @@ def texture(path,color,cut=False):
    else:
     cloud=.12*math.sin(x*.62+y*.27)+.08*math.sin(y*.81-x*.21)+noise.uniform(-.06,.06)
     factor=.89+cloud+(.09 if x%11 in (2,3) else 0);alpha=max(165,min(225,round(198+cloud*80)))
+   if opaque:alpha=255
    for value in (r,g,b):raw.append(max(0,min(255,round(value*factor+12))))
    raw.append(alpha)
  def chunk(tag,data):return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
@@ -35,9 +36,11 @@ part_id=0
 def geometry(name,elements,base_count=2):
  global part_id
  for index,element in enumerate(elements):
-  for face in element['faces'].values():face['tintindex']=part_id | (65536 if index<base_count else 0)
+  for face in element['faces'].values():
+   face['tintindex']=part_id | (65536 if index<base_count else 0)
+   if index<base_count:face['texture']='#bed'
   part_id+=1
- write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':False,'textures':{'particle':'#crystal'},'elements':elements})
+ write(model_dir/(name+'.json'),{'parent':'minecraft:block/block','render_type':'minecraft:translucent','ambientocclusion':False,'textures':{'particle':'#crystal','bed':'#crystal'},'elements':elements})
 def column(x,z,w,d,height,h,axis=None,angle=0):
  base=min(1.25,h*.20);top=max(base+.25,height*h)
  if axis and h>=6:
@@ -75,15 +78,16 @@ for layer in range(1,9):
 for tier,color in COLORS.items():
  block=tier+'_mana_crystal_cluster';raw='raw_'+tier+'_mana_crystal';cut='cut_'+tier+'_mana_crystal'
  texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal.png'),color)
+ texture(Path('assets/riftfall/textures/block')/(tier+'_mana_crystal_bed.png'),color,opaque=True)
  texture(Path('assets/riftfall/textures/item')/(cut+'.png'),color,True)
  multipart=[]
  for layer in range(1,9):
   models=[]
   for variant in range(2):
    name=f'{tier}_{layer}'+('_wild'if variant else '')
-   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal'}})
+   write(model_dir/(name+'.json'),{'parent':f'riftfall:block/mana_crystals/template_{layer}_{variant}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','bed':f'riftfall:block/{tier}_mana_crystal_bed'}})
    models.append(f'riftfall:block/mana_crystals/{name}')
-  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal'}})
+  for side in range(4):write(model_dir/f'{tier}_{layer}_join_{side}.json',{'parent':f'riftfall:block/mana_crystals/template_{layer}_join_{side}','render_type':'minecraft:translucent','textures':{'crystal':f'riftfall:block/{tier}_mana_crystal','bed':f'riftfall:block/{tier}_mana_crystal_bed'}})
   for facing,rotation in rotations.items():
    condition={'facing':facing,'layers':str(layer)}
    multipart.append({'when':condition,'apply':[{'model':model,**rotation}for model in models]})
