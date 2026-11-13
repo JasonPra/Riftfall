@@ -24,6 +24,7 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
         var field=GeyserBiomes.field(level,cx,cz);if(field==null)return false;
         long seed=GeyserLayout.mix(world.getSeed()^0x474559534552L);
         var pos=new BlockPos.MutableBlockPos();boolean changed=false;
+        var river=GeyserUndergroundRiver.of(seed,field);
         var plan=world.getChunk(cx,cz).getExistingDataOrNull(GeyserSurfacePlan.PLAN);
         for(int x=cx*16;x<cx*16+16;x++)for(int z=cz*16;z<cz*16+16;z++){
             // Taper route openings at the field boundary.
@@ -35,16 +36,21 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
             var network=GeyserCaveShape.network(seed,x,z,roof);
             int bottom=Math.max(-59,world.getMinBuildHeight()+5);
             var entry=fade>=1?GeyserTerrain.entranceColumn(seed,field,x,z):null;
-            int entranceTop=entry!=null?surface+3:roof;
+            var hydro=river.column(x,z);
+            int entranceTop=Math.max(entry!=null?surface+3:roof,hydro!=null?hydro.roof():roof);
             for(int y=bottom;y<=entranceTop;y++){
                 pos.set(x,y,z);var state=world.getBlockState(pos);
-                boolean natural=state.is(BlockTags.BASE_STONE_OVERWORLD)||state.isAir()||state.is(Blocks.WATER)||state.is(Blocks.LAVA);
+                boolean natural=state.is(BlockTags.BASE_STONE_OVERWORLD)||state.isAir()||state.is(Blocks.WATER)||state.is(Blocks.LAVA)
+                    ||hydro!=null&&(state.is(BlockTags.DIRT)||state.is(BlockTags.SAND)||state.is(Blocks.GRAVEL)||state.is(Blocks.CLAY)||state.is(net.neoforged.neoforge.common.Tags.Blocks.ORES));
                 if(!natural)continue;
                 boolean entrance=entry!=null&&entry.contains(y);
-                if(y>roof&&!entrance)continue;
-                boolean carve=(fade>=1&&network.contains(y))||entrance;
-                boolean wet=carve&&network.water(y);
-                var replacement=carve?(wet?Blocks.WATER:Blocks.CAVE_AIR).defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                boolean channel=hydro!=null&&y>hydro.floor()&&y<=hydro.roof();
+                boolean bed=hydro!=null&&y>=hydro.floor()-3&&y<=hydro.floor();
+                if(y>roof&&!entrance&&!channel&&!bed)continue;
+                boolean carve=(fade>=1&&network.contains(y))||entrance||channel;
+                boolean wet=channel?hydro.wet()&&y<=hydro.water():carve&&network.water(y);
+                var replacement=bed?GeyserTerrain.sediment(seed,x,z,hydro.floor()-y):carve?(wet?Blocks.WATER:Blocks.CAVE_AIR).defaultBlockState():(y<0?Blocks.DEEPSLATE:Blocks.STONE).defaultBlockState();
+                if(channel&&wet&&hydro.falling())replacement=Blocks.WATER.defaultBlockState().setValue(net.minecraft.world.level.block.LiquidBlock.LEVEL,8);
                 if(wet&&(y&7)==0)world.scheduleTick(pos.immutable(),net.minecraft.world.level.material.Fluids.WATER,1);
                 if(!replacement.equals(state)){world.setBlock(pos,replacement,2);changed=true;}
             }

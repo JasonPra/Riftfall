@@ -3,38 +3,37 @@ package org.Azkerash.riftfall.worldmana.geysers;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class GeyserLandscapeTest {
-    @Test void riversFollowReliefWithShallowVariedBedsInsteadOfSeaLevelTrenches(){
-        var g=new GeyserRegion(0,0,193,1000,1);
-        int minDepth=99,maxDepth=0,minWater=999,maxWater=-999,drops=0;
-        for(int z=-650;z<150;z++){
-            int x=(int)Math.round(GeyserTerrain.riverCenter(g,z));
-            var c=GeyserTerrain.column(42,g,x,z);
-            assertTrue(c.wet(),"Dry river at "+z);
-            if(c.kind()!=GeyserTerrain.WaterKind.RIVER)continue;
-            int depth=c.water()-c.floor();minDepth=Math.min(minDepth,depth);maxDepth=Math.max(maxDepth,depth);
-            minWater=Math.min(minWater,c.water());maxWater=Math.max(maxWater,c.water());
-            assertTrue(GeyserTerrain.ground(g,x,z)-c.floor()<9,"River cuts a trench at "+z);
-            int change=Math.abs(c.water()-GeyserTerrain.riverLevel(g,z-1));
-            assertTrue(change<=2,"Abrupt disconnected reach");if(change>0)drops++;
-        }
-        assertTrue(minDepth>=1&&maxDepth<=4);assertTrue(maxDepth>minDepth);
-        assertTrue(maxWater-minWater>=5);assertTrue(minWater>63);assertTrue(drops>0);
-    }
-    @Test void someRoutesEndInInternalLakesAndOthersReachTheBoundary(){
-        int closed=0,open=0,lakes=0;
-        for(int i=0;i<20;i++){
-            var g=new GeyserRegion(i*512,-512,193,1000,1);
-            for(boolean north:new boolean[]{false,true}){
-                if(GeyserTerrain.openEnd(g,north)){open++;continue;}closed++;
-                int z=(int)Math.round(g.centerZ()+(north?-1:1)*GeyserShape.radius(g)*.68);
-                var c=GeyserTerrain.column(42,g,(int)Math.round(GeyserTerrain.riverCenter(g,z)),z);
-                assertTrue(c.wet());assertEquals(GeyserTerrain.WaterKind.LAKE,c.kind());lakes++;
-                int beyond=(int)Math.round(g.centerZ()+(north?-1:1)*GeyserShape.radius(g)*.9);
-                var end=GeyserTerrain.column(42,g,(int)Math.round(GeyserTerrain.riverCenter(g,beyond)),beyond);
-                assertNotEquals(GeyserTerrain.WaterKind.RIVER,end.kind());
+    @Test void routedWaterHasOneSourceAndNeverClimbsDownstream(){
+        for(int i=0;i<6;i++){
+            var g=new GeyserRegion(i*512,-512,193,1000,1);var route=GeyserDrainage.of(g);
+            int previous=999,actualPrevious=999,river=0,lake=0;
+            for(var point:route.path()){
+                assertTrue(point.water()<=previous);previous=point.water();
+                var c=GeyserTerrain.column(42,g,(int)Math.round(point.x()),(int)Math.round(point.z()));
+                assertTrue(c.wet(),"Dry planned route at "+point);
+                assertTrue(c.water()<=actualPrevious,"Actual water climbs at "+point+" from "+actualPrevious+" to "+c.water());actualPrevious=c.water();
+                if(c.kind()==GeyserTerrain.WaterKind.LAKE)lake++;else river++;
             }
+            assertTrue(river>0&&lake>0);
         }
-        assertTrue(closed>0&&open>0&&lakes>0);
+    }
+    @Test void springAndReceivingPoolEdgesGradeIntoGround(){
+        var g=new GeyserRegion(0,0,193,1000,1);var route=GeyserDrainage.of(g);var p=route.source();
+        int previous=GeyserTerrain.height(42,g,(int)p.x()-70,(int)p.z());
+        for(int x=(int)p.x()-69;x<=(int)p.x()+70;x++){
+            int height=GeyserTerrain.height(42,g,x,(int)p.z());
+            assertTrue(Math.abs(height-previous)<=2,"Abrupt shore cutoff at "+x);previous=height;
+        }
+    }
+    @Test void floodedDepressionShorelinesHaveNoExcavatedVerticalCutoff(){
+        var g=new GeyserRegion(0,0,193,1000,1);var route=GeyserDrainage.of(g);int shores=0;
+        for(var point:route.path())for(int dx=-80;dx<=80;dx+=4)for(int dz=-80;dz<=80;dz+=4){
+            int x=(int)Math.round(point.x())+dx,z=(int)Math.round(point.z())+dz;
+            var a=GeyserTerrain.column(42,g,x,z);if(!a.wet()||a.kind()!=GeyserTerrain.WaterKind.LAKE)continue;
+            var b=GeyserTerrain.column(42,g,x+1,z);if(b.wet())continue;
+            assertTrue(Math.abs(a.floor()-b.floor())<=2,"Hard lake edge at "+x+","+z);shores++;
+        }
+        assertTrue(shores>0,"No lake shore exercised");
     }
     @Test void waterBiomesKeepZoneIdentityWithoutReplacingLandEverywhere(){
         var keys=new java.util.HashSet<>();

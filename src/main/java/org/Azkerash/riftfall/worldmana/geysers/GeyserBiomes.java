@@ -57,10 +57,18 @@ public final class GeyserBiomes {
         long seed=GeyserLayout.mix(level.getSeed()^0x474559534552L);
         var surface=new java.util.ArrayList<net.minecraft.core.Holder<Biome>>(16);
         var inside=new boolean[16];
+        var underground=GeyserUndergroundRiver.of(seed,field);
+        var cuts=new GeyserUndergroundRiver.Cut[16];
+        var underwater=new java.util.ArrayList<net.minecraft.core.Holder<Biome>>(java.util.Collections.nCopies(16,null));
+        var ground=new double[16];
         for(int a=0;a<4;a++)for(int b=0;b<4;b++){
             int x=cp.getMinBlockX()+a*4+2,z=cp.getMinBlockZ()+b*4+2;
             var zone=GeyserShape.zone(field,x,z);
-            if(zone!=GeyserZone.OUTSIDE){inside[a*4+b]=true;surface.add(registry.getHolderOrThrow(surfaceKey(seed,field,x,z)));continue;}
+            if(zone!=GeyserZone.OUTSIDE){
+                int index=a*4+b;inside[index]=true;cuts[index]=underground.column(x,z);ground[index]=GeyserTerrain.ground(field,x,z);
+                underwater.set(index,registry.getHolderOrThrow(waterKey(zone,false)));
+                surface.add(registry.getHolderOrThrow(surfaceKey(seed,field,x,z)));continue;
+            }
             double distance=GeyserTransition.distance(field,x,z),t=GeyserTransition.progress(distance,x,z);
             if(distance>=GeyserTransition.WIDTH){surface.add(GeyserCoast.original(level,x,z));continue;}
             var environment=GeyserCoast.environment(level,field,x,z);var local=GeyserCoast.original(level,x,z);
@@ -70,7 +78,11 @@ public final class GeyserBiomes {
             if(channel)selected=environment.climate()==GeyserTransition.Climate.COLD||environment.climate()==GeyserTransition.Climate.FROZEN_SEA?net.minecraft.world.level.biome.Biomes.FROZEN_RIVER:net.minecraft.world.level.biome.Biomes.RIVER;
             surface.add(!channel&&GeyserTransition.nativePatch(t,x,z)?local:registry.getHolderOrThrow(selected));
         }
-        chunk.fillBiomesFromNoise((x,y,z,sampler)->y<8&&!inside[(x&3)*4+(z&3)]?level.getChunkSource().getGenerator().getBiomeSource().getNoiseBiome(x,y,z,sampler):surface.get((x&3)*4+(z&3)),level.getChunkSource().randomState().sampler());
+        chunk.fillBiomesFromNoise((x,y,z,sampler)->{
+            int index=(x&3)*4+(z&3),height=y*4+2;var cut=cuts[index];
+            if(inside[index]&&cut!=null&&height<ground[index]-6&&height>cut.floor()&&height<=cut.roof())return underwater.get(index);
+            return y<8&&!inside[index]?level.getChunkSource().getGenerator().getBiomeSource().getNoiseBiome(x,y,z,sampler):surface.get(index);
+        },level.getChunkSource().randomState().sampler());
         return chunk;
     }
     private GeyserBiomes(){}

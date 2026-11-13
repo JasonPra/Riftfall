@@ -17,100 +17,64 @@ public final class GeyserTerrain {
         double a=(GeyserLayout.mix(seed^cell*731L)>>>11)*0x1.0p-53,b=(GeyserLayout.mix(seed^(cell+1)*731L)>>>11)*0x1.0p-53;
         return a+(b-a)*t;
     }
-    public static double riverCenter(GeyserRegion g,double z){
-        long h=waterSeed(g);double b=z-g.centerZ();
-        double warp=b+85*(noise(h+8,b/290)-noise(h+8,0));
-        return g.centerX()+260*(noise(h,warp/420)-noise(h,0))+95*(noise(h+1,warp/155)-noise(h+1,0))+24*(noise(h+2,warp/57)-noise(h+2,0));
-    }
+    public static double riverCenter(GeyserRegion g,double z){return GeyserDrainage.of(g).centerAt(z);}
     public static double riverWidth(GeyserRegion g,double z){long h=waterSeed(g);double b=z-g.centerZ();return 4+5*noise(h+3,b/185)+2*noise(h+4,b/43);}
-    public static double riverDistance(GeyserRegion g,int x,int z){return Math.abs(x-riverCenter(g,z));}
-    /** One continuous route gives every connected lake only an inlet and an outlet, never a four-way crossing. */
-    public static double junctionZ(GeyserRegion g){return g.centerZ()+g.innerRadiusChunks()*8.0;}
+    public static double riverDistance(GeyserRegion g,int x,int z){return GeyserDrainage.of(g).nearest(x,z).distance();}
+    public static double junctionZ(GeyserRegion g){return GeyserDrainage.of(g).mouth().z();}
     public enum WaterKind { NONE, RIVER, LAKE }
     public record Column(int floor,int water,WaterKind kind) {
         public boolean wet(){return water>floor;}
     }
-    /** The undisturbed local terrain; channels remove only a few blocks from this surface. */
     public static double ground(GeyserRegion g,double x,double z){
         double a=x-g.centerX(),b=z-g.centerZ();
         return 77+7*Math.sin(a/170)+5*Math.cos(b/210)+3*Math.sin((a+b)/87);
     }
-    public static boolean openEnd(GeyserRegion g,boolean north){
-        return (waterSeed(g)&(north?1:2))!=0;
-    }
-    private static double endZ(GeyserRegion g,boolean north){
-        return g.centerZ()+(north?-1:1)*GeyserShape.radius(g)*.68;
-    }
-    private static int lakeLevel(GeyserRegion g,double lx,double lz,double radius){
-        double low=ground(g,lx,lz);
-        // Keep the pool below its surrounding shoreline so it cannot spill sideways over a low bank.
-        for(int i=0;i<32;i++){
-            double angle=i*Math.PI/16;
-            low=Math.min(low,ground(g,lx+radius*1.25*Math.cos(angle),lz+radius*.77*1.25*Math.sin(angle)));
-        }
-        return (int)Math.floor(low)-1;
-    }
-    /** Long shallow reaches follow local relief, with occasional two-block rock steps. */
+    public static boolean openEnd(GeyserRegion g,boolean north){var route=GeyserDrainage.of(g);return route.external()&&route.north()==north;}
     public static int riverLevel(GeyserRegion g,double z){
-        double level=ground(g,riverCenter(g,z),z)-1;
-        double jz=junctionZ(g),blend=1-smooth(Math.clamp((Math.abs(z-jz)-110)/100,0,1));
-        if(blend>0)level+=(lakeLevel(g,riverCenter(g,jz),jz,95+25*noise(waterSeed(g)+6,0))-level)*blend;
-        for(boolean north:new boolean[]{false,true})if(!openEnd(g,north)){
-            double ez=endZ(g,north),weight=1-smooth(Math.clamp((Math.abs(z-ez)-70)/90,0,1));
-            if(weight>0)level+=(lakeLevel(g,riverCenter(g,ez),ez,85)-level)*weight;
-        }
-        int step=noise(waterSeed(g)+17,(z-g.centerZ())/180)>.8?2:1;
-        return (int)Math.floor(level/step)*step;
+        var route=GeyserDrainage.of(g);var nearest=route.nearest(route.centerAt(z),z);
+        return nearest.segment()>=0?nearest.water():route.mouth().water();
     }
-    private static Column basin(Column current,GeyserRegion g,int x,int z,double lx,double lz,double radius){
-        double angle=Math.atan2(z-lz,x-lx);
-        double edge=1+.12*Math.sin(angle*3)+.07*Math.sin(angle*5+1);
-        double d=Math.hypot((x-lx)/radius,(z-lz)/(radius*.77))/edge;
-        if(d>=1)return current;
-        int water=riverLevel(g,lz);
-        int terrain=(int)Math.floor(ground(g,x,z));
-        // Keep high ground as natural peninsulas/islands rather than excavating a bowl.
-        int floor=Math.min(current.floor,Math.max(terrain-4,(int)Math.floor(water-1-3*(1-d*d))));
-        if(floor>=water)return current;
-        return new Column(Math.min(current.floor,floor),water,WaterKind.LAKE);
+    private static double shoreGround(GeyserRegion g,int x,int z){
+        return (ground(g,x,z)*4+ground(g,x-12,z)+ground(g,x+12,z)+ground(g,x,z-12)+ground(g,x,z+12))/8;
+    }
+    /** A spring/receiving pool grades through a broad shallow shelf into the existing ground. */
+    private static Column pool(Column current,GeyserRegion g,int x,int z,GeyserDrainage.Point center,double radius){
+        double angle=Math.atan2(z-center.z(),x-center.x());
+        double d=Math.hypot(x-center.x(),(z-center.z())/ .85)/(1+.06*Math.sin(angle*3));
+        if(d>=radius+32)return current;
+        double bank=smooth(Math.clamp((d-radius)/32,0,1));
+        double bed=center.water()-1-2*Math.max(0,1-sq(d/radius));
+        int floor=(int)Math.floor(bed+(shoreGround(g,x,z)-bed)*bank);
+        if(floor>=center.water())return new Column(Math.min(current.floor(),floor),current.water(),current.kind());
+        return new Column(Math.min(current.floor(),floor),center.water(),WaterKind.LAKE);
     }
     public static Column column(long seed,GeyserRegion g,int x,int z){
-        int terrain=(int)Math.floor(ground(g,x,z));
-        Column result=new Column(terrain,Integer.MIN_VALUE,WaterKind.NONE);
-        double width=riverWidth(g,z),offset=riverDistance(g,x,z)/width;
-        boolean inRoute=(openEnd(g,true)||z>=endZ(g,true))&&(openEnd(g,false)||z<=endZ(g,false));
-        if(inRoute&&offset<1.5){
-            int level=riverLevel(g,z);
-            double depth=1+2*noise(waterSeed(g)+5,(z-g.centerZ())/120);
-            int bed=(int)Math.floor(level-1-depth*Math.max(0,1-offset*offset));
-            double bank=smooth(Math.clamp((offset-1)/.5,0,1));
-            int floor=(int)Math.floor(bed+(terrain-bed)*bank);
-            result=new Column(floor,level,floor<level?WaterKind.RIVER:WaterKind.NONE);
+        var route=GeyserDrainage.of(g);var reach=route.nearest(x,z);
+        int terrain=(int)Math.floor(ground(g,x,z));var result=new Column(terrain,Integer.MIN_VALUE,WaterKind.NONE);
+        double width=riverWidth(g,z),distance=reach.distance();
+        if(distance<width+32){
+            double offset=distance/width,depth=1+2*noise(waterSeed(g)+5,reach.segment()/8.0);
+            double bed=reach.water()-1-depth*Math.max(0,1-offset*offset);
+            double bank=smooth(Math.clamp((distance-width)/32,0,1));
+            int floor=(int)Math.floor(bed+(shoreGround(g,x,z)-bed)*bank);
+            result=new Column(floor,reach.water(),floor<reach.water()?WaterKind.RIVER:WaterKind.NONE);
         }
-        double jz=junctionZ(g);
-        result=basin(result,g,x,z,riverCenter(g,jz),jz,95+25*noise(waterSeed(g)+6,0));
-        for(boolean north:new boolean[]{false,true})if(!openEnd(g,north)){
-            double ez=endZ(g,north);result=basin(result,g,x,z,riverCenter(g,ez),ez,85);
+        int lake=route.lakeAt(x,z);
+        if(lake!=Integer.MIN_VALUE){
+            // Natural flooded depressions use their real ground as bed: no hard ellipse cutoff.
+            int floor=(int)Math.floor(shoreGround(g,x,z));
+            if(floor<lake)result=new Column(Math.min(result.floor(),floor),lake,WaterKind.LAKE);
         }
-        // Additional sheltered lakes retain their local terrain instead of sea-level excavations.
-        int cellX=Math.floorDiv(x,384),cellZ=Math.floorDiv(z,384);
-        for(int i=cellX-1;i<=cellX+1;i++)for(int j=cellZ-1;j<=cellZ+1;j++){
-            long h=GeyserLayout.mix(seed^i*731L^j*997L);if((h&3)!=0)continue;
-            double lx=i*384+140+Math.floorMod(h>>>8,100),lz=j*384+140+Math.floorMod(h>>>16,100);
-            double d=Math.hypot((x-lx)/55,(z-lz)/40);if(d>=1)continue;
-            var zone=GeyserShape.zone(g,lx,lz);if(zone==GeyserZone.OUTER||zone==GeyserZone.OUTSIDE)continue;
-            // Off-route lakes use the same local ground reference, not the distant river's height.
-            int water=lakeLevel(g,lx,lz,55);
-            int floor=Math.max(terrain-4,(int)Math.floor(water-1-2*(1-d*d)));
-            if(d<1&&floor<water)result=new Column(Math.min(result.floor,floor),water,WaterKind.LAKE);
-        }
+        result=pool(result,g,x,z,route.source(),14);
+        if(!route.external())result=pool(result,g,x,z,route.mouth(),route.underground()?24:36);
         return result;
     }
     public static int height(long seed,GeyserRegion g,int x,int z){return column(seed,g,x,z).floor;}
     /** Coherent sediment patches with small-scale variation, extending several blocks into the bed. */
     public static BlockState sediment(long seed,int x,int z,int depth){
-        long patch=GeyserLayout.mix(seed^Math.floorDiv(x,7)*731L^Math.floorDiv(z,7)*997L);
-        int value=(int)Math.floorMod(patch+depth*3,12);
+        int row=Math.floorDiv(z,31);double t=smooth(Math.floorMod(z,31)/31.0);
+        double a=noise(seed^row*997L,x/37.0),b=noise(seed^(row+1)*997L,x/37.0);
+        int value=(int)Math.floor((a+(b-a)*t)*12+depth*.7)%12;
         return (value<4?Blocks.GRAVEL:value<7?Blocks.SAND:value<9?Blocks.CLAY:value<11?Blocks.MUD:Blocks.COARSE_DIRT).defaultBlockState();
     }
     private static boolean natural(BlockState s){
@@ -156,20 +120,22 @@ public final class GeyserTerrain {
         var chunk=world.getChunk(cx,cz);var plan=chunk.getExistingDataOrNull(GeyserSurfacePlan.PLAN);
         if(plan==null||(plan.length!=256&&plan.length!=512))return;
         var pos=new BlockPos.MutableBlockPos();
+        var field=GeyserBiomes.field(world.getLevel(),cx,cz);
+        var underground=field==null?null:GeyserUndergroundRiver.of(seed,field);
         for(int x=0;x<16;x++)for(int z=0;z<16;z++){
             int value=plan[x*16+z];if(value==Integer.MIN_VALUE||(value&1)==0)continue;
             int floor=value>>1,wx=cx*16+x,wz=cz*16+z;
             int water=plan.length==512?plan[256+x*16+z]:world.getSeaLevel()-1;
+            if(underground!=null&&underground.mouth(wx,wz))continue;
             for(int y=Math.max(world.getMinBuildHeight()+5,floor-4);y<=water;y++){
                 pos.set(wx,y,wz);world.setBlock(pos,y>floor?Blocks.WATER.defaultBlockState():sediment(seed,wx,wz,floor-y),2);
             }
         }
         // A thin falling-water curtain bridges reach drops without raising the whole lower pool.
-        var field=GeyserBiomes.field(world.getLevel(),cx,cz);
         if(field!=null&&plan.length==512)for(int x=0;x<16;x++)for(int z=0;z<16;z++){
             int index=x*16+z;if(plan[index]==Integer.MIN_VALUE||(plan[index]&1)==0)continue;
             int wx=cx*16+x,wz=cz*16+z,water=plan[256+index];
-            if(GeyserTransition.distance(field,wx,wz)>-4)continue;
+            if(GeyserTransition.distance(field,wx,wz)>-4||underground!=null&&underground.mouth(wx,wz))continue;
             int spill=water;
             for(var direction:net.minecraft.core.Direction.Plane.HORIZONTAL){
                 var neighbor=column(seed,field,wx+direction.getStepX(),wz+direction.getStepZ());
