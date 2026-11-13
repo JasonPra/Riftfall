@@ -18,6 +18,7 @@ public final class LegacyTrees {
         bus.addListener(LegacyTrees::familyTypes);
         bus.addListener(LegacyTrees::speciesTypes);
         bus.addListener(LegacyTrees::growthKits);
+        bus.addListener(LegacyTrees::generationFeatures);
     }
 
     private static void familyTypes(TypeRegistryEvent<Family> event) {
@@ -30,6 +31,9 @@ public final class LegacyTrees {
     private static void growthKits(com.dtteam.dynamictrees.event.RegistryEvent<com.dtteam.dynamictrees.systems.growthlogic.GrowthLogicKit> event) {
         if(event.isEntryOfType(com.dtteam.dynamictrees.systems.growthlogic.GrowthLogicKit.class))
             event.getRegistry().register(new LegacyGrowthLogic());
+    }
+    private static void generationFeatures(com.dtteam.dynamictrees.event.RegistryEvent<com.dtteam.dynamictrees.systems.genfeature.GenFeature> event){
+        if(event.isEntryOfType(com.dtteam.dynamictrees.systems.genfeature.GenFeature.class))event.getRegistry().register(new LegacySurfaceRoots());
     }
     private LegacyTrees() {}
 }

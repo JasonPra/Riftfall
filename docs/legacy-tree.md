@@ -1,19 +1,20 @@
 # Vermillion Legacy tree
 
-An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. The first Dynamic Trees prototype rises roughly 73–75 blocks, with a broad, irregular green crown and roots reaching 17 blocks below its planting point in the native-server sample.
+An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. Native samples reach roughly 40 blocks high, with crowns 34–48 blocks across. The current shape revision replaces the tall tiered crown with earlier forks, arching limbs and uneven foliage pads inspired by an umbrella tree and bonsai. Tapered surface roots spread from the flared base, alongside a separate underground anchoring network.
 
 Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in the fissures. Dense heartwood has deep burgundy/red-amber coloring, tight growth rings and dark gold grain. The future artisan-polished finish should be jewel-like while remaining recognizably wood. Its difficulty of working and desirability to kings and artisans are part of the material design.
 
 ## First living-tree prototype
 
 - Dynamic Trees family/species: `riftfall:vermillion_legacy`; branch radius grows up to 24 pixels, giving the adult trunk its three-block width.
-- Three original adult JoCodes have tall central leaders, tiered boughs, diagonal branches and asymmetric crowns. These are connected Dynamic Trees branch networks, not stacks of static logs.
-- A separate growing root network penetrates dirt and ordinary Overworld stone. Native generation produced 136 root blocks extending 17 blocks down.
-- Custom Legacy growth logic gives young trees a tall leader and long outward boughs. Growth, felling, branch thickness and leaf support use Dynamic Trees.
+- Three adult JoCodes have bending upper leaders, lower forks, arching boughs and asymmetric crowns. These are connected Dynamic Trees branch networks, not stacks of static logs.
+- A separate growing root network penetrates dirt and ordinary Overworld stone. The revised native samples retain roughly 93–104 underground root blocks per tree.
+- Custom Legacy growth logic encourages earlier irregular forks and long outward boughs. Growth, felling, branch thickness and leaf support use Dynamic Trees.
+- Surface roots use Dynamic Trees’ supported root geometry, step down with the ground and taper away from the trunk. They can resize as the tree grows; roots overlapping the thick trunk retain access to its face-specific axe interaction.
 - Original lush-green leaves, seed and sapling assets are included. Manaheart Grove's foliage color is `#63B36B`; its grass remains the existing placeholder white. No other biome colors change.
 - Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Each face can be stripped independently, yielding one bark item the first time that face is stripped.
 
-To inspect an adult, stand on clear ground with roughly 55×55 blocks of open space and 85 blocks of headroom, then run:
+To inspect an adult, stand on clear ground with roughly 55×55 blocks of open space and 50 blocks of headroom, then run:
 
 ```mcfunction
 /legacytree ~ ~-1 ~
@@ -21,7 +22,7 @@ To inspect an adult, stand on clear ground with roughly 55×55 blocks of open sp
 
 The coordinates identify the **soil block**, not the first trunk block. This operator preview command creates an adult and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics.
 
-Legacy trees also generate naturally in **new Manaheart Grove chunks**, through Dynamic Trees' normal biome-decoration feature. One jittered anchor per 4×4-chunk grove cell keeps neighboring trunk centers at least 48 blocks apart. Natural crowns reserve a margin for leaf ageing inside Minecraft's 3×3-chunk feature-write area; manual previews keep the full original crown. Other rings select temporary Dynamic Trees jungle species. See [biome integration](dynamic-trees.md). Existing trees are not replaced, and no terrain elevation changes are included.
+Legacy trees also generate naturally in **new Manaheart Grove chunks**, through Dynamic Trees' normal biome-decoration feature. One jittered anchor per 4×4-chunk grove cell keeps neighboring trunk centers at least 48 blocks apart. Natural crowns reserve a margin for leaf ageing inside Minecraft's 3×3-chunk feature-write area; manual previews keep the full crown. Other rings select temporary Dynamic Trees jungle species. See [biome integration](dynamic-trees.md). Existing crowns are not rewritten; existing Legacy trees can gain surface roots on growth. No terrain elevation changes are included.
 
 ## Implemented materials
 

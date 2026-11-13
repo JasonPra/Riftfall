@@ -29,6 +29,12 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
         return branch;
     }
 
+    @Override public java.util.function.Supplier<com.dtteam.dynamictrees.block.branch.SurfaceRootBlock> createSurfaceRoot(){
+        return com.dtteam.dynamictrees.api.registry.RegistryHandler.addBlock(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("riftfall","vermillion_legacy_root"),
+            ()->new LegacySurfaceRootBlock(this,getDefaultBranchProperties()));
+    }
+
     @Override protected com.dtteam.dynamictrees.block.branch.BranchBlock createBranchBlock(ResourceLocation name){
         LegacyBranchBlock branch=name.getPath().startsWith("wounded_")?new WoundedLegacyBranch(name,getProperties()):new LegacyBranchBlock(name,getProperties());
         if(isFireProof())branch.setFireSpreadSpeed(0).setFlammability(0);

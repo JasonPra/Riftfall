@@ -6,7 +6,7 @@ import com.dtteam.dynamictrees.systems.growthlogic.context.*;
 import com.dtteam.dynamictrees.utility.CoordUtils;
 import net.minecraft.core.Direction;
 
-/** Long-lived central leader with tiered, outward-reaching boughs and an irregular summit. */
+/** Early major forks, arching boughs and a spreading crown instead of a long bare pole. */
 public final class LegacyGrowthLogic extends GrowthLogicKit {
     public LegacyGrowthLogic(){super(LegacyTrees.ID);}
 
@@ -22,12 +22,12 @@ public final class LegacyGrowthLogic extends GrowthLogicKit {
         var signal=context.signal();
         map[Direction.DOWN.ordinal()]=0;
         if(signal.isInTrunk()) {
-            int tier=Math.floorMod(signal.delta.getY()+CoordUtils.coordHashCode(signal.rootPos,2),9);
-            boolean bough=tier<2&&context.radius()>1;
+            int hash=CoordUtils.coordHashCode(context.pos(),2);
+            boolean bough=Math.floorMod(hash,7)<3&&context.radius()>1;
             for(Direction direction:Direction.Plane.HORIZONTAL)map[direction.ordinal()]=bough?2:0;
-            map[Direction.UP.ordinal()]=signal.delta.getY()<60?8:1;
+            map[Direction.UP.ordinal()]=signal.delta.getY()<20?8:signal.delta.getY()<35?4:1;
         }else{
-            map[Direction.UP.ordinal()]=1;
+            map[Direction.UP.ordinal()]=signal.numTurns<2?4:1;
             map[signal.dir.ordinal()]+=3;
             for(Direction direction:Direction.Plane.HORIZONTAL){
                 var next=context.pos().relative(direction);
