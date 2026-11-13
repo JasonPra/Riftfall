@@ -25,12 +25,14 @@ public final class LegacyLogBlock extends RotatedPillarBlock {
     public static boolean canHarvest(ItemStack tool,BlockState state){return tool.is(ItemTags.AXES)&&tool.isCorrectToolForDrops(state);}
     @Override public BlockState getToolModifiedState(BlockState state,UseOnContext context,ItemAbility ability,boolean simulate){
         if(stripped!=null&&ability==ItemAbilities.AXE_STRIP){
+            if(context.getClickedFace().getAxis()==state.getValue(AXIS))return null;
             if(!context.getItemInHand().canPerformAction(ability)||!(context.getPlayer()!=null&&context.getPlayer().isCreative())&&!canHarvest(context.getItemInHand(),state))return null;
             return stripped.get().defaultBlockState().setValue(AXIS,state.getValue(AXIS)).setValue(NATURAL,state.getValue(NATURAL));
         }
         return super.getToolModifiedState(state,context,ability,simulate);
     }
     @Override protected ItemInteractionResult useItemOn(ItemStack stack,BlockState state,Level level,BlockPos pos,Player player,InteractionHand hand,BlockHitResult hit){
+        if(hit.getDirection().getAxis()==state.getValue(AXIS)&&stack.canPerformAction(ItemAbilities.AXE_STRIP))return ItemInteractionResult.FAIL;
         if(!player.isCreative()&&stack.is(ItemTags.AXES)&&!canHarvest(stack,state)){
             LegacyWoodBehavior.deflect(player,hand,pos);return ItemInteractionResult.FAIL;
         }

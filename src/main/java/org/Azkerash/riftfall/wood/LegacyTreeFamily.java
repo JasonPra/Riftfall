@@ -74,14 +74,22 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
 
     public boolean stripPatch(Level level,BlockPos pos,net.minecraft.world.phys.BlockHitResult hit,Player player,ItemStack tool){
         var point=hit.getLocation().subtract(pos.getX(),pos.getY(),pos.getZ());
-        return strip(level,pos,hit.getDirection(),LegacyBarkWound.patch(hit.getDirection(),point.x,point.y,point.z),false,player,tool);
-    }
-    public boolean stripFace(Level level,BlockPos pos,Direction face,Player player,ItemStack tool){
-        return strip(level,pos,face,LegacyBarkWound.facePatches(face),true,player,tool);
-    }
-    private boolean strip(Level level,BlockPos pos,Direction face,long patch,boolean wholeFace,Player player,ItemStack tool){
         var state=level.getBlockState(pos);
-        if(!canStripBranch(state,level,pos,player,tool)||(LegacyBarkWound.patches(level,pos)&patch)==patch)return false;
+        if(!(state.getBlock() instanceof LegacyBranchBlock branch)||branch.isEndGrainFace(level,pos,state,hit.getDirection()))return false;
+        int radius=branch.getRadius(state);
+        int sections=state.getBlock()==getWoundedBranch()?LegacyBarkWound.sections(level,pos):LegacyBarkWound.sectionCount(radius);
+        Direction face=hit.getDirection();
+        // Horizontal bark shoulders belong to the adjoining side, not a separate tiny target.
+        if(face.getAxis()==Direction.Axis.Y)face=Direction.getNearest(point.x-.5,0,point.z-.5);
+        return strip(level,pos,face,LegacyBarkWound.patch(face,point.x,point.y,point.z,radius,sections),false,sections,player,tool);
+    }
+
+    public boolean stripFace(Level level,BlockPos pos,Direction face,Player player,ItemStack tool){
+        return strip(level,pos,face,LegacyBarkWound.facePatches(face),true,0,player,tool);
+    }
+    private boolean strip(Level level,BlockPos pos,Direction face,long patch,boolean wholeFace,int sections,Player player,ItemStack tool){
+        var state=level.getBlockState(pos);
+        if(state.getBlock() instanceof LegacyBranchBlock b&&b.isEndGrainFace(level,pos,state,face)||!canStripBranch(state,level,pos,player,tool)||(LegacyBarkWound.patches(level,pos)&patch)==patch)return false;
         if(level.isClientSide)return true;
         long patches=LegacyBarkWound.patches(level,pos)|patch;
         int faces=LegacyBarkWound.faces(level,pos)|(wholeFace?LegacyBranchBlock.faceBit(face):0);
@@ -95,6 +103,7 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
             if(!state.equals(replacement)&&!level.setBlock(pos,replacement,3))return false;
             if(faces!=63){
                 if(!(level.getBlockEntity(pos) instanceof LegacyBarkWound wound))return false;
+                wound.setSections(sections);
                 wound.setFaces(faces);
                 wound.setPatches(patches);
             }

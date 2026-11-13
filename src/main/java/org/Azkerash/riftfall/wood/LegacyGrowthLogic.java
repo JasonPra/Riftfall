@@ -12,6 +12,8 @@ public final class LegacyGrowthLogic extends GrowthLogicKit {
 
     @Override public Direction selectNewDirection(GrowthLogicKitConfiguration configuration,DirectionSelectionContext context) {
         Direction next=super.selectNewDirection(configuration,context);
+        if(next==Direction.UP&&context.signal().delta.getY()>=(context.signal().isInTrunk()?24:29))
+            context.signal().energy=0;
         if(context.signal().isInTrunk()&&next!=Direction.UP)
             context.signal().energy=20+Math.floorMod(CoordUtils.coordHashCode(context.pos(),2),6);
         return next;
@@ -23,12 +25,13 @@ public final class LegacyGrowthLogic extends GrowthLogicKit {
         map[Direction.DOWN.ordinal()]=0;
         if(signal.isInTrunk()) {
             int hash=CoordUtils.coordHashCode(context.pos(),2);
-            boolean bough=Math.floorMod(hash,7)<3&&context.radius()>1;
+            boolean bough=signal.delta.getY()>=8&&Math.floorMod(hash,7)<3&&context.radius()>1;
             for(Direction direction:Direction.Plane.HORIZONTAL)map[direction.ordinal()]=bough?2:0;
-            map[Direction.UP.ordinal()]=signal.delta.getY()<20?8:signal.delta.getY()<35?4:1;
+            map[Direction.UP.ordinal()]=signal.delta.getY()<10?8:signal.delta.getY()<24?2:0;
         }else{
-            map[Direction.UP.ordinal()]=signal.numTurns<2?4:1;
-            map[signal.dir.ordinal()]+=3;
+            map[Direction.UP.ordinal()]=signal.delta.getY()<22&&signal.numTurns<2?3:signal.delta.getY()<29?1:0;
+            if(signal.dir!=Direction.UP||signal.delta.getY()<26)map[signal.dir.ordinal()]+=3;
+            if(signal.delta.getY()>=29)map[Direction.UP.ordinal()]=0;
             for(Direction direction:Direction.Plane.HORIZONTAL){
                 var next=context.pos().relative(direction);
                 if(Math.abs(next.getX()-signal.rootPos.getX())>23||Math.abs(next.getZ()-signal.rootPos.getZ())>23)

@@ -16,6 +16,17 @@ public final class LegacyBarkWound extends BlockEntity {
         BlockEntityType.Builder.of(LegacyBarkWound::new,((LegacyTreeFamily)com.dtteam.dynamictrees.tree.family.Family.REGISTRY.get(LegacyTrees.ID)).getWoundedBranch()).build(null));
     private int faces;
     private long patches;
+    private int sections;
+    public static int sectionCount(int radius){return radius<=8?1:radius<24?2:3;}
+    public static int sections(BlockGetter world,BlockPos pos){return world.getBlockEntity(pos) instanceof LegacyBarkWound wound?wound.sections:0;}
+    public void setSections(int value){sections=Math.clamp(value,0,3);}
+    public static long patch(Direction face,double x,double y,double z,int radius,int sections){
+        if(sections==0)return patch(face,x,y,z);
+        double u=face.getAxis()==Direction.Axis.X?z:x;
+        double minimum=.5-radius/16.0,width=radius/8.0;
+        int column=Math.clamp((int)Math.floor((u-minimum)*sections/width),0,sections-1);
+        return 1L<<(face.get3DDataValue()*9+3+column);
+    }
     public static long facePatches(Direction face){return 511L<<(face.get3DDataValue()*9);}
     public static long patch(Direction face,double x,double y,double z){
         double u=face.getAxis()==Direction.Axis.X?z:x;
@@ -41,9 +52,23 @@ public final class LegacyBarkWound extends BlockEntity {
         faces=value&63;setChanged();requestModelDataUpdate();
         if(level!=null)level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),3);
     }
-    @Override protected void saveAdditional(CompoundTag tag,HolderLookup.Provider registries){super.saveAdditional(tag,registries);tag.putInt("StrippedFaces",faces);tag.putLong("StrippedPatches",patches);}
+    private void migrateGridPatches(){
+        if(sections!=0||!(getBlockState().getBlock() instanceof LegacyBranchBlock branch))return;
+        int radius=branch.getRadius(getBlockState());sections=sectionCount(radius);
+        long converted=patches;double low=.5-radius/16.0,width=radius/8.0;
+        for(Direction face:Direction.Plane.HORIZONTAL){
+            converted&=~facePatches(face);
+            for(int old=0;old<3;old++)if((patches&(1L<<(face.get3DDataValue()*9+3+old)))!=0)
+                for(int next=0;next<sections;next++){
+                    double a=low+width*next/sections,b=low+width*(next+1)/sections;
+                    if(Math.min(b,old)-Math.max(a,old-1)>1e-6)converted|=1L<<(face.get3DDataValue()*9+3+next);
+                }
+        }
+        patches=converted;
+    }
+    @Override protected void saveAdditional(CompoundTag tag,HolderLookup.Provider registries){super.saveAdditional(tag,registries);tag.putInt("StrippedFaces",faces);tag.putLong("StrippedPatches",patches);tag.putInt("StrippingSections",sections);}
     @Override protected void loadAdditional(CompoundTag tag,HolderLookup.Provider registries){
-        super.loadAdditional(tag,registries);faces=tag.getInt("StrippedFaces")&63;patches=tag.getLong("StrippedPatches");requestModelDataUpdate();
+        super.loadAdditional(tag,registries);faces=tag.getInt("StrippedFaces")&63;patches=tag.getLong("StrippedPatches");sections=Math.clamp(tag.getInt("StrippingSections"),0,3);migrateGridPatches();requestModelDataUpdate();
         if(level!=null&&level.isClientSide)level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),3);
     }
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries){return saveWithoutMetadata(registries);}

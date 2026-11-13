@@ -50,37 +50,42 @@ def stripped():
                 im.putpixel((x,y),blend(im.getpixel((x,y)),c,.78))
     return im
 
-def end(with_bark,bark_image):
-    rng=random.Random(184);im=Image.new('RGB',(N,N))
+def end(with_bark,bark_image,size=N):
+    rng=random.Random(184);im=Image.new('RGB',(size,size))
     rings=[(71,17,28),(111,27,38),(142,41,46),(169,95,48),(131,60,36),(96,23,34)]
-    for y in range(N):
-        for x in range(N):
-            dx=x-15.1;dy=y-15.9;angle=math.atan2(dy,dx)
+    for y in range(size):
+        for x in range(size):
+            dx=x-size*15.1/32;dy=y-size*15.9/32;angle=math.atan2(dy,dx)
             radius=(abs(dx)**4+abs(dy*.96)**4)**.25
             r=radius+.44*math.sin(angle*3)+.28*math.cos(angle*5)+.22*math.sin((x+y)/3)
             c=rings[int(r*2.05)%len(rings)]
             if radius<2.4:c=blend(c,(99,34,24),.3)
             delta=rng.choice([-4,-2,0,0,2,4]);c=clamp([v+delta for v in c])
-            if with_bark and min(x,y,31-x,31-y)<2:c=bark_image.getpixel((x,y))
+            if with_bark and min(x,y,size-1-x,size-1-y)<size/16:c=bark_image.getpixel((x%N,y%N))
             im.putpixel((x,y),c)
     d=ImageDraw.Draw(im)
-    d.line([(16,16),(18,20),(19,24),(21,28)],fill=(66,20,30),width=1)
-    d.line([(15,14),(12,11),(11,7),(8,4)],fill=(90,27,36),width=1)
+    d.line([(round(x*size/N),round(y*size/N)) for x,y in [(16,16),(18,20),(19,24),(21,28)]],fill=(66,20,30),width=1)
+    d.line([(round(x*size/N),round(y*size/N)) for x,y in [(15,14),(12,11),(11,7),(8,4)]],fill=(90,27,36),width=1)
     return im
 
 b=bark();s=stripped();top=end(True,b);st=end(False,b)
-for name,texture in [('vermillion_legacy_log',b),('vermillion_legacy_log_top',top),('stripped_vermillion_legacy_log',s),('stripped_vermillion_legacy_log_top',st)]:
+for name,texture in [('vermillion_legacy_log',b),('vermillion_legacy_log_top',top),('stripped_vermillion_legacy_log',s),('stripped_vermillion_legacy_log_top',st),
+        # DT's ring expander processes a whole vertical strip as a single image,
+        # producing blank animation frames. Supply complete thick frames directly.
+        ('vermillion_legacy_log_top_thick',end(True,b,96)),
+        ('stripped_vermillion_legacy_log_top_thick',end(False,b,96))]:
+    size=texture.width
     frames=[]
     for pulse in [0,.35,.7,1]:
         frame=texture.copy()
-        for py in range(N):
-            for px in range(N):
+        for py in range(size):
+            for px in range(size):
                 r,g,blue=texture.getpixel((px,py))
-                if r>g*1.3 and r>blue*1.2:frame.putpixel((px,py),clamp((r+pulse*14,g+pulse*2,blue+pulse*5)))
-                elif g>r*1.15:frame.putpixel((px,py),clamp((r+pulse*5,g+pulse*20,blue+pulse*7)))
+                if r>g*1.3 and r>blue*1.2:frame.putpixel((px,py),clamp((r+pulse*7,g+pulse*2,blue+pulse*5)))
+                elif g>r*1.15:frame.putpixel((px,py),clamp((r+pulse*5,g+pulse*10,blue+pulse*7)))
         frames.append(frame)
-    strip=Image.new('RGB',(N,N*4))
-    for index,frame in enumerate(frames):strip.paste(frame,(0,index*N))
+    strip=Image.new('RGB',(size,size*4))
+    for index,frame in enumerate(frames):strip.paste(frame,(0,index*size))
     strip.save(OUT/(name+'.png'))
     (OUT/(name+'.png.mcmeta')).write_text('{"animation":{"frametime":8,"interpolate":true,"frames":[0,1,2,3,2,1]}}\n')
 

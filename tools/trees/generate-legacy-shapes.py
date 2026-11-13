@@ -37,73 +37,79 @@ def toward(s,start,target):
  while pos!=target:
   delta=[target[i]-pos[i] for i in range(3)]
   # Prefer the longest remaining component, rather than a stair every fixed N blocks.
-  axis=max(range(3),key=lambda i:abs(delta[i]))
-  if not delta[axis]:break
-  direction=({0:(4,5),1:(0,1),2:(2,3)}[axis])[delta[axis]>0]
-  added=s.path(pos,[direction])
+  added=[]
+  for axis in sorted(range(3),key=lambda i:abs(delta[i]),reverse=True):
+   if not delta[axis]:continue
+   direction=({0:(4,5),1:(0,1),2:(2,3)}[axis])[delta[axis]>0]
+   added=s.path(pos,[direction])
+   if added:break
   if not added:break
   pos=added[-1];path.append(pos)
  return path
 
 def crown(seed):
  import math
- rng=random.Random(seed);s=Shape();height=35+rng.randrange(3)
- # Broad lower bole; above the early forks the leader bends and tapers into the crown.
+ rng=random.Random(seed);s=Shape()
+ # A short, massive bole divides into a low bowl of limbs. There is no tall leader
+ # above the crown: the upper leader becomes one of the supporting boughs.
  spine=[];pos=(0,0,0)
- for y in range(1,height+1):
-  if y>17 and y%7==0:
-   direction=[5,2,4,3][(y//7+seed)%4]
-   added=s.path(pos,[direction])
+ for y in range(1,27):
+  if y in [15,21]:
+   added=s.path(pos,[5 if seed%2 else 4])
    if added:pos=added[-1];spine.extend(added)
   added=s.path(pos,[1])
   if not added:break
   pos=added[-1];spine.extend(added)
  by_height={p[1]:p for p in spine}
- arms=[]
- # Six uneven primary boughs, arching upwards before opening into a wide dome.
- for i in range(6):
-  angle=(i+rng.uniform(-.16,.16))*math.tau/6
+ phase=rng.uniform(0,math.tau);arms=[]
+ for i in range(7):
+  angle=phase+(i+rng.uniform(-.12,.12))*math.tau/7
   dx,dz=math.cos(angle),math.sin(angle)
-  level=11+i+rng.randrange(3)
-  base=by_height[level];arm=[];pos=base
-  for distance in [4,9,15,20]:
-   rise={4:2,9:7,15:12,20:15}[distance]+rng.randrange(3)
+  level=8+i+rng.randrange(2);pos=by_height[level];arm=[]
+  for distance,rise in [(4,3),(9,8),(14,12),(19,14)]:
    target=(round(dx*distance),level+rise,round(dz*distance))
    segment=toward(s,pos,target)
+   arm.extend(segment)
    if not segment:break
-   arm.extend(segment);pos=segment[-1]
+   pos=segment[-1]
    if pos!=target:break
   arms.append((arm,dx,dz))
- # Build all main limbs before the finer branches, so twigs cannot block a major fork.
+ # Build the scaffold first. Each limb supports several overlapping pads rather
+ # than sending thin shoots up to isolated, high foliage balls.
+ supports=[]
  for arm,dx,dz in arms:
-  for index in range(7,len(arm)-1,5):
+  for index in range(8,len(arm),4):
    base=arm[index]
    for side in [-1,1]:
     spread=rng.randrange(4,8)
-    tx=max(-21,min(21,round(base[0]-dz*side*spread+dx*2)))
-    tz=max(-21,min(21,round(base[2]+dx*side*spread+dz*2)))
-    radius=math.hypot(tx,tz)
-    ty=round(35-6*(min(radius,23)/23)**2)+rng.randrange(-3,3)
-    ty=max(base[1]+2,min(height+1,ty))
+    tx=max(-20,min(20,round(base[0]-dz*side*spread+dx*2)))
+    tz=max(-20,min(20,round(base[2]+dx*side*spread+dz*2)))
+    radial=math.hypot(tx,tz)
+    ty=round(29-4*(min(radial,23)/23)**2)+rng.randrange(-1,2)
+    ty=max(base[1],ty)
     twig=toward(s,base,(tx,ty,tz))
-    if not twig:continue
-    # Short offshoots give rounded, overlapping foliage pads and visible gaps underneath.
-    for k in range(3,len(twig)-1,4):
-     tip=twig[k];horizontal=rng.choice([2,3,4,5])
-     sprig=s.path(tip,[horizontal]*rng.randrange(2,4))
-     if sprig:s.path(sprig[-1],[1]*rng.randrange(1,4))
-    s.path(twig[-1],[1]*rng.randrange(1,4))
- # Uneven upper crown: lateral pads at varied heights, rather than stacked radial tiers.
- for level in [25,29,33,height-2]:
-  base=by_height.get(level)
-  if base is None:continue
-  for i in range(5):
-   angle=(i+rng.random()*.5)*math.tau/5
-   reach=rng.randrange(7,15) if level<31 else rng.randrange(5,10)
-   target=(max(-20,min(20,base[0]+round(math.cos(angle)*reach))),min(height+2,level+rng.randrange(2,6)),max(-20,min(20,base[2]+round(math.sin(angle)*reach))))
-   twig=toward(s,base,target)
-   if twig:
-    for side in [2,3,4,5]:s.path(twig[-1],[side]*rng.randrange(2,4))
+    if twig:supports.append(twig)
+ # Fill the central roof without prolonging the trunk into a separate peak.
+ for level in [20,23,26]:
+  base=by_height[level]
+  for i in range(6):
+   angle=phase+(i+rng.uniform(-.15,.15))*math.tau/6
+   reach=rng.randrange(8,15)
+   twig=toward(s,base,(round(math.cos(angle)*reach),29+rng.randrange(-1,2),round(math.sin(angle)*reach)))
+   if twig:supports.append(twig)
+ # Short lateral fans make wider, flatter leaf pads. Their tips share a shallow
+ # irregular dome, leaving gaps underneath to expose the heavy branch structure.
+ for twig in supports:
+  for index in range(max(0,len(twig)-7),len(twig),3):
+   base=twig[index]
+   for direction in rng.sample([2,3,4,5],3):
+    moves=[];tip=base
+    for _ in range(rng.randrange(2,5)):
+     tip=add(tip,DIRECTIONS[direction])
+     if abs(tip[0])>21 or abs(tip[2])>21:break
+     moves.append(direction)
+    sprig=s.path(base,moves)
+    if sprig:s.path(sprig[-1],[1]*rng.randrange(1,3))
  return s
 
 def roots(seed):

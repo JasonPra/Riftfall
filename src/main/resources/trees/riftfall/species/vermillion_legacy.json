@@ -7,7 +7,7 @@
   "tapering": 0.3,
   "signal_energy": 50,
   "up_probability": 8,
-  "lowest_branch_height": 12,
+  "lowest_branch_height": 8,
   "growth_rate": 0.8,
   "soil_longevity": 24,
   "max_branch_radius": 24,
@@ -21,6 +21,7 @@
   "max_world_gen_height_offset": 0,
   "features": [
     "dynamictrees:bottom_flare",
+    "riftfall:legacy_mature_bole",
     {
       "name": "riftfall:legacy_surface_roots",
       "properties": {

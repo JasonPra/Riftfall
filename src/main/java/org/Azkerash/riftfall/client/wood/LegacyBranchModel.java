@@ -26,6 +26,7 @@ import org.Azkerash.riftfall.wood.LegacyTrees;
 public final class LegacyBranchModel extends BakedModelWrapper<BakedModel> {
     public static final ModelProperty<Integer> FACES=new ModelProperty<>();
     public static final ModelProperty<Long> PATCHES=new ModelProperty<>();
+    public static final ModelProperty<Integer> SECTIONS=new ModelProperty<>();
     private static final ResourceLocation BARK=ResourceLocation.fromNamespaceAndPath("riftfall","block/vermillion_legacy_log");
     private final TextureAtlasSprite exposed;
     private final Map<BakedQuad,BakedQuad> exposedQuads=Collections.synchronizedMap(new IdentityHashMap<>());
@@ -47,7 +48,7 @@ public final class LegacyBranchModel extends BakedModelWrapper<BakedModel> {
         long patches=data.get(PATCHES);if(patches==0)return quads;
         var result=new ArrayList<BakedQuad>();
         for(var quad:quads){
-            if(quad.getSprite().contents().name().equals(BARK))result.addAll(LegacyBarkPatches.split(quad,patches,exposed));
+            if(quad.getSprite().contents().name().equals(BARK))result.addAll(LegacyBarkPatches.split(quad,patches,exposed,((LegacyBranchBlock)state.getBlock()).getRadius(state),data.has(SECTIONS)?data.get(SECTIONS):0));
             else result.add(quad);
         }
         return result;
@@ -58,7 +59,8 @@ public final class LegacyBranchModel extends BakedModelWrapper<BakedModel> {
     @Override public ModelData getModelData(net.minecraft.world.level.BlockAndTintGetter world,net.minecraft.core.BlockPos pos,BlockState state,ModelData data){
         return originalModel.getModelData(world,pos,state,data).derive()
             .with(FACES,org.Azkerash.riftfall.wood.LegacyBarkWound.faces(world,pos))
-            .with(PATCHES,org.Azkerash.riftfall.wood.LegacyBarkWound.patches(world,pos)).build();
+            .with(PATCHES,org.Azkerash.riftfall.wood.LegacyBarkWound.patches(world,pos))
+            .with(SECTIONS,org.Azkerash.riftfall.wood.LegacyBarkWound.sections(world,pos)).build();
     }
     private List<BakedQuad> faces(List<BakedQuad> quads,int mask){
         if(mask==0)return quads;

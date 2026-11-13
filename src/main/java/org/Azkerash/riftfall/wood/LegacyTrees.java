@@ -33,7 +33,10 @@ public final class LegacyTrees {
             event.getRegistry().register(new LegacyGrowthLogic());
     }
     private static void generationFeatures(com.dtteam.dynamictrees.event.RegistryEvent<com.dtteam.dynamictrees.systems.genfeature.GenFeature> event){
-        if(event.isEntryOfType(com.dtteam.dynamictrees.systems.genfeature.GenFeature.class))event.getRegistry().register(new LegacySurfaceRoots());
+        if(event.isEntryOfType(com.dtteam.dynamictrees.systems.genfeature.GenFeature.class)){
+            event.getRegistry().register(new LegacySurfaceRoots());
+            event.getRegistry().register(new LegacyMatureBole());
+        }
     }
     private LegacyTrees() {}
 }

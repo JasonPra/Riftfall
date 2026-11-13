@@ -8,9 +8,9 @@ import org.Azkerash.riftfall.wood.LegacyBarkWound;
 
 /** Clip DT's axis-aligned branch faces at block boundaries, preserving winding and UVs. */
 final class LegacyBarkPatches {
-    static List<BakedQuad> split(BakedQuad quad,long patches,TextureAtlasSprite exposed){
+    static List<BakedQuad> split(BakedQuad quad,long patches,TextureAtlasSprite exposed,int radius,int sections){
         Direction face=quad.getDirection();
-        long selected=patches&LegacyBarkWound.facePatches(face);
+        long selected=face.getAxis()==Direction.Axis.Y?patches:patches&LegacyBarkWound.facePatches(face);
         if(selected==0)return List.of(quad);
         int u=face.getAxis()==Direction.Axis.X?2:0,v=face.getAxis()==Direction.Axis.Y?2:1;
         int[] data=quad.getVertices();int stride=data.length/4;
@@ -22,11 +22,26 @@ final class LegacyBarkPatches {
             original.add(point);
         }
         List<BakedQuad> result=new ArrayList<>();
-        for(int row=-1;row<=1;row++)for(int col=-1;col<=1;col++){
-            var points=clip(clip(clip(clip(original,u,col,true),u,col+1,false),v,row,true),v,row+1,false);
+        double minimum=.5-radius/16.0,width=radius/8.0;
+        float[] horizontal=sections==0?new float[]{-1,0,1,2}:new float[sections+1];
+        if(sections>0)for(int i=0;i<=sections;i++)horizontal[i]=(float)(minimum+width*i/sections);
+        float[] vertical=face.getAxis()==Direction.Axis.Y?horizontal:new float[]{-1,0,1,2};
+        for(int row=0;row<vertical.length-1;row++)for(int col=0;col<horizontal.length-1;col++){
+            var points=clip(clip(clip(clip(original,u,horizontal[col],true),u,horizontal[col+1],false),v,vertical[row],true),v,vertical[row+1],false);
             if(points.size()!=4||area(points,u,v)<1e-7)continue;
-            double[] middle=new double[3];middle[u]=col+.5;middle[v]=row+.5;
-            boolean strip=(selected&LegacyBarkWound.patch(face,middle[0],middle[1],middle[2]))!=0;
+            double[] middle=new double[3];middle[u]=(horizontal[col]+horizontal[col+1])*.5;middle[v]=(vertical[row]+vertical[row+1])*.5;
+            boolean strip;
+            if(face.getAxis()==Direction.Axis.Y){
+                // Bark ledges follow the nearest adjoining wall patch, including corners.
+                double dx=middle[0]-.5,dz=middle[2]-.5;
+                Direction owner=Direction.getNearest(dx,0,dz);
+                strip=(selected&LegacyBarkWound.patch(owner,middle[0],.5,middle[2],radius,sections))!=0;
+                strip|=(selected&LegacyBarkWound.patch(face,middle[0],middle[1],middle[2]))!=0;
+                if(Math.abs(Math.abs(dx)-Math.abs(dz))<1e-5){
+                    Direction other=owner.getAxis()==Direction.Axis.X?(dz<0?Direction.NORTH:Direction.SOUTH):(dx<0?Direction.WEST:Direction.EAST);
+                    strip|=(selected&LegacyBarkWound.patch(other,middle[0],.5,middle[2],radius,sections))!=0;
+                }
+            }else strip=(selected&LegacyBarkWound.patch(face,middle[0],middle[1],middle[2],radius,sections))!=0;
             int[] vertices=data.clone();var bark=quad.getSprite();
             for(int i=0;i<4;i++){
                 float[] point=points.get(i);
