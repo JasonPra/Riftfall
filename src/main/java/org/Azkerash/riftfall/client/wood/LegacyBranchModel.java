@@ -25,6 +25,7 @@ import org.Azkerash.riftfall.wood.LegacyTrees;
 @EventBusSubscriber(modid="riftfall",value=Dist.CLIENT)
 public final class LegacyBranchModel extends BakedModelWrapper<BakedModel> {
     public static final ModelProperty<Integer> FACES=new ModelProperty<>();
+    public static final ModelProperty<Long> PATCHES=new ModelProperty<>();
     private static final ResourceLocation BARK=ResourceLocation.fromNamespaceAndPath("riftfall","block/vermillion_legacy_log");
     private final TextureAtlasSprite exposed;
     private final Map<BakedQuad,BakedQuad> exposedQuads=Collections.synchronizedMap(new IdentityHashMap<>());
@@ -41,14 +42,23 @@ public final class LegacyBranchModel extends BakedModelWrapper<BakedModel> {
                 wrappers.computeIfAbsent(model,original->new LegacyBranchModel(original,sprite)));
     }
     @Override public List<BakedQuad> getQuads(BlockState state,Direction side,RandomSource random,ModelData data,RenderType type){
-        return faces(originalModel.getQuads(state,side,random,data,type),data.has(FACES)?data.get(FACES):0);
+        var quads=originalModel.getQuads(state,side,random,data,type);
+        if(!data.has(PATCHES))return faces(quads,data.has(FACES)?data.get(FACES):0);
+        long patches=data.get(PATCHES);if(patches==0)return quads;
+        var result=new ArrayList<BakedQuad>();
+        for(var quad:quads){
+            if(quad.getSprite().contents().name().equals(BARK))result.addAll(LegacyBarkPatches.split(quad,patches,exposed));
+            else result.add(quad);
+        }
+        return result;
     }
     @Override public List<BakedQuad> getQuads(BlockState state,Direction side,RandomSource random){
         return originalModel.getQuads(state,side,random);
     }
     @Override public ModelData getModelData(net.minecraft.world.level.BlockAndTintGetter world,net.minecraft.core.BlockPos pos,BlockState state,ModelData data){
         return originalModel.getModelData(world,pos,state,data).derive()
-            .with(FACES,org.Azkerash.riftfall.wood.LegacyBarkWound.faces(world,pos)).build();
+            .with(FACES,org.Azkerash.riftfall.wood.LegacyBarkWound.faces(world,pos))
+            .with(PATCHES,org.Azkerash.riftfall.wood.LegacyBarkWound.patches(world,pos)).build();
     }
     private List<BakedQuad> faces(List<BakedQuad> quads,int mask){
         if(mask==0)return quads;

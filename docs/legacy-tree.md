@@ -10,9 +10,9 @@ Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in 
 - Three adult JoCodes have bending upper leaders, lower forks, arching boughs and asymmetric crowns. These are connected Dynamic Trees branch networks, not stacks of static logs.
 - A separate growing root network penetrates dirt and ordinary Overworld stone. The revised native samples retain roughly 93–104 underground root blocks per tree.
 - Custom Legacy growth logic encourages earlier irregular forks and long outward boughs. Growth, felling, branch thickness and leaf support use Dynamic Trees.
-- Surface roots use Dynamic Trees’ supported root geometry, step down with the ground and taper away from the trunk. They can resize as the tree grows; roots overlapping the thick trunk retain access to its face-specific axe interaction.
+- Surface roots use Dynamic Trees’ supported root geometry, step down with the ground and taper away from the trunk. Main roots reach their full surface-root thickness once the trunk reaches an eight-pixel radius, and intersecting paths cannot revisit and thin an inner root. Native growth checks retained 45–50 surface root blocks per sample, including substantial inner roots. They can resize as the tree grows; roots overlapping the thick trunk retain access to its face-specific axe interaction.
 - Original lush-green leaves, seed and sapling assets are included. Manaheart Grove's foliage color is `#63B36B`; its grass remains the existing placeholder white. No other biome colors change.
-- Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Each face can be stripped independently, yielding one bark item the first time that face is stripped.
+- Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Each one-block surface patch can be stripped independently, yielding one bark item the first time that patch is stripped.
 
 To inspect an adult, stand on clear ground with roughly 55×55 blocks of open space and 50 blocks of headroom, then run:
 
@@ -23,6 +23,8 @@ To inspect an adult, stand on clear ground with roughly 55×55 blocks of open sp
 The coordinates identify the **soil block**, not the first trunk block. This operator preview command creates an adult and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics.
 
 Legacy trees also generate naturally in **new Manaheart Grove chunks**, through Dynamic Trees' normal biome-decoration feature. One jittered anchor per 4×4-chunk grove cell keeps neighboring trunk centers at least 48 blocks apart. Natural crowns reserve a margin for leaf ageing inside Minecraft's 3×3-chunk feature-write area; manual previews keep the full crown. Other rings select temporary Dynamic Trees jungle species. See [biome integration](dynamic-trees.md). Existing crowns are not rewritten; existing Legacy trees can gain surface roots on growth. No terrain elevation changes are included.
+
+Thick trunk end grain uses Dynamic Trees’ `thick_branch_rings` atlas source for both ordinary and stripped Legacy log tops, registered in `assets/minecraft/atlases/blocks.json`. These generated sprites are required in addition to the ordinary log textures; otherwise exposed thick stumps render the missing-texture checkerboard.
 
 ## Implemented materials
 
@@ -48,9 +50,9 @@ Correctly harvested static logs drop their corresponding log. Static material ma
 
 Bark from static logs drops on the actual server-side log replacement, not when a tool previews a stripping result. An already stripped static log cannot yield another bark item by being stripped again.
 
-Dynamic branches strip **only the face hit by the axe**, including interactions through the outside collision shell of a three-block trunk. Other sides retain their bark. Repeating the same face yields no bark or additional axe wear; a different intact face can be stripped separately. The rendered geometry and branch connections remain Dynamic Trees' own, with exposed-wood textures applied only to selected bark faces; existing end-grain textures are retained.
+Dynamic branches strip **only the one-block surface patch hit by the axe**, including interactions through the outside collision shell of a thick trunk. A side wider than one block is divided along world block boundaries, so a single hit no longer exposes the full width. Repeating the same patch yields no bark or additional axe wear; neighboring patches remain harvestable. The renderer clips Dynamic Trees’ bark quads at patch boundaries, preserving their geometry, winding, UV mapping and original end grain.
 
-Partially stripped segments store a six-bit face mask in a small, synchronized block entity. Only wounded segments have one; intact trees do not gain block entities or a separate baked model for every possible face combination. Face data persists through chunk saves, client updates, resizing and the bottom-flare feature. Once all six faces are stripped, the segment becomes the ordinary fully stripped branch. Existing fully stripped bands from earlier builds remain fully stripped, since those saves contain no record of which face was originally hit. Static building logs retain their ordinary whole-log stripping behavior.
+Wounded segments store a synchronized 54-bit patch mask (a 3×3 grid on each of six sides) in a small block entity. Intact trees do not gain block entities or a separate baked model for each combination. Patch data persists through saves, client updates, resizing and bottom-flare growth. Old per-face wounds retain their already exposed sides; previously fully stripped branches remain fully stripped. Static building logs retain ordinary whole-log stripping behavior.
 
 Growth cannot restore harvested bark or allow repeated harvesting. Trunks can still change thickness and maintain their surrounding collision shells. Bark healing and sap hardening remain a later portion.
 

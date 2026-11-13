@@ -62,7 +62,7 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
     @Override public boolean onTreeActivated(TreeActivationContext context){
         if(context.hitState().getBlock() instanceof LegacyBranchBlock&&context.heldItem()!=null&&
             context.heldItem().canPerformAction(net.neoforged.neoforge.common.ItemAbilities.AXE_STRIP))
-            return stripFace(context.level(),context.hitPos(),context.hitResult().getDirection(),context.player(),context.heldItem());
+            return stripPatch(context.level(),context.hitPos(),context.hitResult(),context.player(),context.heldItem());
         return super.onTreeActivated(context);
     }
 
@@ -72,11 +72,19 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
         return stripFace(level,pos,Direction.getNearest(player.getLookAngle()).getOpposite(),player,tool);
     }
 
+    public boolean stripPatch(Level level,BlockPos pos,net.minecraft.world.phys.BlockHitResult hit,Player player,ItemStack tool){
+        var point=hit.getLocation().subtract(pos.getX(),pos.getY(),pos.getZ());
+        return strip(level,pos,hit.getDirection(),LegacyBarkWound.patch(hit.getDirection(),point.x,point.y,point.z),false,player,tool);
+    }
     public boolean stripFace(Level level,BlockPos pos,Direction face,Player player,ItemStack tool){
+        return strip(level,pos,face,LegacyBarkWound.facePatches(face),true,player,tool);
+    }
+    private boolean strip(Level level,BlockPos pos,Direction face,long patch,boolean wholeFace,Player player,ItemStack tool){
         var state=level.getBlockState(pos);
-        if(!canStripBranch(state,level,pos,player,tool)||(LegacyBarkWound.faces(level,pos)&LegacyBranchBlock.faceBit(face))!=0)return false;
+        if(!canStripBranch(state,level,pos,player,tool)||(LegacyBarkWound.patches(level,pos)&patch)==patch)return false;
         if(level.isClientSide)return true;
-        int faces=LegacyBarkWound.faces(level,pos)|LegacyBranchBlock.faceBit(face);
+        long patches=LegacyBarkWound.patches(level,pos)|patch;
+        int faces=LegacyBarkWound.faces(level,pos)|(wholeFace?LegacyBranchBlock.faceBit(face):0);
         var branch=(LegacyBranchBlock)state.getBlock();int radius=branch.getRadius(state);
         var replacement=(faces==63?getStrippedBranch().orElseThrow():getWoundedBranch()).getStateForRadius(radius);
         replacement=replacement.setValue(com.dtteam.dynamictrees.block.branch.BasicBranchBlock.WATERLOGGED,
@@ -88,6 +96,7 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
             if(faces!=63){
                 if(!(level.getBlockEntity(pos) instanceof LegacyBarkWound wound))return false;
                 wound.setFaces(faces);
+                wound.setPatches(patches);
             }
         }finally{com.dtteam.dynamictrees.block.branch.BranchBlock.destroyMode=previousMode;}
         branch.damageAxe(player,tool,radius/2,new com.dtteam.dynamictrees.systems.nodemapper.NetVolumeNode.Volume((radius*radius*64)/2),false);

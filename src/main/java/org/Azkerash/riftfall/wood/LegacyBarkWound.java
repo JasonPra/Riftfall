@@ -9,12 +9,27 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.*;
 
-/** Sparse per-face wound data, saved/synchronized only on partially stripped segments. */
+/** Sparse surface-patch wound data, saved/synchronized only on partially stripped segments. */
 public final class LegacyBarkWound extends BlockEntity {
     private static final DeferredRegister<BlockEntityType<?>> TYPES=DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE,"riftfall");
     public static final DeferredHolder<BlockEntityType<?>,BlockEntityType<LegacyBarkWound>> TYPE=TYPES.register("legacy_bark_wound",()->
         BlockEntityType.Builder.of(LegacyBarkWound::new,((LegacyTreeFamily)com.dtteam.dynamictrees.tree.family.Family.REGISTRY.get(LegacyTrees.ID)).getWoundedBranch()).build(null));
     private int faces;
+    private long patches;
+    public static long facePatches(Direction face){return 511L<<(face.get3DDataValue()*9);}
+    public static long patch(Direction face,double x,double y,double z){
+        double u=face.getAxis()==Direction.Axis.X?z:x;
+        double v=face.getAxis()==Direction.Axis.Y?z:y;
+        int a=Math.clamp((int)Math.floor(u)+1,0,2),b=Math.clamp((int)Math.floor(v)+1,0,2);
+        return 1L<<(face.get3DDataValue()*9+b*3+a);
+    }
+    public static long patches(BlockGetter world,BlockPos pos){
+        long result=world.getBlockEntity(pos) instanceof LegacyBarkWound wound?wound.patches:0;
+        int faces=faces(world,pos);
+        for(Direction face:Direction.values())if((faces&(1<<face.get3DDataValue()))!=0)result|=facePatches(face);
+        return result;
+    }
+    public void setPatches(long value){patches=value;setFaces(faces);}
     public LegacyBarkWound(BlockPos pos,BlockState state){super(TYPE.get(),pos,state);}
     public static void register(IEventBus bus){TYPES.register(bus);}
     public static int faces(BlockGetter world,BlockPos pos){
@@ -26,9 +41,9 @@ public final class LegacyBarkWound extends BlockEntity {
         faces=value&63;setChanged();requestModelDataUpdate();
         if(level!=null)level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),3);
     }
-    @Override protected void saveAdditional(CompoundTag tag,HolderLookup.Provider registries){super.saveAdditional(tag,registries);tag.putInt("StrippedFaces",faces);}
+    @Override protected void saveAdditional(CompoundTag tag,HolderLookup.Provider registries){super.saveAdditional(tag,registries);tag.putInt("StrippedFaces",faces);tag.putLong("StrippedPatches",patches);}
     @Override protected void loadAdditional(CompoundTag tag,HolderLookup.Provider registries){
-        super.loadAdditional(tag,registries);faces=tag.getInt("StrippedFaces")&63;requestModelDataUpdate();
+        super.loadAdditional(tag,registries);faces=tag.getInt("StrippedFaces")&63;patches=tag.getLong("StrippedPatches");requestModelDataUpdate();
         if(level!=null&&level.isClientSide)level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),3);
     }
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries){return saveWithoutMetadata(registries);}

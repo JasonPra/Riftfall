@@ -9,6 +9,19 @@ import net.minecraft.util.RandomSource;
 /** Uneven, tapered surface roots; DT handles support, terrain steps and disconnection. */
 public final class LegacySurfaceRoots extends RootsGenFeature {
     public LegacySurfaceRoots(){super(ResourceLocation.fromNamespaceAndPath("riftfall","legacy_surface_roots"));}
+    @Override protected void nextRoot(net.minecraft.world.level.LevelAccessor level,SimpleVoxmap map,BlockPos origin,
+            com.dtteam.dynamictrees.tree.species.Species species,int trunkRadius,int minimum,float scale,
+            BlockPos offset,int y,int distance,net.minecraft.core.Direction from,int radius,int limit){
+        // Adjacent radial paths can meet. DT's recursive traversal otherwise revisits their
+        // thick inner sections from a thin tip and overwrites them with the smaller radius.
+        if(offset.equals(BlockPos.ZERO)){
+            if(from!=null)return;
+        }else{
+            int expected=(int)(map.getVoxel(offset)*net.minecraft.util.Mth.clamp(trunkRadius/scale,0,1));
+            if(radius!=expected)return;
+        }
+        super.nextRoot(level,map,origin,species,trunkRadius,minimum,scale,offset,y,distance,from,radius,limit);
+    }
     @Override protected boolean isReplaceableWithRoots(net.minecraft.world.level.LevelAccessor level,net.minecraft.world.level.block.state.BlockState state,BlockPos pos){
         return state.getBlock() instanceof com.dtteam.dynamictrees.block.branch.SurfaceRootBlock root&&root.getFamily() instanceof LegacyTreeFamily
             ||super.isReplaceableWithRoots(level,state,pos);
