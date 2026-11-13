@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column_horizontal",
+  "textures": {
+    "end": "riftfall:block/vermillion_legacy_log_top",
+    "side": "riftfall:block/vermillion_legacy_log"
+  }
+}

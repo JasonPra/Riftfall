@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "riftfall:block/stripped_vermillion_legacy_log_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "riftfall:block/stripped_vermillion_legacy_log"
+    },
+    "axis=z": {
+      "model": "riftfall:block/stripped_vermillion_legacy_log_horizontal",
+      "x": 90
+    }
+  }
+}
