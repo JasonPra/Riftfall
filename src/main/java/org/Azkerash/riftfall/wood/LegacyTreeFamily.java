@@ -16,6 +16,12 @@ import net.minecraft.world.level.material.MapColor;
 public final class LegacyTreeFamily extends UndergroundRootsFamily {
     public LegacyTreeFamily(ResourceLocation name) {super(name);}
 
+    @Override protected com.dtteam.dynamictrees.block.branch.BranchBlock createBranchBlock(ResourceLocation name){
+        var branch=new LegacyBranchBlock(name,getProperties());
+        if(isFireProof())branch.setFireSpreadSpeed(0).setFlammability(0);
+        return branch;
+    }
+
     @Override public BlockBehaviour.Properties getDefaultBranchProperties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.PODZOL).sound(SoundType.WOOD)
             .strength(8,1200).requiresCorrectToolForDrops().lightLevel(state->3).noLootTable().ignitedByLava();

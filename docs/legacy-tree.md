@@ -47,6 +47,8 @@ Correctly harvested static logs drop their corresponding log. Static material ma
 
 Bark drops on the actual server-side log replacement, not when a tool previews a stripping result. An already stripped log cannot yield another bark item by being stripped again.
 
+Dynamic trunk resizing preserves the existing stripped variant, including the bottom-flare feature's updates to the lowest two trunk segments. Growth therefore cannot instantly restore bark and allow repeated harvesting. The trunk can still change thickness and maintain its surrounding collision shells. Stripping currently exposes the entire branch segment as a band; face-specific wounds and bark healing are not implemented in this fix.
+
 ## Living-tree behavior and future portions
 
 A **living, root-connected tree** should seal a stripping wound with hardening sap while its bark heals. Harvested, dead or player-placed wood should not regrow bark. That behavior must be tied to the family's live branch/root state, not inferred from the primitive log's provenance marker. The family and branch-stripping integration are implemented; sap scars and bark regrowth are not yet implemented.
@@ -60,6 +62,8 @@ Regenerate the pixel textures and preview with `python3 tools/assets/generate-le
 Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foliage.py`, and the original adult/root JoCodes with `python3 tools/trees/generate-legacy-shapes.py`.
 
 ## Verification
+
+A native growth regression check stripped the lowest two trunk segments and an upper segment on an adult, resized a stripped segment between thin and thick radii, and stripped the bottom two segments of a growing sapling. Six initial strips yielded exactly six bark items. Stripped states survived hundreds of growth pulses, repeated stripping was rejected, and the young tree retained its live root connection. This includes the bottom-flare update that previously restored bark immediately.
 
 A disposable NeoForge 21.1.265 server loaded the actual Dynamic Trees tree pack and generated an adult with 2,199 branch/root blocks, 8,500 leaves, a 49×47-block canopy, radius-24 trunk and 17-block root depth. A planted seedling transitioned to a living tree and grew to 109 branches/root blocks under accelerated growth pulses in ticking chunks. Iron axes were rejected on both the trunk center and its outer shell, with four durability lost per failed strike. Diamond stripping succeeded, and repeating the strip failed. Asset model/texture references resolve against Riftfall, Dynamic Trees and Minecraft resources. This verifies server behavior and asset references; the appearance still needs in-game review.
 
