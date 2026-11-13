@@ -64,7 +64,21 @@ Changing altitude does not change membership. Crossing the footprint boundary re
 
 These display names describe the planned ecosystems: a mana-rich core grove, an ancient inner forest, and more open woodland toward the Frontier. Saved biome identifiers remain unchanged. The names do not imply that the future trees, flora or terrain are already implemented.
 
-The biomes use vanilla jungle trees and existing flora/fauna as temporary content. Surface elevations are generally around Y 49–92, with gentle hills, valleys, irregular lake shores and a winding river route crossing every ring. River bends and widths vary with deterministic smooth noise. The old four-way crossing is replaced by a broad irregular junction lake; its continuous river has one inlet and one outlet. Other basins can be isolated or meet that same route, rather than adding crossing channels. There is no raised impact-crater rim. The field's outer fringe now joins a separate 384-block vanilla-biome transition belt; the terrain grade extends outside the mana footprint rather than turning back into the original ocean inside the red fringe. The core, inner and middle ring colors remain diagnostic placeholders; Verdant Frontier now uses plains-like greens. All are subject to Minecraft's biome-color blending.
+The land biomes use vanilla jungle trees and existing flora/fauna as temporary content. Rivers now follow the existing local hill profile instead of cutting every channel down to sea level. Their water levels change with relief, their beds vary in depth (normally 2–4 blocks along the channel center), and short falling-water curtains bridge small reach drops. Channel half-width varies from 4–11 blocks. Lakes use local elevations; high ground can remain as islands and peninsulas. Some river ends terminate in internal lakes. Open ends can connect through the existing transition area to native water with graded water and bank elevations. This is a focused revision of the current custom generator, not the native regional-generation overhaul tracked by #4. It does not simulate erosion or compute an entire watershed.
+
+Each zone has separate river and lake biome identities:
+
+| Zone | River | Large lake |
+| --- | --- | --- |
+| Manaheart Grove | `riftfall:geyser_river_white_core` | `riftfall:geyser_lake_white_core` |
+| Ancient Wilds | `riftfall:geyser_river_blue_inner` | `riftfall:geyser_lake_blue_inner` |
+| Elderwood Reach | `riftfall:geyser_river_gold_middle` | `riftfall:geyser_lake_gold_middle` |
+| Verdant Frontier | `riftfall:geyser_river_red_outer` | `riftfall:geyser_lake_red_outer` |
+
+These vanilla-river-derived aquatic biomes use clean blue water, normal vegetation tints, seagrass and aquatic spawns. They do not inherit the land biomes' diagnostic grass/foliage colors, trees or terrestrial plant patches. Crystal tier rules follow the actual position's mana zone, including underneath rivers and lakes; crossing a water biome does not reset crystal tiers. They remain subject to the existing underground placement, support and mana rules. Biome assignment samples four-block columns, so an individual shoreline block may share the neighboring biome's tint.
+
+The core, inner and middle land colors remain diagnostic placeholders. The existing 384-block outer transition belt remains until the native overhaul replaces it. Water sealing now stores each column's water level between SURFACE and CARVERS; old 256-entry in-progress plans retain their original sea-level meaning. Existing generated chunks are not rewritten. Test this revision in fresh terrain; borders against older generated terrain can still show generation-version seams.
+
 
 ## Vanilla transition belt and native river outlets
 
@@ -72,9 +86,9 @@ Each ecosystem field has a landscape-only buffer extending up to 384 blocks outs
 
 The BIOMES stage selects actual vanilla biome IDs at quart resolution. Inland transitions use plains followed by forest, sparse jungle, taiga, savanna or meadow according to the original surroundings. Ocean-facing transitions use land, beach (snowy where appropriate), shallow ocean and the matching ocean/deep-ocean family. Warm shallows can use `minecraft:warm_ocean`, including its normal reef decoration. Farther out, coherent patches give way to the original biome palette; below Y 32 the belt retains the original cave biomes. All transition biomes participate in feature sorting and ordinary decoration.
 
-Surface profiles grade smoothly into the original ground and seabed. Beaches receive sand, and the outermost terrain retains its original top material. Water uses the generator's native sea level (highest source-water block normally Y 62), matching the surrounding ocean instead of creating a raised water lip. Structure exclusion and generation-only plant checks include the reshaped belt, while custom cave excavation remains inside the mana field.
+Surface profiles grade smoothly into the original ground and seabed. Beaches receive sand, and the outermost terrain retains its original top material. Ocean water uses the generator's native sea level (highest source-water block normally Y 62). Elevated river connections descend through a cached terrain-aware grade into that waterline; downstream ridges cannot raise their water level again. Structure exclusion and generation-only plant checks include the reshaped belt, while custom cave excavation remains inside the mana field.
 
-For each north/south river exit, generation samples the original biome source and base-height functions beyond the buffer, searching nearby for an existing wet vanilla river or ocean. When one is available, a continuous connector shifts the channel toward that outlet and assigns river biomes along the inland section. It never loads surrounding chunks just to locate an outlet. If no wet native outlet is found within the bounded scan, the generator does not invent a river through arbitrary dry terrain beyond the buffer.
+For each open north/south river exit, generation samples the original biome source and base-height functions beyond the buffer, searching nearby for an existing wet vanilla river or ocean. When one is available, a continuous connector shifts the channel toward that outlet and assigns river biomes along the inland section. It never loads surrounding chunks just to locate an outlet. If no wet native outlet is found within the bounded scan, the generator does not invent a river through arbitrary dry terrain beyond the buffer.
 
 Minecraft 1.21.1 does not provide a standalone river-network API. The field interior still uses its custom lake/river profile; the buffer now uses native biome/terrain information to connect it to the surrounding generation. Existing already-generated borders are not rewritten.
 
@@ -106,3 +120,9 @@ These commands require operator permission. Use `/riftfall geyser teleport` repe
 The generation order is `STRUCTURE_STARTS` (field exclusion), `BIOMES` (zone assignment), `SURFACE` (land/water/sediment), `CARVERS` (network), then `FEATURES` (vegetation and supported seagrass). Field biomes also participate in the generator's possible-biome set and feature sorting, so their configured decorations actually execute. Outer starts cannot place structure pieces into a field; explicit operator structure placement is not prohibited.
 
 Native regression checks generated neighboring chunks in a mixed order and checked the same layout that previously produced unsupported plants. They confirmed that shaping/carving finish before decoration, with zero automatic structure starts and invalid plants in the sampled chunks, varied sediment and seagrass. Existing explored terrain is not repaired or regenerated by these changes. Previously buried structures or floating plants remain in those saved chunks.
+
+## Shallow-water regression check
+
+The opt-in [ShallowWaterVerification](../tools/worldgen/ShallowWaterVerification.java) probe runs on a disposable native development server with seed `923475`, normal Overworld settings. Use the opt-in probe procedure in [worldgen-baselines.md](worldgen-baselines.md), substituting this class, and always remove the main-source copy before a clean release build. It generates real chunks and stops the server; never run it against a valued save.
+
+Verified November 13, 2026: river centers at `(3363566, 36812)` and `(3363592, 37112)` had sealed floors/water at Y74/77 and Y78/81; lake sample `(3363608, 37512)` had Y62/66. A Y75-to-Y74 cascade contained connecting water. An external connection at offsets 1/128/256/383 had water Y72/62/62/62, with no downstream rise. Quart aquatic biome assignments and full-chunk decoration also passed. These are targeted runtime checks, not visual approval of every shoreline or a full erosion simulation.

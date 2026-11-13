@@ -29,7 +29,7 @@ public final class GeyserCaves extends Feature<NoneFeatureConfiguration> {
             // Taper route openings at the field boundary.
             double fade=Math.clamp(-GeyserTransition.distance(field,x,z)/32.0,0,1);
             if(GeyserTransition.distance(field,x,z)>0)continue;
-            int planned=plan!=null&&plan.length==256?plan[(x&15)*16+(z&15)]:Integer.MIN_VALUE;
+            int planned=plan!=null&&plan.length>=256?plan[(x&15)*16+(z&15)]:Integer.MIN_VALUE;
             int surface=planned==Integer.MIN_VALUE?world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z):(planned>>1)+1;
             int roof=surface-24;
             var network=GeyserCaveShape.network(seed,x,z,roof);

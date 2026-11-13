@@ -66,19 +66,55 @@ public final class GeyserCoast {
         double start=GeyserTerrain.riverCenter(g,outlet.edgeZ);
         return start+(outlet.x-start)*s+12*Math.sin(t*Math.PI*2)*Math.sin(t*Math.PI);
     }
-    public static int channelBed(ServerLevel level,GeyserRegion g,int x,int z,int original){
-        if(Math.abs(z-g.centerZ())<GeyserShape.radius(g)*.5)return Integer.MAX_VALUE;
-        var outlet=outlet(level,g,z<g.centerZ());
-        double distance=(z<g.centerZ()?-1:1)*(z-outlet.edgeZ);
-        if(distance<0||distance>=GeyserTransition.WIDTH||!outlet.connected)return Integer.MAX_VALUE;
-        double t=distance/GeyserTransition.WIDTH,s=t*t*(3-2*t),width=GeyserTerrain.riverWidth(g,z)*(1-s)+8*s;
-        double offset=Math.abs(x-channelCenter(level,g,z))/width;if(offset>1.5)return Integer.MAX_VALUE;
-        double bed=(level.getSeaLevel()-6)*(1-s)+outlet.floor*s;
-        double banks=Math.clamp((offset-.7)/.8,0,1);banks=banks*banks*(3-2*banks);
-        return (int)Math.round(bed+(original-bed)*banks);
+    private record StageKey(long field,boolean north){}
+    private static final Map<ServerLevel,Map<StageKey,int[]>> STAGES=new WeakHashMap<>();
+    private static int channelLevel(ServerLevel level,GeyserRegion g,int z,Outlet outlet,double t){
+        Map<StageKey,int[]> cache;
+        synchronized(STAGES){cache=STAGES.computeIfAbsent(level,l->new ConcurrentHashMap<>());}
+        if(cache.size()>2048)cache.clear();
+        boolean north=z<g.centerZ();
+        var stages=cache.computeIfAbsent(new StageKey(GeyserLedger.key(g),north),key->{
+            int count=GeyserTransition.WIDTH/16,sea=level.getSeaLevel();var values=new int[count+1];
+            values[0]=Math.max(sea-1,GeyserTerrain.riverLevel(g,outlet.edgeZ));
+            for(int i=1;i<=count;i++){
+                int zz=outlet.edgeZ+(north?-1:1)*i*16;
+                int x=(int)Math.round(channelCenter(level,g,zz));
+                int nativeFloor=level.getChunkSource().getGenerator().getBaseHeight(x,zz,Heightmap.Types.OCEAN_FLOOR_WG,level,level.getChunkSource().randomState())-1;
+                double d=GeyserTransition.distance(g,x,zz),blend=GeyserTransition.progress(d,x,zz);
+                int ground=(int)Math.floor(GeyserTerrain.ground(g,x,zz));
+                int inland=GeyserTransition.floor(GeyserTransition.Climate.TEMPERATE,blend,ground,nativeFloor,sea);
+                int coast=GeyserTransition.floor(GeyserTransition.Climate.SEA,blend,ground,nativeFloor,sea);
+                double ocean=Math.clamp((sea+10-nativeFloor)/24.0,0,1);ocean=ocean*ocean*(3-2*ocean);
+                int reference=(int)Math.round(inland+(coast-inland)*ocean);
+                double progress=i/(double)count,smooth=progress*progress*(3-2*progress);
+                int grade=(int)Math.floor(values[0]*(1-smooth)+(sea-1)*smooth);
+                // Once the route descends, later native ridges cannot make it flow uphill again.
+                values[i]=Math.min(values[i-1],Math.max(sea-1,Math.min(grade,reference-1)));
+            }
+            return values;
+        });
+        double position=Math.clamp(t,0,1)*(stages.length-1);int index=Math.min(stages.length-2,(int)position);
+        return (int)Math.floor(stages[index]+(stages[index+1]-stages[index])*(position-index));
+    }
+    /** A graded handoff; closed routes remain inside their terminal lakes. */
+    public static GeyserTerrain.Column channel(ServerLevel level,GeyserRegion g,int x,int z,int original){
+        var dry=new GeyserTerrain.Column(original,Integer.MIN_VALUE,GeyserTerrain.WaterKind.NONE);
+        boolean north=z<g.centerZ();
+        if(!GeyserTerrain.openEnd(g,north)||Math.abs(z-g.centerZ())<GeyserShape.radius(g)*.5)return dry;
+        var outlet=outlet(level,g,north);
+        double distance=(north?-1:1)*(z-outlet.edgeZ);
+        if(distance<0||distance>=GeyserTransition.WIDTH||!outlet.connected)return dry;
+        double t=distance/GeyserTransition.WIDTH,s=t*t*(3-2*t);
+        double width=GeyserTerrain.riverWidth(g,z)*(1-s)+6*s;
+        double offset=Math.abs(x-channelCenter(level,g,z))/width;if(offset>4)return dry;
+        int water=channelLevel(level,g,z,outlet,t);
+        double bed=(water-2)*(1-s)+outlet.floor*s;
+        double banks=Math.clamp((offset-1)/3,0,1);banks=banks*banks*(3-2*banks);
+        int floor=(int)Math.round(bed+(original-bed)*banks);
+        return new GeyserTerrain.Column(Math.min(original,floor),water,floor<water?GeyserTerrain.WaterKind.RIVER:GeyserTerrain.WaterKind.NONE);
     }
     public static boolean river(ServerLevel level,GeyserRegion g,int x,int z){
-        if(Math.abs(z-g.centerZ())<GeyserShape.radius(g)*.5)return false;
+        if(!GeyserTerrain.openEnd(g,z<g.centerZ())||Math.abs(z-g.centerZ())<GeyserShape.radius(g)*.5)return false;
         var outlet=outlet(level,g,z<g.centerZ());
         return (z<g.centerZ()?-1:1)*(z-outlet.edgeZ)>=0&&outlet.connected&&Math.abs(x-channelCenter(level,g,z))<12;
     }

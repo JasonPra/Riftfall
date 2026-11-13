@@ -16,7 +16,7 @@ public final class GeyserBiomes {
         if(SOURCES.containsKey(source))return;
         var all=new java.util.LinkedHashSet<net.minecraft.core.Holder<Biome>>();
         source.possibleBiomes().stream().sorted(java.util.Comparator.comparing(h->h.unwrapKey().orElseThrow().location().toString())).forEach(all::add);var registry=level.registryAccess().registryOrThrow(Registries.BIOME);
-        for(var zone:new GeyserZone[]{GeyserZone.CORE,GeyserZone.INNER,GeyserZone.MIDDLE,GeyserZone.OUTER})all.add(registry.getHolderOrThrow(key(zone)));
+        for(var zone:new GeyserZone[]{GeyserZone.CORE,GeyserZone.INNER,GeyserZone.MIDDLE,GeyserZone.OUTER}){all.add(registry.getHolderOrThrow(key(zone)));all.add(registry.getHolderOrThrow(waterKey(zone,false)));all.add(registry.getHolderOrThrow(waterKey(zone,true)));}
         for(var climate:GeyserTransition.Climate.values())for(boolean deep:new boolean[]{false,true})for(double progress:new double[]{0,.25,.5,.7,.9})all.add(registry.getHolderOrThrow(GeyserTransition.biome(climate,deep,progress)));
         all.add(registry.getHolderOrThrow(net.minecraft.world.level.biome.Biomes.RIVER));all.add(registry.getHolderOrThrow(net.minecraft.world.level.biome.Biomes.FROZEN_RIVER));
         SOURCES.put(source,java.util.Collections.unmodifiableSet(all));generator.refreshFeaturesPerStep();
@@ -24,6 +24,14 @@ public final class GeyserBiomes {
     public static ResourceKey<Biome> key(GeyserZone zone){
         String suffix=switch(zone){case CORE->"white_core";case INNER->"blue_inner";case MIDDLE->"gold_middle";case OUTER->"red_outer";case OUTSIDE->throw new IllegalArgumentException("Outside geyser");};
         return ResourceKey.create(Registries.BIOME,ResourceLocation.fromNamespaceAndPath("riftfall","geyser_"+suffix));
+    }
+    public static ResourceKey<Biome> waterKey(GeyserZone zone,boolean lake){
+        String path=key(zone).location().getPath().substring("geyser_".length());
+        return ResourceKey.create(Registries.BIOME,ResourceLocation.fromNamespaceAndPath("riftfall","geyser_"+(lake?"lake_":"river_")+path));
+    }
+    public static ResourceKey<Biome> surfaceKey(long seed,GeyserRegion field,int x,int z){
+        var zone=GeyserShape.zone(field,x,z);var column=GeyserTerrain.column(seed,field,x,z);
+        return column.wet()?waterKey(zone,column.kind()==GeyserTerrain.WaterKind.LAKE):key(zone);
     }
     public static GeyserRegion field(ServerLevel level,int cx,int cz){
         if(!level.dimension().equals(Level.OVERWORLD))return null;
@@ -46,16 +54,13 @@ public final class GeyserBiomes {
         prepare(level);
         var cp=chunk.getPos();var field=landscapeField(level,cp.x,cp.z);if(field==null)return chunk;
         var registry=level.registryAccess().registryOrThrow(Registries.BIOME);
-        if(!field.circular()&&field.contains(cp.x,cp.z)){
-            var biome=registry.getHolderOrThrow(key(field.zone(cp.x,cp.z)));
-            chunk.fillBiomesFromNoise((x,y,z,sampler)->biome,level.getChunkSource().randomState().sampler());return chunk;
-        }
+        long seed=GeyserLayout.mix(level.getSeed()^0x474559534552L);
         var surface=new java.util.ArrayList<net.minecraft.core.Holder<Biome>>(16);
         var inside=new boolean[16];
         for(int a=0;a<4;a++)for(int b=0;b<4;b++){
             int x=cp.getMinBlockX()+a*4+2,z=cp.getMinBlockZ()+b*4+2;
             var zone=GeyserShape.zone(field,x,z);
-            if(zone!=GeyserZone.OUTSIDE){inside[a*4+b]=true;surface.add(registry.getHolderOrThrow(key(zone)));continue;}
+            if(zone!=GeyserZone.OUTSIDE){inside[a*4+b]=true;surface.add(registry.getHolderOrThrow(surfaceKey(seed,field,x,z)));continue;}
             double distance=GeyserTransition.distance(field,x,z),t=GeyserTransition.progress(distance,x,z);
             if(distance>=GeyserTransition.WIDTH){surface.add(GeyserCoast.original(level,x,z));continue;}
             var environment=GeyserCoast.environment(level,field,x,z);var local=GeyserCoast.original(level,x,z);

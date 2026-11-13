@@ -47,7 +47,8 @@ public final class RiverCurrents {
         // Metadata sampling extends the connected search beyond loaded terrain; never generate a chunk for currents.
         if(field!=null&&field.contains(x>>4,z>>4)){
             long seed=GeyserLayout.mix(level.getSeed()^0x474559534552L);
-            return GeyserTerrain.height(seed,field,x,z)<level.getSeaLevel()-1?level.getSeaLevel()-1:RiverCurrentField.DRY;
+            var column=GeyserTerrain.column(seed,field,x,z);
+            return column.wet()?column.water():RiverCurrentField.DRY;
         }
         var biome=level.getChunkSource().getGenerator().getBiomeSource().getNoiseBiome(x>>2,level.getSeaLevel()>>2,z>>2,level.getChunkSource().randomState().sampler());
         return biome.is(BiomeTags.IS_RIVER)||biome.is(BiomeTags.IS_OCEAN)?level.getSeaLevel()-1:RiverCurrentField.DRY;

@@ -46,6 +46,7 @@ public final class CrystalGrowth {
         var random=RandomSource.create(level.getSeed()^cp.toLong()^0x4352595354414C53L);
         BlockPos anchor=null;int seen=0;var cursor=new BlockPos.MutableBlockPos();var origin=cp.getWorldPosition();
         for(int x=0;x<16;x++)for(int z=0;z<16;z++){
+            if(GeyserShape.zone(field,origin.getX()+x,origin.getZ()+z)==GeyserZone.OUTSIDE)continue;
             int top=Math.min(level.getMaxBuildHeight()-1,chunk.getHeight(Heightmap.Types.WORLD_SURFACE,x,z)-8);
             for(int y=level.getMinBuildHeight()+2;y<top;y++){
                 cursor.set(origin.getX()+x,y,origin.getZ()+z);if(!chunk.getBlockState(cursor).isAir())continue;
@@ -55,7 +56,7 @@ public final class CrystalGrowth {
         }
         if(anchor==null)return 0;
         double cost=initial?0:CrystalRules.cost();if(!WorldMana.tryExtract(chunk,cost))return 0;
-        boolean core=initial&&!field.legacy()&&field.zone(cp.x,cp.z)==GeyserZone.CORE;
+        boolean core=initial&&!field.legacy()&&GeyserShape.zone(field,anchor.getX(),anchor.getZ())==GeyserZone.CORE;
         int target=initial?(core?CrystalRules.coreDepositSize():CrystalRules.depositSize()):1,adults=initial?Math.max(1,target*3/4):0,placed=0;
         long distance=Math.max(Math.abs((long)cp.x-field.centerChunkX()),Math.abs((long)cp.z-field.centerChunkZ()));
         double inward=(field.halfWidth()-distance)/(double)Math.max(1,field.halfWidth()-Math.max(1,field.halfWidth()/3)-1);
@@ -63,8 +64,9 @@ public final class CrystalGrowth {
         var queue=new ArrayDeque<BlockPos>();var visited=new HashSet<BlockPos>();queue.add(anchor);
         while(!queue.isEmpty()&&visited.size()<1024&&placed<target){
             var pos=queue.removeFirst();if(!visited.add(pos)||pos.getX()>>4!=cp.x||pos.getZ()>>4!=cp.z||!underground(chunk,pos))continue;
+            if(GeyserShape.zone(field,pos.getX(),pos.getZ())==GeyserZone.OUTSIDE)continue;
             double draw=initial?(core&&placed==0?0:random.nextDouble()):0;
-            var tier=!initial?CrystalTier.RED:field.legacy()?CrystalTier.natural(inward,power,draw,CrystalRules.naturalWhite()):CrystalTier.naturalDeposit(field.zone(cp.x,cp.z),draw,CrystalRules.naturalWhite(),placed<adults);
+            var tier=!initial?CrystalTier.RED:field.legacy()?CrystalTier.natural(inward,power,draw,CrystalRules.naturalWhite()):CrystalTier.naturalDeposit(GeyserShape.zone(field,pos.getX(),pos.getZ()),draw,CrystalRules.naturalWhite(),placed<adults);
             var state=seedState(level,pos,tier,Direction.UP);if(state==null)continue;
             int layers=placed<adults?8:initial?1+random.nextInt(7):1;
             if(level.setBlock(pos,state.setValue(ManaCrystalBlock.LAYERS,layers),Block.UPDATE_ALL)){
