@@ -6,4 +6,26 @@ Gradle pins `curse.maven:dynamic-trees-252818:8227322`; the mod metadata require
 
 Riftfall registers its first custom family and species, `riftfall:vermillion_legacy`, through a bundled tree pack and NeoForge's Dynamic Trees registration hooks. It includes thick living branches, underground roots, leaves, a seed, a sapling, custom growth logic and three adult shapes. See [Vermillion Legacy](legacy-tree.md) for preview commands and the remaining portions.
 
-This portion targets **Manaheart Grove only**. Its foliage palette is now lush green. Other biomes retain their colors and temporary vegetation. Natural grove placement is pending shape review and spacing work; this prototype can be planted as a seed or generated with `/legacytree <soil position>`. Terrain height and crystal rules are unchanged.
+## Biome and placement integration
+
+All mana geyser rings use a registered `riftfall:mana_geysers` biome source wrapping the world's original source. Chunk biome generation, uncached biome queries, biome searches and feature sorting use the same ring/transition resolver. The original source remains available for coast/climate sampling without recursively sampling the geyser overlay. The wrapper's codec preserves the original source when saving and reopening worlds. Outside geyser landscapes, original biome sampling is retained.
+
+Trees use Dynamic Trees' normal biome-decoration feature. `trees/riftfall/world_gen/feature_cancellers.json` cancels vanilla tree features for every `riftfall:geyser_*` biome, and `default.json` explicitly selects the species for each ring. There are no direct jungle-tree calls in the custom surface-vegetation feature.
+
+| Biome | Tree selection |
+| --- | --- |
+| Manaheart Grove | Vermillion Legacy; large crowns use spaced, jittered grove anchors |
+| Ancient Wilds | Dynamic jungle, mega-jungle and cocoa trees |
+| Elderwood Reach | Sparser dynamic jungle, undergrowth and cocoa trees |
+| Verdant Frontier | Rare dynamic jungle trees |
+| Retained river/lake biome IDs | No trees; these biomes remain registered for old saves only |
+
+The other rings still use temporary jungle ecology; this integration does not redesign them or change their colors. Only Manaheart Grove has the new Legacy species and lush-green foliage palette. Terrain height and crystal rules are unchanged.
+
+Legacy trees generate through the same Dynamic Trees feature as the other species. Their custom species applies spacing to avoid ordinary small-tree density, and natural crowns leave room for leaf ageing inside Minecraft's 3×3-chunk feature-write area. `/legacytree <soil position>` remains available for immediate inspection; seeds use ordinary growth mechanics.
+
+Existing incorrect trees are not removed or replaced. Test natural decoration in fresh chunks or a new world.
+
+## Verification
+
+Native NeoForge/Dynamic Trees checks compared 312 source, uncached and BIOMES-stage palette samples across all rings, seams, heights and the transition belt, plus a separate negative-coordinate field. The biome-source codec round-tripped successfully. Real FEATURES-stage generation produced Legacy branches in Manaheart with no ordinary forest branches or vanilla logs in the sampled chunk. Inner/middle samples contained dynamic trees and no vanilla logs; the sampled sparse Frontier chunk contained no trees. The same checks passed after saving and reopening the world, with no far-chunk write errors.

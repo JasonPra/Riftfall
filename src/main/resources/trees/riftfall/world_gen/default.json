@@ -1,0 +1,60 @@
+[
+  {
+    "select": "riftfall:geyser_white_core",
+    "apply": {
+      "species": "riftfall:vermillion_legacy",
+      "density": 1.0,
+      "chance": 1.0,
+      "forestness": 1.0
+    }
+  },
+  {
+    "select": "riftfall:geyser_blue_inner",
+    "apply": {
+      "species": {
+        "random": {
+          "dynamictrees:jungle": 15,
+          "dynamictrees:mega_jungle": 3,
+          "dynamictrees:cocoa": 1
+        }
+      },
+      "density": "noise()",
+      "chance": 1.0,
+      "forestness": 1.0
+    }
+  },
+  {
+    "select": "riftfall:geyser_gold_middle",
+    "apply": {
+      "species": {
+        "random": {
+          "dynamictrees:jungle": 6,
+          "dynamictrees:jungle_undergrowth": 4,
+          "dynamictrees:cocoa": 1
+        }
+      },
+      "density": "noise() * 0.3",
+      "chance": 0.6,
+      "forestness": 0.6
+    }
+  },
+  {
+    "select": "riftfall:geyser_red_outer",
+    "apply": {
+      "species": "dynamictrees:jungle",
+      "density": 0,
+      "chance": 0.03,
+      "forestness": 0.1
+    }
+  },
+  {
+    "select": {
+      "name": "riftfall:geyser_(river|lake)_.*"
+    },
+    "apply": {
+      "species": "dynamictrees:null",
+      "density": 0,
+      "chance": 0
+    }
+  }
+]

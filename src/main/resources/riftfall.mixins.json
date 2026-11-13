@@ -23,7 +23,8 @@
     "ShieldPhaseContactsMixin",
     "ShieldOnlyContactMixin",
     "GeyserBiomeGenerationMixin",
-    "GeyserBiomeSourceMixin",
+    "GeyserChunkGeneratorAccess",
+    "GeyserStructureStateAccess",
     "GeyserStructurePlacementMixin",
     "GeyserPlantPlacementMixin"
   ],

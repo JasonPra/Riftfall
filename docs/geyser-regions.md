@@ -57,14 +57,16 @@ Changing altitude does not change membership. Crossing the footprint boundary re
 
 | Zone | Biome identifier | Temporary ecology | Test grass/foliage color |
 | --- | --- | --- | --- |
-| Manaheart Grove (core) | `riftfall:geyser_white_core` | Jungle vegetation removed; Legacy tree prototype available for manual review | White grass, lush green foliage |
-| Ancient Wilds (inner) | `riftfall:geyser_blue_inner` | Dense jungle canopy | Blue |
-| Elderwood Reach (middle) | `riftfall:geyser_gold_middle` | More open jungle woodland | Yellow |
-| Verdant Frontier | `riftfall:geyser_red_outer` | Plains-like fringe with a rare jungle tree | Subtly blue-tinged plains green |
+| Manaheart Grove (core) | `riftfall:geyser_white_core` | Naturally generated Vermillion Legacy groves | White grass, lush green foliage |
+| Ancient Wilds (inner) | `riftfall:geyser_blue_inner` | Dense dynamic jungle canopy | Blue |
+| Elderwood Reach (middle) | `riftfall:geyser_gold_middle` | More open dynamic jungle woodland | Yellow |
+| Verdant Frontier | `riftfall:geyser_red_outer` | Plains-like fringe with rare dynamic jungle trees | Subtly blue-tinged plains green |
 
 These display names describe the planned ecosystems: a mana-rich core grove, an ancient inner forest, and more open woodland toward the Frontier. Saved biome identifiers remain unchanged. The names do not imply that the future trees, flora or terrain are already implemented.
 
-Manaheart Grove currently has no jungle trees or surface plant patches; its grass blocks, underground features, fauna and crystal rules remain. Bamboo, vines, melons, pumpkins, grass tufts, flowers, cane and surface mushrooms are removed from its biome decoration. Its foliage palette is now lush green (`#63B36B`), matching the [Vermillion Legacy prototype](legacy-tree.md). Dynamic Trees remains controlled by species/biome rules; the Legacy tree is available through its seed and preview command while natural grove spacing awaits shape review. No blanket tree-generation exclusion is installed. The other rings retain their existing colors, vanilla jungle trees and temporary flora/fauna. Custom river and lake generation has been removed: there is no drainage planner, channel carving, spring/receiving pool generation, river outlet connector, or routed underground river. Newly generated fields assign the four land biomes only.
+Manaheart Grove's old jungle trees and surface plant patches are removed; its grass blocks, underground features, fauna and crystal rules remain. Bamboo, vines, melons, pumpkins, grass tufts, flowers, cane and surface mushrooms are removed from its biome decoration. Its foliage palette is lush green (`#63B36B`), matching the [Vermillion Legacy tree](legacy-tree.md), which now generates through Dynamic Trees' normal biome-decoration feature. The other rings retain their existing colors and temporary jungle ecology, with Dynamic Trees replacing the vanilla tree features. There are no direct jungle-tree placement calls. Custom river and lake generation has been removed: there is no drainage planner, channel carving, spring/receiving pool generation, river outlet connector, or routed underground river. Newly generated fields assign the four land biomes only.
+
+The registered `riftfall:mana_geysers` biome source wraps the world's original source. All ring and transition selection uses this source during ordinary chunk biome generation, uncached queries and biome searches; the former post-BIOMES palette rewrite is removed. Explicit [Dynamic Trees rules](dynamic-trees.md) cover all four land biomes and the retained aquatic IDs. Existing generated trees and palettes are not retroactively rewritten.
 
 The existing land elevation formula and outer transition grading are unchanged. Mountain generation is on hold; no inner-ring uplift, peaks or elevation redesign is included in this removal. Removing the waterway cuts means new terrain uses the existing underlying land height in their former footprints. Already generated terrain is not rewritten.
 

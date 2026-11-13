@@ -12,10 +12,6 @@ import org.Azkerash.riftfall.worldmana.geysers.*;
 
 @Mixin(ChunkStatusTasks.class)
 public abstract class GeyserBiomeGenerationMixin {
-    @Inject(method="generateBiomes",at=@At("RETURN"),cancellable=true)
-    private static void riftfall$geyserBiomes(WorldGenContext context,ChunkStep step,StaticCache2D<GenerationChunkHolder> cache,ChunkAccess chunk,CallbackInfoReturnable<CompletableFuture<ChunkAccess>> cir){
-        cir.setReturnValue(cir.getReturnValue().thenApply(result->GeyserBiomes.assign(context.level(),result)));
-    }
     @Inject(method="generateStructureStarts",at=@At("HEAD"),cancellable=true)
     private static void riftfall$excludeStructureStarts(WorldGenContext context,ChunkStep step,StaticCache2D<GenerationChunkHolder> cache,ChunkAccess chunk,CallbackInfoReturnable<CompletableFuture<ChunkAccess>> cir){
         var cp=chunk.getPos();if(GeyserBiomes.landscapeField(context.level(),cp.x,cp.z)==null)return;

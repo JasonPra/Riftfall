@@ -1,0 +1,11 @@
+[
+  {
+    "select": {
+      "name": "riftfall:geyser_.*"
+    },
+    "cancellers": {
+      "type": "tree",
+      "namespace": "minecraft"
+    }
+  }
+]

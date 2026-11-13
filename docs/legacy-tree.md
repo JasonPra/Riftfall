@@ -19,7 +19,9 @@ To inspect an adult, stand on clear ground with roughly 55×55 blocks of open sp
 /legacytree ~ ~-1 ~
 ```
 
-The coordinates identify the **soil block**, not the first trunk block. This operator preview command creates an adult and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics. The tree is not yet selected by biome world-generation rules: natural grove spacing is a later portion after reviewing this shape. No terrain elevation changes are included.
+The coordinates identify the **soil block**, not the first trunk block. This operator preview command creates an adult and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics.
+
+Legacy trees also generate naturally in **new Manaheart Grove chunks**, through Dynamic Trees' normal biome-decoration feature. One jittered anchor per 4×4-chunk grove cell keeps neighboring trunk centers at least 48 blocks apart. Natural crowns reserve a margin for leaf ageing inside Minecraft's 3×3-chunk feature-write area; manual previews keep the full original crown. Other rings select temporary Dynamic Trees jungle species. See [biome integration](dynamic-trees.md). Existing trees are not replaced, and no terrain elevation changes are included.
 
 ## Implemented materials
 

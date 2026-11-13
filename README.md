@@ -43,16 +43,16 @@ New circular fields span approximately **2,571, 3,724 or 4,879 blocks** before b
 
 | Zone | Current biome profile | Test grass/foliage color |
 | --- | --- | --- |
-| Manaheart Grove (core) | Jungle vegetation cleared; Vermillion Legacy tree prototype available for manual review; dense white mother deposits below | White grass, lush green foliage |
-| Inner ring | Temporary dense jungle | Blue |
-| Middle ring | Temporary open jungle woodland | Yellow |
-| Verdant Frontier | Plains-like grassland with rare jungle trees | Subtly blue-tinged plains green |
+| Manaheart Grove (core) | Naturally generated Vermillion Legacy groves; dense white mother deposits below | White grass, lush green foliage |
+| Inner ring | Temporary dense dynamic jungle | Blue |
+| Middle ring | Temporary open dynamic jungle woodland | Yellow |
+| Verdant Frontier | Plains-like grassland with rare dynamic jungle trees | Subtly blue-tinged plains green |
 
 A 384-block landscape-only belt cushions the fields with vanilla plains/woodland, climate-appropriate beaches, shallow oceans and deeper water where the surrounding generator calls for them. It preserves native cave biomes below the belt and does not enlarge the mana footprint. Land elevation is unchanged, and custom river/lake generation has been removed. Underground routes still follow a jittered 3D graph with tight fractures, changing ceiling heights, winding passages, irregular caverns and steep drops. Low caves can flood; dripstone and lush sections provide variety. Other rings retain temporary jungle vegetation and vanilla flora/fauna.
 
 Generation follows Minecraft's stages: vanilla structure starts are excluded from fields, biomes are assigned at `BIOMES`, terrain is shaped at `SURFACE`, and caves are excavated at `CARVERS`, before vegetation at `FEATURES`. Goblin camps are an intentional structure exception. Plant placement checks reject unsupported/submerged land plants and maintain support when other decoration replaces blocks. An unfinished-chunk surface plan preserves coastal water after carving. Old custom river/lake biome IDs remain registered for save compatibility but are not selected for new fields.
 
-The first [Vermillion Legacy tree](docs/legacy-tree.md) has growing Dynamic Trees branches, a three-block adult trunk, a broad green canopy and deep roots. Use `/legacytree ~ ~-1 ~` on clear ground to inspect an adult, or plant `riftfall:vermillion_legacy_seed`. Natural grove placement, healing sap scars and fruit are later portions.
+All geyser rings share one biome-source resolver for saved palettes and uncached biome queries. Trees use Dynamic Trees' normal biome-decoration path, with explicit ring species rules and cancellation of vanilla tree features. The [Vermillion Legacy tree](docs/legacy-tree.md) generates naturally in new Manaheart Grove chunks, with a three-block adult trunk, broad green canopy and deep roots. Use `/legacytree ~ ~-1 ~` on clear ground to inspect an adult, or plant `riftfall:vermillion_legacy_seed`. Healing sap scars and fruit are later portions. Existing incorrect trees remain in already-generated chunks.
 
 River currents also affect existing vanilla rivers. They apply physical drift without requiring flowing-water block states: downhill outlets take precedence; otherwise direction points away from the broadest sampled connected water body. The bounded, cached search estimates water-body size and does not load terrain.
 

@@ -24,6 +24,6 @@ public final class GeyserCoast {
         else if(biome.is(BiomeTags.IS_MOUNTAIN))c=GeyserTransition.Climate.MOUNTAIN;
         return new Environment(c,biome.is(BiomeTags.IS_DEEP_OCEAN),biome);
     }
-    public static Holder<Biome> original(ServerLevel level,int x,int z){return level.getChunkSource().getGenerator().getBiomeSource().getNoiseBiome(x>>2,level.getSeaLevel()>>2,z>>2,level.getChunkSource().randomState().sampler());}
+    public static Holder<Biome> original(ServerLevel level,int x,int z){return GeyserBiomeSource.original(level.getChunkSource().getGenerator().getBiomeSource()).getNoiseBiome(x>>2,level.getSeaLevel()>>2,z>>2,level.getChunkSource().randomState().sampler());}
     private GeyserCoast(){}
 }
