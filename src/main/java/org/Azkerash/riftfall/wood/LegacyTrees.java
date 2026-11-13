@@ -19,6 +19,7 @@ public final class LegacyTrees {
         bus.addListener(LegacyTrees::speciesTypes);
         bus.addListener(LegacyTrees::growthKits);
         bus.addListener(LegacyTrees::generationFeatures);
+        bus.addListener(LegacyTrees::canopyCells);
     }
 
     private static void familyTypes(TypeRegistryEvent<Family> event) {
@@ -37,6 +38,9 @@ public final class LegacyTrees {
             event.getRegistry().register(new LegacySurfaceRoots());
             event.getRegistry().register(new LegacyMatureBole());
         }
+    }
+    private static void canopyCells(com.dtteam.dynamictrees.event.RegistryEvent<com.dtteam.dynamictrees.api.cell.CellKit> event){
+        if(event.isEntryOfType(com.dtteam.dynamictrees.api.cell.CellKit.class))event.getRegistry().register(new LegacyCanopyCells());
     }
     private LegacyTrees() {}
 }

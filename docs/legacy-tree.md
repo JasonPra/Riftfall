@@ -1,16 +1,17 @@
 # Vermillion Legacy tree
 
-An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. Naturally generated samples reach roughly 34 blocks high, with crowns 39–45 blocks across. The current shape revision replaces the tall tiered crown with earlier forks, arching limbs and uneven foliage pads inspired by an umbrella tree and bonsai. Tapered surface roots spread from the flared base, alongside a separate underground anchoring network.
+An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. Naturally generated samples reach roughly 36 blocks high, with crowns 43–45 blocks across. The current shape revision replaces the tall tiered crown with earlier forks, arching limbs and uneven foliage pads inspired by an umbrella tree and bonsai. Tapered surface roots spread from the flared base, alongside a separate underground anchoring network.
 
 Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in the fissures. Dense heartwood has deep burgundy/red-amber coloring, tight growth rings and dark gold grain. The future artisan-polished finish should be jewel-like while remaining recognizably wood. Its difficulty of working and desirability to kings and artisans are part of the material design.
 
 ## First living-tree prototype
 
 - Dynamic Trees family/species: `riftfall:vermillion_legacy`; branch radius grows up to 24 pixels. Mature trees retain a radius-24 lower bole for their first five trunk segments, then taper into the scaffold. Seedlings and slender juveniles retain normal growth.
-- Three adult JoCodes have low forks, sideways-sweeping bowl-shaped limbs and shallow, overlapping foliage pads. The leader ends inside the crown instead of forming a separate tall peak. These are connected Dynamic Trees branch networks, not stacks of static logs.
+- Three adult JoCodes use four main sweeping limbs, each dividing into two smaller secondary forks. Short crown-level twigs support a joined, gently domed canopy. Adult samples use roughly 435–525 branch blocks, down from about 1,100–1,600 in the crowded scaffold. The leader ends inside the crown instead of forming a separate tall peak. These are connected Dynamic Trees branch networks, not stacks of static logs.
 - A separate growing root network penetrates dirt and ordinary Overworld stone. The revised native samples retain roughly 93–104 underground root blocks per tree.
-- Custom Legacy growth logic encourages earlier irregular forks and long outward boughs. Growth, felling, branch thickness and leaf support use Dynamic Trees.
+- Custom Legacy growth logic provides four staggered main fork positions and permits smaller branching outward into the crown. Growth, felling, branch thickness and leaf support use Dynamic Trees.
 - Surface roots use Dynamic Trees’ supported root geometry, step down with the ground and taper away from the trunk. Main roots reach their full surface-root thickness once the trunk reaches an eight-pixel radius, and intersecting paths cannot revisit and thin an inner root. Native growth checks retained 45–50 surface root blocks per sample, including substantial inner roots. They can resize as the tree grows; roots overlapping the thick trunk retain access to its face-specific axe interaction.
+- A Legacy-specific Dynamic Trees cell kit lets terminal twigs support broader leaf lobes without adding a cage of wooden supports. Hydration decreases over distance and more quickly vertically, keeping the roof broad while unsupported leaves still decay. Leaf-bearing tips remain within ±18 blocks so the five-block lateral support stays inside the existing generation write bounds.
 - Original lush-green leaves, seed and sapling assets are included. Manaheart Grove's foliage color is `#63B36B`; its grass remains the existing placeholder white. No other biome colors change.
 - Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Each broad surface patch can be stripped independently, yielding one bark item the first time that patch is stripped.
 
@@ -26,11 +27,11 @@ Legacy trees also generate naturally in **new Manaheart Grove chunks**, through 
 
 Thick trunk end grain uses complete, directly authored 96px animation frames for ordinary and stripped log tops, explicitly registered in `assets/minecraft/atlases/blocks.json`. Dynamic Trees’ thick-ring expander treats a vertical animation strip as one image and produces blank enlarged frames; these assets bypass that conversion while retaining the required `_thick` sprite names. Every frame remains opaque and only the mana tint changes subtly.
 
-The foreground tree below generated naturally in Manaheart Grove (seed `923475`, soil at `29400 79 -28904`). Its ground is still the biome’s existing placeholder surface.
+The foreground tree below generated naturally in Manaheart Grove (seed `923475`, soil at `44632 75 -12712`). Its ground remains the biome’s existing placeholder surface.
 
-![Naturally generated umbrella Legacy tree](previews/legacy-umbrella-natural.png)
+![Naturally generated domed Legacy canopy](previews/legacy-canopy-natural.png)
 
-[Root-base close-up](previews/legacy-umbrella-roots.png).
+[View from underneath](previews/legacy-canopy-underneath.png). Existing crowns are not rewritten; inspect newly generated chunks or use `/legacytree` for the revised shape.
 
 ## Implemented materials
 
@@ -78,10 +79,14 @@ Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foli
 
 ## Verification
 
-Three naturally generated Manaheart trees were checked through the normal chunk-decoration path: each reached 34 blocks high, with 39–45-block-wide crowns and roughly 986–1,270 occupied foliage columns. Their lower trunks measured radius 24, or three blocks across. Separate adult previews retained their surface and underground roots after ticking. A seed-grown tree stayed live through 600 growth pulses, reaching 63 branches and 14 blocks high in that young sample.
+Three naturally generated Manaheart trees were checked through the normal chunk-decoration path: each reached 36 blocks high, with 43–45-block-wide crowns and roughly 1,077–1,108 occupied foliage columns. Natural samples contained 435–438 branch blocks; adult preview variants ranged up to 525. Lower trunks retained radius 24 (three blocks across), and surface/underground roots survived ticking. A seed-grown sample stayed live through 600 growth pulses, reaching 83 branches and 24 blocks high.
+
+The new leaf kit kept 170 leaves supported around an isolated twig during repeated native ageing passes. Removing that twig and ageing the same volume left zero leaves, verifying that broader clusters do not remain unsupported. In-game previews were reviewed from a distance and from underneath.
 
 Native client checks resolved both 96px thick-end textures and inspected every pixel in all four animation frames: no transparent or blank wood pixels remained. Geometry checks covered 16 historical world-grid cases, 20 new surface-section cases and a horizontal bark shoulder following its adjoining wall patch. Intermediate trunks use two equal sections, and full-width trunks use three.
 
 Native server interactions checked adjacent thick-trunk shell hits, repeat-harvest prevention, resizing, growth, serialization and old-save migration. Old grid strips merge into broad sections without new drops. Cut trunk tops and horizontal branch ends reject stripping, while bark shoulders remain strippable. Placed logs passed 36 axis/face/simulation combinations, accepting bark sides and rejecting cut ends for X, Y and Z orientations.
 
 Earlier material checks sampled 152 Sap-Amber drops in 1,000 natural-log harvests and zero in 1,000 placed-log harvests. Low-tier strikes canceled mining and cost four durability; diamond and netherite axes were accepted, while diamond pickaxes were rejected. Logs survived a TNT-strength explosion, emitted light level 3 and sank in water. Temporary native verification classes are excluded from release builds.
+
+A reported nearly black face on a placed log remains unconfirmed. Matched [lighting controls](previews/legacy-lighting-controls.png) compared Legacy and vanilla logs, in X/Y/Z orientations, over thick trunks and ordinary supports; exposed faces received skylight 15 and the black face was not reproduced. No lighting behavior was changed for this report.

@@ -24,9 +24,12 @@ public final class LegacyGrowthLogic extends GrowthLogicKit {
         var signal=context.signal();
         map[Direction.DOWN.ordinal()]=0;
         if(signal.isInTrunk()) {
-            int hash=CoordUtils.coordHashCode(context.pos(),2);
-            boolean bough=signal.delta.getY()>=8&&Math.floorMod(hash,7)<3&&context.radius()>1;
-            for(Direction direction:Direction.Plane.HORIZONTAL)map[direction.ordinal()]=bough?2:0;
+            int hash=CoordUtils.coordHashCode(signal.rootPos,2);
+            int firstFork=9+Math.floorMod(hash,3);
+            int offset=signal.delta.getY()-firstFork;
+            boolean bough=offset>=0&&offset<=6&&offset%2==0&&context.radius()>1;
+            Direction fork=Direction.from2DDataValue((offset/2+Math.floorMod(hash/3,4))&3);
+            for(Direction direction:Direction.Plane.HORIZONTAL)map[direction.ordinal()]=bough&&direction==fork?2:0;
             map[Direction.UP.ordinal()]=signal.delta.getY()<10?8:signal.delta.getY()<24?2:0;
         }else{
             map[Direction.UP.ordinal()]=signal.delta.getY()<22&&signal.numTurns<2?3:signal.delta.getY()<29?1:0;
