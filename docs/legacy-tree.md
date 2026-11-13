@@ -1,8 +1,25 @@
-# Vermillion Legacy tree: material foundation
+# Vermillion Legacy tree
 
-An ancient, mana-nurtured hardwood intended for the middle ring and parts of the outer ring. The current adult trunk design spans **3×3 blocks**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. The eventual tree should rise exceptionally high, sink roots deep into the ground, and spread an enormous canopy of unusually healthy, lush green leaves.
+An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. The first Dynamic Trees prototype rises roughly 73–75 blocks, with a broad, irregular green crown and roots reaching 17 blocks below its planting point in the native-server sample.
 
 Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in the fissures. Dense heartwood has deep burgundy/red-amber coloring, tight growth rings and dark gold grain. The future artisan-polished finish should be jewel-like while remaining recognizably wood. Its difficulty of working and desirability to kings and artisans are part of the material design.
+
+## First living-tree prototype
+
+- Dynamic Trees family/species: `riftfall:vermillion_legacy`; branch radius grows up to 24 pixels, giving the adult trunk its three-block width.
+- Three original adult JoCodes have tall central leaders, tiered boughs, diagonal branches and asymmetric crowns. These are connected Dynamic Trees branch networks, not stacks of static logs.
+- A separate growing root network penetrates dirt and ordinary Overworld stone. Native generation produced 136 root blocks extending 17 blocks down.
+- Custom Legacy growth logic gives young trees a tall leader and long outward boughs. Growth, felling, branch thickness and leaf support use Dynamic Trees.
+- Original lush-green leaves, seed and sapling assets are included. Manaheart Grove's foliage color is `#63B36B`; its grass remains the existing placeholder white. No other biome colors change.
+- Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Stripping a branch yields one bark item; stripping it again yields none.
+
+To inspect an adult, stand on clear ground with roughly 55×55 blocks of open space and 85 blocks of headroom, then run:
+
+```mcfunction
+/legacytree ~ ~-1 ~
+```
+
+The coordinates identify the **soil block**, not the first trunk block. This operator preview command creates an adult and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics. The tree is not yet selected by biome world-generation rules: natural grove spacing is a later portion after reviewing this shape. No terrain elevation changes are included.
 
 ## Implemented materials
 
@@ -24,20 +41,24 @@ Logs appear in Natural Blocks; bark and Sap-Amber appear in Ingredients. `/give 
 - Log blocks emit light level **3**. Crimson grain and tiny green fissures pulse through animated 32px textures. The light value is stable; Minecraft's ordinary block lighting is not colored crimson and does not trigger repeated relighting per texture frame.
 - Standard wood fire behavior is retained.
 
-Correctly harvested wood drops its corresponding log. **Naturally grown** material also has a **15%** chance to drop one Glinting Sap-Amber. `natural=true` is a generation-only provenance marker for future grown-tree integration. Stripping preserves it; normal placement defaults to `natural=false`, and harvested item drops do not copy it. Player-placed/rebroken logs therefore cannot farm Sap-Amber. For development, `/setblock ~ ~ ~ riftfall:vermillion_legacy_log[natural=true]` creates a provenance-marked sample.
+Correctly harvested static logs drop their corresponding log. Static material marked `natural=true` also has a **15%** chance to drop one Glinting Sap-Amber. Stripping preserves that provenance; normal placement defaults to `natural=false`, and harvested item drops do not copy it. Player-placed/rebroken logs therefore cannot farm Sap-Amber. For development, `/setblock ~ ~ ~ riftfall:vermillion_legacy_log[natural=true]` creates a provenance-marked sample. The new living branch networks currently use Dynamic Trees' volume-based log/stick drops; their natural-only Sap-Amber integration remains a later portion.
 
 Bark drops on the actual server-side log replacement, not when a tool previews a stripping result. An already stripped log cannot yield another bark item by being stripped again.
 
 ## Living-tree behavior and future portions
 
-A **living, root-connected tree** should seal a stripping wound with hardening sap while its bark heals. Harvested, dead or player-placed wood should not regrow bark. That behavior must be tied to the Dynamic Trees family's live branch/root state, not inferred from the primitive log's provenance marker. The family, branch-stripping integration, sap scar and bark-regrowth lifecycle are the next tree stage; they are not implemented on these static log blocks.
+A **living, root-connected tree** should seal a stripping wound with hardening sap while its bark heals. Harvested, dead or player-placed wood should not regrow bark. That behavior must be tied to the family's live branch/root state, not inferred from the primitive log's provenance marker. The family and branch-stripping integration are implemented; sap scars and bark regrowth are not yet implemented.
 
-**World-Eye** is planned as a seasonal/rare, heavy emerald-skinned Insight Fruit with a glowing red core. Its **Cosmic Clarity** buff is intended to reveal secrets, cosmic-enemy weaknesses or crafting insights. No fruit, buff, recipe unlock, permanent mana-reserve gear recipe, leaves, roots, planks or polished blocks are added by this first material step. No biome elevation or world-generation changes are made.
+**World-Eye** is planned as a seasonal/rare, heavy emerald-skinned Insight Fruit with a glowing red core. Its **Cosmic Clarity** buff is intended to reveal secrets, cosmic-enemy weaknesses or crafting insights. Fruit, buffs, recipe unlocks, permanent mana-reserve gear recipes, planks and polished blocks remain future portions.
 
 ![Vermillion Legacy wood preview](previews/legacy-wood.png)
 
 Regenerate the pixel textures and preview with `python3 tools/assets/generate-legacy-wood.py` (Pillow is needed only for regeneration).
 
+Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foliage.py`, and the original adult/root JoCodes with `python3 tools/trees/generate-legacy-shapes.py`.
+
 ## Verification
+
+A disposable NeoForge 21.1.265 server loaded the actual Dynamic Trees tree pack and generated an adult with 2,199 branch/root blocks, 8,500 leaves, a 49×47-block canopy, radius-24 trunk and 17-block root depth. A planted seedling transitioned to a living tree and grew to 109 branches/root blocks under accelerated growth pulses in ticking chunks. Iron axes were rejected on both the trunk center and its outer shell, with four durability lost per failed strike. Diamond stripping succeeded, and repeating the strip failed. Asset model/texture references resolve against Riftfall, Dynamic Trees and Minecraft resources. This verifies server behavior and asset references; the appearance still needs in-game review.
 
 A disposable native-server check exercised actual axe actions for X/Y/Z logs: simulated stripping spawned no bark, successful stripping spawned exactly one, repeat stripping added none, and natural provenance survived stripping. Diamond/netherite axes were accepted while iron axes and diamond pickaxes were rejected; a failed iron strike canceled mining and applied four durability wear. Natural-log loot sampled 152 Sap-Amber in 1,000 harvests, with zero from 1,000 placed-log checks. The log survived a TNT-strength explosion, emitted level 3 light and sank more than one block during the water-physics check. The temporary verification class is excluded from release builds.

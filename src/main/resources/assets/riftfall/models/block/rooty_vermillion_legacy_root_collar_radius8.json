@@ -1,0 +1,9 @@
+{
+  "parent": "dynamictrees:block/smartmodel/rooty/aerial_roots_radius8",
+  "textures": {
+    "end": "riftfall:block/vermillion_legacy_log_top",
+    "side": "riftfall:block/vermillion_legacy_log",
+    "overlay": "riftfall:block/vermillion_legacy_log",
+    "overlay_end": "riftfall:block/vermillion_legacy_log_top"
+  }
+}

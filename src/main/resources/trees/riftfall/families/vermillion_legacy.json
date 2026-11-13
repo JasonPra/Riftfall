@@ -1,0 +1,19 @@
+{
+  "type": "riftfall:vermillion_legacy",
+  "common_species": "riftfall:vermillion_legacy",
+  "common_leaves": "riftfall:vermillion_legacy",
+  "primitive_log": "riftfall:vermillion_legacy_log",
+  "primitive_stripped_log": "riftfall:stripped_vermillion_legacy_log",
+  "max_branch_radius": 24,
+  "max_signal_depth": 192,
+  "reduce_radius_when_stripping": false,
+  "default_soil": "riftfall:vermillion_legacy_root_collar",
+  "primitive_root": "riftfall:vermillion_legacy_log",
+  "primitive_filled_root": "riftfall:vermillion_legacy_log",
+  "primitive_covered_root": "minecraft:dirt",
+  "root_system_acceptable_soils": [
+    "dirt_like",
+    "sand_like",
+    "mud_like"
+  ]
+}

@@ -26,6 +26,7 @@ public class Riftfall {
         GoblinEntities.TYPES.register(bus);
         GoblinItems.register(bus);
         org.Azkerash.riftfall.wood.LegacyWood.register(bus);
+        org.Azkerash.riftfall.wood.LegacyTrees.register(bus);
         org.Azkerash.riftfall.worldmana.WorldMana.register(bus);
         org.Azkerash.riftfall.worldmana.geysers.GeyserCaves.register(bus);
         org.Azkerash.riftfall.worldmana.geysers.GoblinCampStructures.register(bus);

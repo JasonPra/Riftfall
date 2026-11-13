@@ -15,6 +15,9 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 @EventBusSubscriber(modid="riftfall")
 public final class LegacyWoodBehavior {
+    private static boolean isLegacy(net.minecraft.world.level.block.state.BlockState state){
+        return state.getBlock() instanceof LegacyLogBlock||state.getBlock() instanceof com.dtteam.dynamictrees.block.branch.BranchBlock branch&&branch.getFamily() instanceof LegacyTreeFamily;
+    }
     public static final int FAILED_STRIKE_WEAR=4;
     static void deflect(Player player,InteractionHand hand,BlockPos pos){
         if(player.level().isClientSide())return;
@@ -23,13 +26,18 @@ public final class LegacyWoodBehavior {
         if(stack.is(ItemTags.AXES))stack.hurtAndBreak(FAILED_STRIKE_WEAR,player,hand==InteractionHand.MAIN_HAND?EquipmentSlot.MAINHAND:EquipmentSlot.OFFHAND);
     }
     @SubscribeEvent public static void hit(PlayerInteractEvent.LeftClickBlock event){
-        var state=event.getLevel().getBlockState(event.getPos());var player=event.getEntity();
-        if(!(state.getBlock() instanceof LegacyLogBlock)||player.isCreative()||LegacyLogBlock.canHarvest(player.getMainHandItem(),state))return;
+        var pos=com.dtteam.dynamictrees.tree.TreeHelper.dereferenceTrunkShell(event.getLevel(),event.getPos());
+        var state=event.getLevel().getBlockState(pos);var player=event.getEntity();
+        if(!isLegacy(state)||player.isCreative()||LegacyLogBlock.canHarvest(player.getMainHandItem(),state))return;
         event.setCanceled(true);
-        if(event.getAction()==PlayerInteractEvent.LeftClickBlock.Action.START)deflect(player,InteractionHand.MAIN_HAND,event.getPos());
+        if(event.getAction()==PlayerInteractEvent.LeftClickBlock.Action.START)deflect(player,InteractionHand.MAIN_HAND,pos);
     }
     @SubscribeEvent public static void breakBlock(BlockEvent.BreakEvent event){
-        if(event.getState().getBlock() instanceof LegacyLogBlock&&!event.getPlayer().isCreative()&&!LegacyLogBlock.canHarvest(event.getPlayer().getMainHandItem(),event.getState()))event.setCanceled(true);
+        var pos=event.getPos();
+        if(event.getLevel() instanceof net.minecraft.world.level.Level level)
+            pos=com.dtteam.dynamictrees.tree.TreeHelper.dereferenceTrunkShell(level,pos);
+        var state=event.getLevel().getBlockState(pos);
+        if(isLegacy(state)&&!event.getPlayer().isCreative()&&!LegacyLogBlock.canHarvest(event.getPlayer().getMainHandItem(),state))event.setCanceled(true);
     }
     static void sink(ItemEntity item){
         if(!item.getItem().is(LegacyWood.LOG_ITEMS)||!item.isInWater())return;

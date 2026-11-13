@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/leaves",
+  "textures": {
+    "all": "riftfall:block/vermillion_legacy_leaves"
+  },
+  "render_type": "minecraft:cutout_mipped"
+}

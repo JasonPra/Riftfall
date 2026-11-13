@@ -1,0 +1,27 @@
+{
+  "type": "riftfall:vermillion_legacy",
+  "family": "riftfall:vermillion_legacy",
+  "leaves_properties": "riftfall:vermillion_legacy",
+  "generate_seed": true,
+  "generate_sapling": true,
+  "tapering": 0.3,
+  "signal_energy": 70,
+  "up_probability": 8,
+  "lowest_branch_height": 26,
+  "growth_rate": 0.8,
+  "soil_longevity": 24,
+  "max_branch_radius": 24,
+  "world_gen_leaf_map_height": 112,
+  "growth_logic_kit": "riftfall:vermillion_legacy",
+  "root_tapering": 0.25,
+  "root_signal_energy": 20,
+  "root_growth_multiplier": 2,
+  "roots_growth_logic_kit": "dynamictrees:mangrove_roots",
+  "min_world_gen_height_offset": 0,
+  "max_world_gen_height_offset": 0,
+  "features": [
+    "dynamictrees:bottom_flare"
+  ],
+  "tint_sapling": false,
+  "sapling_shape": "dynamictrees:fat_sapling"
+}
