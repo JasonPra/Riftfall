@@ -22,7 +22,7 @@ import org.Azkerash.riftfall.wood.LegacyBranchBlock;
 import org.Azkerash.riftfall.wood.LegacyTrees;
 
 /** Keep DT's live branch geometry/connections, replacing bark UVs only on stripped faces. */
-@EventBusSubscriber(modid="riftfall",value=Dist.CLIENT,bus=EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid="riftfall",value=Dist.CLIENT)
 public final class LegacyBranchModel extends BakedModelWrapper<BakedModel> {
     public static final ModelProperty<Integer> FACES=new ModelProperty<>();
     private static final ResourceLocation BARK=ResourceLocation.fromNamespaceAndPath("riftfall","block/vermillion_legacy_log");

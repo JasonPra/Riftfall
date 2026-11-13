@@ -7,7 +7,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import org.Azkerash.riftfall.Riftfall;
 
-@EventBusSubscriber(modid = Riftfall.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Riftfall.MODID, value = Dist.CLIENT)
 public final class ArrivalTitleLayer {
     @SubscribeEvent public static void layers(RegisterGuiLayersEvent event) {
         event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID, "arrival_titles"), ArrivalTitles::render);
