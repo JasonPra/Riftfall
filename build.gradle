@@ -109,6 +109,7 @@ dependencies {
     // Pin the requested NeoForge release; available to code and development runs.
     implementation "curse.maven:epic-fight-mod-405076:${epic_fight_file_id}"
     implementation "curse.maven:irons-spells-n-spellbooks-855414:${irons_spellbooks_file_id}"
+    implementation "curse.maven:dynamic-trees-252818:${dynamic_trees_file_id}"
     // CurseMaven does not supply transitive dependencies; pin the required libraries.
     implementation "curse.maven:geckolib-388172:${geckolib_file_id}"
     implementation "maven.modrinth:playeranimator:${player_animator_version_id}"
@@ -125,6 +126,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
                              neo_version_range      : neo_version_range,
                              loader_version_range   : loader_version_range,
                              epic_fight_version     : epic_fight_version,
+                             dynamic_trees_version  : dynamic_trees_version,
                              irons_spellbooks_version: irons_spellbooks_version,
                              mod_id                 : mod_id,
                              mod_name               : mod_name,

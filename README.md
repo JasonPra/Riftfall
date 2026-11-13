@@ -115,7 +115,7 @@ Previously spell-trained living Pillagers retain opted-in casting. Shamans drop 
 
 ## Development
 
-Java **21** is required. Pinned integrations include Epic Fight **21.17.3.1**, Iron's Spells **1.21.1-3.16.3**, GeckoLib **4.9.3**, Curios, Iron's Lib and Player Animator. Exact versions/file IDs are in [gradle.properties](gradle.properties); Gradle resolves supporting dependencies.
+Java **21** is required. Pinned integrations include Epic Fight **21.17.3.1**, Iron's Spells **1.21.1-3.16.3**, GeckoLib **4.9.3**, Dynamic Trees **1.7.2** (NeoForge file **8227322**), Curios, Iron's Lib and Player Animator. See [Dynamic Trees integration](docs/dynamic-trees.md). Exact versions/file IDs are in [gradle.properties](gradle.properties); Gradle resolves supporting dependencies.
 
 ```sh
 ./gradlew build
