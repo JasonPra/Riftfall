@@ -14,6 +14,7 @@ public final class LegacyTrees {
 
     public static void register(IEventBus bus) {
         NeoForgeRegistryHandler.setup("riftfall",bus);
+        LegacyBarkWound.register(bus);
         bus.addListener(LegacyTrees::familyTypes);
         bus.addListener(LegacyTrees::speciesTypes);
         bus.addListener(LegacyTrees::growthKits);

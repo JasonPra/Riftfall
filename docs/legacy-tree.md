@@ -11,7 +11,7 @@ Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in 
 - A separate growing root network penetrates dirt and ordinary Overworld stone. Native generation produced 136 root blocks extending 17 blocks down.
 - Custom Legacy growth logic gives young trees a tall leader and long outward boughs. Growth, felling, branch thickness and leaf support use Dynamic Trees.
 - Original lush-green leaves, seed and sapling assets are included. Manaheart Grove's foliage color is `#63B36B`; its grass remains the existing placeholder white. No other biome colors change.
-- Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Stripping a branch yields one bark item; stripping it again yields none.
+- Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Each face can be stripped independently, yielding one bark item the first time that face is stripped.
 
 To inspect an adult, stand on clear ground with roughly 55×55 blocks of open space and 85 blocks of headroom, then run:
 
@@ -45,9 +45,13 @@ Logs appear in Natural Blocks; bark and Sap-Amber appear in Ingredients. `/give 
 
 Correctly harvested static logs drop their corresponding log. Static material marked `natural=true` also has a **15%** chance to drop one Glinting Sap-Amber. Stripping preserves that provenance; normal placement defaults to `natural=false`, and harvested item drops do not copy it. Player-placed/rebroken logs therefore cannot farm Sap-Amber. For development, `/setblock ~ ~ ~ riftfall:vermillion_legacy_log[natural=true]` creates a provenance-marked sample. The new living branch networks currently use Dynamic Trees' volume-based log/stick drops; their natural-only Sap-Amber integration remains a later portion.
 
-Bark drops on the actual server-side log replacement, not when a tool previews a stripping result. An already stripped log cannot yield another bark item by being stripped again.
+Bark from static logs drops on the actual server-side log replacement, not when a tool previews a stripping result. An already stripped static log cannot yield another bark item by being stripped again.
 
-Dynamic trunk resizing preserves the existing stripped variant, including the bottom-flare feature's updates to the lowest two trunk segments. Growth therefore cannot instantly restore bark and allow repeated harvesting. The trunk can still change thickness and maintain its surrounding collision shells. Stripping currently exposes the entire branch segment as a band; face-specific wounds and bark healing are not implemented in this fix.
+Dynamic branches strip **only the face hit by the axe**, including interactions through the outside collision shell of a three-block trunk. Other sides retain their bark. Repeating the same face yields no bark or additional axe wear; a different intact face can be stripped separately. The rendered geometry and branch connections remain Dynamic Trees' own, with exposed-wood textures applied only to selected bark faces; existing end-grain textures are retained.
+
+Partially stripped segments store a six-bit face mask in a small, synchronized block entity. Only wounded segments have one; intact trees do not gain block entities or a separate baked model for every possible face combination. Face data persists through chunk saves, client updates, resizing and the bottom-flare feature. Once all six faces are stripped, the segment becomes the ordinary fully stripped branch. Existing fully stripped bands from earlier builds remain fully stripped, since those saves contain no record of which face was originally hit. Static building logs retain their ordinary whole-log stripping behavior.
+
+Growth cannot restore harvested bark or allow repeated harvesting. Trunks can still change thickness and maintain their surrounding collision shells. Bark healing and sap hardening remain a later portion.
 
 ## Living-tree behavior and future portions
 
@@ -62,6 +66,8 @@ Regenerate the pixel textures and preview with `python3 tools/assets/generate-le
 Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foliage.py`, and the original adult/root JoCodes with `python3 tools/trees/generate-legacy-shapes.py`.
 
 ## Verification
+
+Face-stripping checks exercised all six hit directions, including interactions through thick-trunk shells. Seven distinct face strips yielded seven bark items; repeat attempts yielded none. Partial face data survived thin/thick resizing, 200 bottom-flare updates and a block-entity save/load round-trip. Fully stripped segments removed their wound data, and harvesting a wounded segment still yielded wood without leaving an orphan block entity. A native client check inspected 324 baked quads at radii 4, 8, 16 and 24: 36 selected bark quads switched to exposed wood, while unselected/end-grain quads and all vertex positions remained unchanged.
 
 A native growth regression check stripped the lowest two trunk segments and an upper segment on an adult, resized a stripped segment between thin and thick radii, and stripped the bottom two segments of a growing sapling. Six initial strips yielded exactly six bark items. Stripped states survived hundreds of growth pulses, repeated stripping was rejected, and the young tree retained its live root connection. This includes the bottom-flare update that previously restored bark immediately.
 
