@@ -35,6 +35,16 @@ class GeyserLandscapeTest {
         }
         assertTrue(shores>0,"No lake shore exercised");
     }
+    @Test void shallowBankApronDoesNotBecomeAnotherWideWaterChannel(){
+        for(double ground:new double[]{68,74,80})for(double width:new double[]{3,4.5,6}){
+            int wet=0;
+            for(int x=-45;x<=45;x++){
+                var c=GeyserTerrain.riverColumn(ground,74,width,Math.abs(x),2);
+                if(c.wet()){wet++;assertTrue(Math.abs(x)<width+2,"Water floods the dry bank apron");}
+            }
+            assertTrue(wet>=5&&wet<=15,"Actual wet width was "+wet);
+        }
+    }
     @Test void waterBiomesKeepZoneIdentityWithoutReplacingLandEverywhere(){
         var keys=new java.util.HashSet<>();
         for(var zone:new GeyserZone[]{GeyserZone.CORE,GeyserZone.INNER,GeyserZone.MIDDLE,GeyserZone.OUTER}){

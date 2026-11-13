@@ -18,7 +18,7 @@ public final class GeyserTerrain {
         return a+(b-a)*t;
     }
     public static double riverCenter(GeyserRegion g,double z){return GeyserDrainage.of(g).centerAt(z);}
-    public static double riverWidth(GeyserRegion g,double z){long h=waterSeed(g);double b=z-g.centerZ();return 4+5*noise(h+3,b/185)+2*noise(h+4,b/43);}
+    public static double riverWidth(GeyserRegion g,double z){long h=waterSeed(g);double b=z-g.centerZ();return 3+2*noise(h+3,b/185)+noise(h+4,b/43);}
     public static double riverDistance(GeyserRegion g,int x,int z){return GeyserDrainage.of(g).nearest(x,z).distance();}
     public static double junctionZ(GeyserRegion g){return GeyserDrainage.of(g).mouth().z();}
     public enum WaterKind { NONE, RIVER, LAKE }
@@ -48,17 +48,24 @@ public final class GeyserTerrain {
         if(floor>=center.water())return new Column(Math.min(current.floor(),floor),current.water(),current.kind());
         return new Column(Math.min(current.floor(),floor),center.water(),WaterKind.LAKE);
     }
+    /** Narrow wet channel, short shallow margin, then a dry graded bank apron. */
+    static Column riverColumn(double terrain,int water,double width,double distance,double depth){
+        if(distance>=width+28)return new Column((int)Math.floor(terrain),Integer.MIN_VALUE,WaterKind.NONE);
+        double floor;
+        if(distance<=width)floor=water-1-depth*Math.max(0,1-sq(distance/width));
+        else if(distance<width+4){
+            double t=smooth((distance-width)/4);floor=water-1+(Math.max(terrain,water+1)-(water-1))*t;
+        }else{
+            double t=smooth((distance-width-4)/24),crest=Math.max(terrain,water+1);floor=crest+(terrain-crest)*t;
+        }
+        int bed=(int)Math.floor(floor);boolean wet=distance<width+4&&bed<water;
+        return new Column(bed,wet?water:Integer.MIN_VALUE,wet?WaterKind.RIVER:WaterKind.NONE);
+    }
     public static Column column(long seed,GeyserRegion g,int x,int z){
         var route=GeyserDrainage.of(g);var reach=route.nearest(x,z);
         int terrain=(int)Math.floor(ground(g,x,z));var result=new Column(terrain,Integer.MIN_VALUE,WaterKind.NONE);
         double width=riverWidth(g,z),distance=reach.distance();
-        if(distance<width+32){
-            double offset=distance/width,depth=1+2*noise(waterSeed(g)+5,reach.segment()/8.0);
-            double bed=reach.water()-1-depth*Math.max(0,1-offset*offset);
-            double bank=smooth(Math.clamp((distance-width)/32,0,1));
-            int floor=(int)Math.floor(bed+(shoreGround(g,x,z)-bed)*bank);
-            result=new Column(floor,reach.water(),floor<reach.water()?WaterKind.RIVER:WaterKind.NONE);
-        }
+        if(distance<width+28)result=riverColumn(shoreGround(g,x,z),reach.water(),width,distance,1+2*noise(waterSeed(g)+5,reach.segment()/8.0));
         int lake=route.lakeAt(x,z);
         if(lake!=Integer.MIN_VALUE){
             // Natural flooded depressions use their real ground as bed: no hard ellipse cutoff.

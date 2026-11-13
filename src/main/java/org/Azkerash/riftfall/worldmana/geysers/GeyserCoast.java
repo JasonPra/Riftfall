@@ -88,16 +88,14 @@ public final class GeyserCoast {
         if(!route.external())return dry;var outlet=outlet(level,g,route.north());double t=progress(outlet,x,z);
         if(t<0||t>=1||!outlet.connected)return dry;
         var center=position(outlet,t);double width=GeyserTerrain.riverWidth(g,(int)outlet.edgeZ)*(1-t)+6*t;
-        double offset=Math.hypot(x-center.x,z-center.z)/width;if(offset>4)return dry;
+        double distance=Math.hypot(x-center.x,z-center.z);if(distance>width+28)return dry;
         int water=channelLevel(level,g,outlet,t);double smooth=t*t*(3-2*t),bed=(water-2)*(1-smooth)+outlet.floor*smooth;
-        double banks=Math.clamp((offset-1)/3,0,1);banks=banks*banks*(3-2*banks);
-        int floor=(int)Math.round(bed+(original-bed)*banks);
-        return new GeyserTerrain.Column(Math.min(original,floor),water,floor<water?GeyserTerrain.WaterKind.RIVER:GeyserTerrain.WaterKind.NONE);
+        return GeyserTerrain.riverColumn(original,water,width,distance,Math.max(0,water-bed-1));
     }
     public static boolean river(ServerLevel level,GeyserRegion g,int x,int z){
         var route=GeyserDrainage.of(g);if(!route.external())return false;var outlet=outlet(level,g,route.north());
         double t=progress(outlet,x,z);if(t<0||t>1||!outlet.connected)return false;
-        var center=position(outlet,t);return Math.hypot(x-center.x,z-center.z)<12;
+        var center=position(outlet,t);return Math.hypot(x-center.x,z-center.z)<GeyserTerrain.riverWidth(g,(int)outlet.edgeZ)*(1-t)+6*t+2;
     }
     public static RiverCurrentField.Flow flow(ServerLevel level,GeyserRegion g,int x,int z){
         var route=GeyserDrainage.of(g);var outlet=outlet(level,g,route.north());double t=progress(outlet,x,z);
