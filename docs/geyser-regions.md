@@ -57,14 +57,14 @@ Changing altitude does not change membership. Crossing the footprint boundary re
 
 | Zone | Biome identifier | Temporary ecology | Test grass/foliage color |
 | --- | --- | --- | --- |
-| Manaheart Grove (core) | `riftfall:geyser_white_core` | Dense jungle foliage | White |
+| Manaheart Grove (core) | `riftfall:geyser_white_core` | Grass surface; jungle trees and surface plants removed | White |
 | Ancient Wilds (inner) | `riftfall:geyser_blue_inner` | Dense jungle canopy | Blue |
 | Elderwood Reach (middle) | `riftfall:geyser_gold_middle` | More open jungle woodland | Yellow |
 | Verdant Frontier | `riftfall:geyser_red_outer` | Plains-like fringe with a rare jungle tree | Subtly blue-tinged plains green |
 
 These display names describe the planned ecosystems: a mana-rich core grove, an ancient inner forest, and more open woodland toward the Frontier. Saved biome identifiers remain unchanged. The names do not imply that the future trees, flora or terrain are already implemented.
 
-The land biomes use vanilla jungle trees and existing flora/fauna as temporary content. Custom river and lake generation has been removed: there is no drainage planner, channel carving, spring/receiving pool generation, river outlet connector, or routed underground river. Newly generated fields assign the four land biomes only.
+Manaheart Grove currently has no jungle trees or surface plant patches; its grass blocks, underground features, fauna and crystal rules remain. Bamboo, vines, melons, pumpkins, grass tufts, flowers, cane and surface mushrooms are removed from its biome decoration. Dynamic Trees remains controlled by its species/biome rules, ready for a future Manaheart-specific tree; no blanket tree-generation exclusion is installed. The other rings retain vanilla jungle trees and existing flora/fauna as temporary content. Custom river and lake generation has been removed: there is no drainage planner, channel carving, spring/receiving pool generation, river outlet connector, or routed underground river. Newly generated fields assign the four land biomes only.
 
 The existing land elevation formula and outer transition grading are unchanged. Mountain generation is on hold; no inner-ring uplift, peaks or elevation redesign is included in this removal. Removing the waterway cuts means new terrain uses the existing underlying land height in their former footprints. Already generated terrain is not rewritten.
 

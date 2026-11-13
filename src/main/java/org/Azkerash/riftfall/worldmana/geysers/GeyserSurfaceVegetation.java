@@ -8,7 +8,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.*;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
-/** Decorations only: terrain and rivers already exist before this feature can run. */
+/** Temporary vegetation outside Manaheart Grove; never reshapes terrain. */
 public final class GeyserSurfaceVegetation extends Feature<NoneFeatureConfiguration> {
     public GeyserSurfaceVegetation(){super(NoneFeatureConfiguration.CODEC);}
     @Override public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context){
@@ -21,6 +21,7 @@ public final class GeyserSurfaceVegetation extends Feature<NoneFeatureConfigurat
             var trees=world.registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE).get(net.minecraft.resources.ResourceLocation.withDefaultNamespace("trees_jungle"));
             for(int i=0;i<extraTrees&&trees!=null;i++){
                 int x=cx*16+context.random().nextInt(16),z=cz*16+context.random().nextInt(16);
+                if(GeyserShape.zone(field,x,z)==GeyserZone.CORE)continue;
                 var root=world.getHeightmapPos(Heightmap.Types.OCEAN_FLOOR_WG,new BlockPos(x,0,z));
                 if(world.isEmptyBlock(root)&&world.getFluidState(root).isEmpty()&&world.getBlockState(root.below()).is(BlockTags.DIRT))trees.place(world,context.chunkGenerator(),context.random(),root);
             }
@@ -28,6 +29,7 @@ public final class GeyserSurfaceVegetation extends Feature<NoneFeatureConfigurat
 
         long seed=GeyserLayout.mix(world.getSeed()^0x534544494d454e54L);
         for(int x=cx*16;x<cx*16+16;x++)for(int z=cz*16;z<cz*16+16;z++){
+            if(GeyserShape.zone(field,x,z)==GeyserZone.CORE)continue;
             int floor=world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z)-1;
             var pos=new BlockPos(x,floor+1,z);
             if(!world.getFluidState(pos).is(FluidTags.WATER)||!world.getFluidState(pos.above()).is(FluidTags.WATER))continue;
