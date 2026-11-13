@@ -38,7 +38,7 @@ public abstract class GeyserBiomeGenerationMixin {
             var world=new net.minecraft.server.level.WorldGenRegion(context.level(),cache,step,result);
             var feature=world.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.CONFIGURED_FEATURE).get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("riftfall","geyser_caves"));
             if(GeyserBiomes.field(context.level(),cp.x,cp.z)!=null)feature.place(world,context.generator(),net.minecraft.util.RandomSource.create(GeyserLayout.mix(world.getSeed()^cp.toLong())),cp.getWorldPosition());
-            GeyserTerrain.sealWater(world,cp.x,cp.z,GeyserLayout.mix(world.getSeed()^0x474559534552L));
+            GeyserTerrain.finishSurface(world,cp.x,cp.z,GeyserLayout.mix(world.getSeed()^0x474559534552L));
             return result;
         }));
     }

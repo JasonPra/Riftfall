@@ -25,13 +25,10 @@ public final class GeyserBiomes {
         String suffix=switch(zone){case CORE->"white_core";case INNER->"blue_inner";case MIDDLE->"gold_middle";case OUTER->"red_outer";case OUTSIDE->throw new IllegalArgumentException("Outside geyser");};
         return ResourceKey.create(Registries.BIOME,ResourceLocation.fromNamespaceAndPath("riftfall","geyser_"+suffix));
     }
+    /** Retained registry keys for already generated aquatic biome palettes; never newly assigned. */
     public static ResourceKey<Biome> waterKey(GeyserZone zone,boolean lake){
         String path=key(zone).location().getPath().substring("geyser_".length());
         return ResourceKey.create(Registries.BIOME,ResourceLocation.fromNamespaceAndPath("riftfall","geyser_"+(lake?"lake_":"river_")+path));
-    }
-    public static ResourceKey<Biome> surfaceKey(long seed,GeyserRegion field,int x,int z){
-        var zone=GeyserShape.zone(field,x,z);var column=GeyserTerrain.column(seed,field,x,z);
-        return column.wet()?waterKey(zone,column.kind()==GeyserTerrain.WaterKind.LAKE):key(zone);
     }
     public static GeyserRegion field(ServerLevel level,int cx,int cz){
         if(!level.dimension().equals(Level.OVERWORLD))return null;
@@ -54,33 +51,23 @@ public final class GeyserBiomes {
         prepare(level);
         var cp=chunk.getPos();var field=landscapeField(level,cp.x,cp.z);if(field==null)return chunk;
         var registry=level.registryAccess().registryOrThrow(Registries.BIOME);
-        long seed=GeyserLayout.mix(level.getSeed()^0x474559534552L);
         var surface=new java.util.ArrayList<net.minecraft.core.Holder<Biome>>(16);
         var inside=new boolean[16];
-        var underground=GeyserUndergroundRiver.of(seed,field);
-        var cuts=new GeyserUndergroundRiver.Cut[16];
-        var underwater=new java.util.ArrayList<net.minecraft.core.Holder<Biome>>(java.util.Collections.nCopies(16,null));
-        var ground=new double[16];
         for(int a=0;a<4;a++)for(int b=0;b<4;b++){
             int x=cp.getMinBlockX()+a*4+2,z=cp.getMinBlockZ()+b*4+2;
             var zone=GeyserShape.zone(field,x,z);
             if(zone!=GeyserZone.OUTSIDE){
-                int index=a*4+b;inside[index]=true;cuts[index]=underground.column(x,z);ground[index]=GeyserTerrain.ground(field,x,z);
-                underwater.set(index,registry.getHolderOrThrow(waterKey(zone,false)));
-                surface.add(registry.getHolderOrThrow(surfaceKey(seed,field,x,z)));continue;
+                inside[a*4+b]=true;surface.add(registry.getHolderOrThrow(key(zone)));continue;
             }
             double distance=GeyserTransition.distance(field,x,z),t=GeyserTransition.progress(distance,x,z);
             if(distance>=GeyserTransition.WIDTH){surface.add(GeyserCoast.original(level,x,z));continue;}
             var environment=GeyserCoast.environment(level,field,x,z);var local=GeyserCoast.original(level,x,z);
             if(local.is(net.minecraft.tags.BiomeTags.IS_OCEAN)||GeyserTransition.ocean(environment.climate())&&!local.is(net.minecraft.tags.BiomeTags.IS_BEACH))environment=GeyserCoast.classify(local);
             var selected=GeyserTransition.biome(environment.climate(),environment.deep(),t);
-            boolean channel=GeyserCoast.river(level,field,x,z)&&(t<.38||!GeyserTransition.ocean(environment.climate()));
-            if(channel)selected=environment.climate()==GeyserTransition.Climate.COLD||environment.climate()==GeyserTransition.Climate.FROZEN_SEA?net.minecraft.world.level.biome.Biomes.FROZEN_RIVER:net.minecraft.world.level.biome.Biomes.RIVER;
-            surface.add(!channel&&GeyserTransition.nativePatch(t,x,z)?local:registry.getHolderOrThrow(selected));
+            surface.add(GeyserTransition.nativePatch(t,x,z)?local:registry.getHolderOrThrow(selected));
         }
         chunk.fillBiomesFromNoise((x,y,z,sampler)->{
-            int index=(x&3)*4+(z&3),height=y*4+2;var cut=cuts[index];
-            if(inside[index]&&cut!=null&&height<ground[index]-6&&height>cut.floor()&&height<=cut.roof())return underwater.get(index);
+            int index=(x&3)*4+(z&3);
             return y<8&&!inside[index]?level.getChunkSource().getGenerator().getBiomeSource().getNoiseBiome(x,y,z,sampler):surface.get(index);
         },level.getChunkSource().randomState().sampler());
         return chunk;

@@ -1,5 +1,7 @@
 # Native regional world generation: first prototype contract
 
+Current status: the custom river/lake generator and routed underground rivers have been removed at the user's request. Elevation changes, including the proposed inner-ring mountains, are on hold. The architecture below records the earlier native-overhaul plan, not authorization to restore the removed hydrology.
+
 Tracking: [roadmap #4](https://github.com/JasonPra/Riftfall/issues/4), [architecture #5](https://github.com/JasonPra/Riftfall/issues/5).
 
 ## Scope

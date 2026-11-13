@@ -24,8 +24,7 @@ public final class GoblinCampStructure extends Structure {
         long terrain=GeyserLayout.mix(context.seed()^0x474559534552L);
         int x=cp.getMinBlockX()+8,z=cp.getMinBlockZ()+8,min=Integer.MAX_VALUE,max=Integer.MIN_VALUE;
         for(int dx=-6;dx<=6;dx++)for(int dz=-6;dz<=5;dz++){
-            var column=GeyserTerrain.column(terrain,field,x+dx,z+dz);if(column.wet())return Optional.empty();
-            int floor=column.floor();min=Math.min(min,floor);max=Math.max(max,floor);
+            int floor=GeyserTerrain.height(terrain,field,x+dx,z+dz);min=Math.min(min,floor);max=Math.max(max,floor);
             if(max-min>1||floor<level.getSeaLevel()+2||GeyserShape.zone(field,x+dx,z+dz)!=GeyserZone.OUTER
                 ||GeyserTerrain.entranceColumn(terrain,field,x+dx,z+dz)!=null)return Optional.empty();
         }
