@@ -4,7 +4,7 @@ This iteration uses staggered mature Heartwood anchors with young and intermedia
 
 Manaheart Grove's land biome gains larger, partly buried irregular boulders, two-block Whisperfrond Ferns and clumps of low woody Tangleveil Shrubs. Decorations remain ordinary configured and placed biome features. Boulders use a dedicated bounded feature rather than vanilla forest-rock blobs.
 
-Ry is a magical wolf with native wolf behavior and an original silver-blue coat. It uses Iron's actual Gust spell against enemies. Jungle parrots, pandas and ocelots are removed from the center biome's land, river and lake spawn lists; Ry packs replace them. Other rings are unchanged.
+Ry is a direwolf-sized magical wolf with a dedicated broad-chested model, layered silver neck ruff, sturdy paws, jade wind markings, luminous gold eyes and a long bushy tail. A 1.35 scale attribute sizes its hitbox and model together, while pups retain normal age scaling. It is a territorial NPC in the **Magic Beasts** faction, with pack tactics, self-preservation and synchronized Epic Fight combat/casting poses. It uses Iron's actual Gust spell against enemies. See [Ry behavior and faction](ry-magic-beasts.md). Jungle parrots, pandas and ocelots are removed from the center biome's land, river and lake spawn lists; Ry packs replace them. Other rings are unchanged.
 
 In-game checks covered generation, daylight shading and native Gust casting. Existing chunks are not repainted.
 

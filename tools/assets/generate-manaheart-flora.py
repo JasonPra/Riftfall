@@ -162,4 +162,13 @@ for x,y in [(22,9),(24,10),(39,9),(41,10),(19,23),(21,25),(31,23),(33,25),(26,22
 patch((0,26,7,29),(75,100,121));patch((9,26,16,29),(66,92,114))
 for x,y in [(23,8),(24,9),(25,10),(38,8),(39,9),(40,10),(20,21),(21,22),(22,23),(32,21),(33,22),(34,23)]:
  d.point((x,y),fill=(76,199,191,255))
+# Dedicated spirit-mane and tail panels: silver fur with jade wind ribbons.
+patch((52,0,63,11),(218,232,232));patch((48,18,63,31),(202,223,227))
+for x,y in [(54,4),(55,5),(56,6),(58,3),(59,4),(60,5),(51,23),(52,24),(53,25),(57,25),(58,26),(59,27)]:
+ d.point((x,y),fill=(70,171,164,255))
+# Warm luminous eyes contrast the cool silver/jade coat.
+for x in (3,4,9,10):d.point((x,6),fill=(232,207,117,255))
 entity=A/'textures/entity';entity.mkdir(parents=True,exist_ok=True);fur.save(entity/'ry.png')
+glow=Image.new('RGBA',(64,32),(0,0,0,0))
+for x in (3,4,9,10):glow.putpixel((x,6),(232,207,117,255))
+glow.save(entity/'ry_glow.png')

@@ -20,6 +20,7 @@ public final class GoblinAnimations {
     public static AnimationAccessor<AttackAnimation> STAFF_SWEEP, STAFF_SMASH, SLASH, BACKSWING, FLURRY, SWORD_SWIPE, SWORD_REVERSE, FRENZY, SHIELD_OVERHEAD, PLUNGE, GRAPPLE;
     static void register(AnimationRegistryEvent event) {
         event.newBuilder(Riftfall.MODID,builder -> {
+            org.Azkerash.riftfall.fauna.RyAnimations.register(builder);
             PANT=builder.nextAccessor("biped/goblin_pant",a->new yesman.epicfight.api.animation.types.StaticAnimation(.12F,true,a,Armatures.BIPED));
             BACKSTAB_CAUGHT=builder.nextAccessor("biped/backstab_caught",a->new ActionAnimation(.06F,a,Armatures.BIPED)
                 .addStateRemoveOld(EntityState.CAN_USE_ITEM,false).addStateRemoveOld(EntityState.CAN_SWITCH_HAND_ITEM,false));
