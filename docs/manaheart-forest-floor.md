@@ -18,7 +18,7 @@ In-game checks covered generation, daylight shading and native Gust casting. Exi
 | Dawnstar Blossom | `riftfall:dawnstar_blossom` | An ivory-and-gold star flower with warm emissive details. |
 | Moonveil Bloom | `riftfall:moonveil_bloom` | Small silver-blue flowers with cool emissive details. |
 
-Podzol remains Minecraft's existing soil. Moss and flowers use original 32px art, flat plant sprites and separate emissive texture layers; no blinking animation or new terrain carving is involved. The moss and its carpet use restrained luminous markings, while flowers also emit a stable light level of one.
+Podzol remains Minecraft's existing soil. Moss and flowers use original 32px art, flat plant sprites and separate emissive texture layers; no blinking animation or new terrain carving is involved. The moss and its carpet use restrained luminous markings, while flowers also emit a faint, stable light level of three.
 
 Starweave Moss is registered with Dynamic Trees as dirt-like planting soil, including a matching root-bearing soil model. Bone meal uses its own native vegetation-patch configuration, preserving magical moss and flora instead of spawning vanilla moss. Ferns drop their item with shears; other flora and moss use ordinary self-drops. Boulderstone is mined with a pickaxe. Items appear in Natural Blocks.
 

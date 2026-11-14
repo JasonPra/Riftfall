@@ -118,15 +118,48 @@ for part in parts[1:]:
 out(Path('models/block/tangleveil_shrub.json'),{'parent':'minecraft:block/block','render_type':'minecraft:cutout_mipped','textures':{'leaf':'riftfall:block/tangleveil_shrub','wood':'riftfall:block/vermillion_legacy_log','particle':'riftfall:block/tangleveil_shrub'},'elements':parts})
 out(Path('blockstates/tangleveil_shrub.json'),{'variants':{'':{'model':'riftfall:block/tangleveil_shrub'}}})
 out(Path('models/item/tangleveil_shrub.json'),{'parent':'riftfall:block/tangleveil_shrub'})
-# Original silver-blue fur and teal wind markings on the native wolf UV layout.
+# Native WolfModel uses a 64x32 atlas. Keep detail on every mapped face,
+# rather than covering the head/body/legs with solid rectangles.
 fur=Image.new('RGBA',(64,32));d=ImageDraw.Draw(fur);rng=random.Random(3862)
 for y in range(32):
  for x in range(64):
-  v=rng.randrange(-10,11);fur.putpixel((x,y),(max(0,169+v),max(0,186+v),max(0,201+v),255))
-for box in [(0,0,18,14),(18,14,42,30),(0,18,8,31)]:
- d.rectangle(box,fill=(179,196,207,255))
-# Muzzle, dark nose and bright eyes; narrow runes remain part of the coat.
-d.rectangle((6,5,9,7),fill=(232,239,234,255));d.rectangle((7,6,8,7),fill=(36,54,64,255))
-d.point((4,4),fill=(85,219,208,255));d.point((9,4),fill=(85,219,208,255))
-for x,y in [(22,20),(23,21),(24,22),(25,23),(30,19),(31,20),(32,21),(12,21),(13,22),(14,23)]:d.point((x,y),fill=(92,210,200,255))
+  v=rng.randrange(-15,16)
+  fur.putpixel((x,y),(max(0,151+v),max(0,174+v),max(0,191+v),255))
+def patch(box,base):
+ for y in range(box[1],box[3]+1):
+  for x in range(box[0],box[2]+1):
+   v=rng.randrange(-13,14)
+   fur.putpixel((x,y),tuple(max(0,min(255,c+v)) for c in base)+(255,))
+# Head: crown, sides, face and chin; six-pixel front at (4,4).
+patch((4,0,9,3),(112,140,161))
+patch((0,4,3,9),(163,185,201));patch((10,4,13,9),(163,185,201))
+patch((4,4,9,9),(202,216,220));patch((10,0,15,3),(218,226,224))
+# Brow and cheek tufts, mirrored across both sides of the face.
+for x in (4,9):
+ d.point((x,5),fill=(66,88,108,255))
+ d.point((x,6),fill=(47,215,203,255))
+for x in (3,10):
+ d.point((x,5),fill=(66,88,108,255))
+ d.point((x,6),fill=(47,215,203,255))
+ d.point((x,7),fill=(211,226,226,255))
+# Muzzle front is (4,14)-(6,16), not the head's forehead.
+patch((0,10,13,16),(216,226,224))
+d.rectangle((4,14,6,14),fill=(31,44,57,255))
+d.point((5,15),fill=(44,57,68,255))
+d.line((4,16,6,16),fill=(87,106,115,255))
+# Shared ear UV: dark outer fur and warm shaded inner ear.
+patch((16,15,21,16),(87,113,135));d.rectangle((17,15,18,16),fill=(159,161,170,255))
+# Body and ruff: pale belly/chest contrasted with blue-grey back.
+patch((24,14,29,19),(102,132,155));patch((30,14,35,19),(205,219,219))
+patch((18,20,23,28),(145,171,190));patch((24,20,29,28),(178,199,209))
+patch((30,20,35,28),(145,171,190));patch((36,20,41,28),(192,210,214))
+patch((28,0,35,6),(106,136,159));patch((36,0,43,6),(213,224,222))
+patch((21,7,27,12),(156,181,199));patch((28,7,35,12),(197,216,218))
+patch((36,7,42,12),(156,181,199));patch((43,7,50,12),(193,212,217))
+# Fur strands, paws and a dark tail tip remain visible on all sides.
+for x,y in [(22,9),(24,10),(39,9),(41,10),(19,23),(21,25),(31,23),(33,25),(26,22),(28,25),(45,9),(48,10)]:
+ d.line((x,y,x,y+1),fill=(114,145,168,255))
+patch((0,26,7,29),(75,100,121));patch((9,26,16,29),(66,92,114))
+for x,y in [(23,8),(24,9),(25,10),(38,8),(39,9),(40,10),(20,21),(21,22),(22,23),(32,21),(33,22),(34,23)]:
+ d.point((x,y),fill=(76,199,191,255))
 entity=A/'textures/entity';entity.mkdir(parents=True,exist_ok=True);fur.save(entity/'ry.png')
