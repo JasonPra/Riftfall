@@ -1,0 +1,17 @@
+{
+  "parent": "minecraft:item/generated",
+  "loader": "neoforge:item_layers",
+  "textures": {
+    "layer0": "riftfall:item/heartwood_fruit",
+    "layer1": "riftfall:item/heartwood_fruit_glow"
+  },
+  "neoforge_data": {
+    "layers": {
+      "1": {
+        "block_light": 6,
+        "sky_light": 6,
+        "ambient_occlusion": false
+      }
+    }
+  }
+}

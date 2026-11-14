@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "has_fruit": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "riftfall:heartwood_fruit"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "riftfall:heartwood_fruit_to_seed"
+    ]
+  }
+}

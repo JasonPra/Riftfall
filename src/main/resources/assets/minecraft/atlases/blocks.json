@@ -7,6 +7,38 @@
     {
       "type": "single",
       "resource": "riftfall:block/stripped_vermillion_legacy_log_top_thick"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_sap_1"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_sap_1_glow"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_sap_2"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_sap_2_glow"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_resin"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_closing_1"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_closing_2"
+    },
+    {
+      "type": "single",
+      "resource": "riftfall:block/heartwood_wound_closing_3"
     }
   ]
 }

@@ -8,7 +8,7 @@ Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in 
 
 - Dynamic Trees family/species: `riftfall:vermillion_legacy`; branch radius grows up to 24 pixels. Mature trees retain a radius-24 lower bole for their first five trunk segments, then taper into the scaffold. Seedlings and slender juveniles retain normal growth.
 - Three native JoCodes come from planted seedlings grown for 9,600 growth pulses. Their branch layouts and measured radii are recorded in `tools/trees/legacy-grown-samples.json`; generation restores those measurements because JoCodes alone omit thickness. All use ordinary Dynamic Trees branch geometry.
-- Shared Heartwood growth logic retains four staggered main fork sites, with branch energy increased from 20–25 to 24–29 for slightly longer potential reach. Established branches retain Dynamic Trees' normal growth routing.
+- Shared Heartwood growth logic builds three irregular leaf-shelf layers, roughly six blocks apart, with staggered forks, unequal lateral fans and occasional one-block arches. Branch energy is 28–31; established branches retain Dynamic Trees' normal growth routing. A flat 7×3×7 hydration cluster keeps foliage close to the supporting twigs.
 - The same underground-root, mature-bole and tapered surface-root features serve planted and wild trees. The first five lower trunk segments can reach radius 24; younger trees remain slender.
 - The Heartwood leaf-support kit serves both growth and world generation. Neutral leaf textures use vanilla biome foliage tinting through the primitive leaf color handler; the species supplies no fixed leaf color. Manaheart Grove grass and foliage are both `#63B36B`. Other biome colors are unchanged.
 - Felling leaf loot yields sticks but no seeds. Seeds remain available for planting; individual leaf-breaking and normal dispersal rules are unchanged.
@@ -36,7 +36,7 @@ Dynamic Trees has no final adult-stage flag or stored growth age. Its `/dt gettr
 
 Existing crowns are not rewritten. Inspect new chunks or use `/legacytree` for the updated references.
 
-Client review: [wild feature sample](previews/legacy-unified-natural.png) and [seed-grown sample on its capture platform](previews/legacy-unified-planted.png). These are different random layouts of the same species; foliage responds to each location’s biome.
+Client review: [seed-grown canopy](previews/heartwood-canopy.png), [view from above](previews/heartwood-canopy-above.png) and [branch connections from underneath](previews/heartwood-canopy-under.png). These show the accepted growth shape before fruit and healing were added.
 
 ## Implemented materials
 
@@ -68,13 +68,13 @@ Wounded segments store a synchronized patch mask and section count in a small bl
 
 Cut end-grain faces reject stripping without bark drops or axe wear. Placed logs use their X/Y/Z axis; living branches use Dynamic Trees’ connection rules for ring caps, including horizontal branch ends. Bark-covered shoulders remain part of the adjoining side patch.
 
-Growth cannot restore harvested bark or allow repeated harvesting. Trunks can still change thickness and maintain their surrounding collision shells. Bark healing and sap hardening remain a later portion.
+Ordinary radius growth cannot restore harvested bark or reset a wound. Wounds now follow their own saved healing timeline while connected to a living root. See [Heartwood wound healing](heartwood-wounds.md). A fully healed patch can be stripped again; bark cannot be harvested again from an open wound.
 
 ## Living-tree behavior and future portions
 
-A **living, root-connected tree** should seal a stripping wound with hardening sap while its bark heals. Harvested, dead or player-placed wood should not regrow bark. That behavior must be tied to the family's live branch/root state, not inferred from the primitive log's provenance marker. The family and branch-stripping integration are implemented; sap scars and bark regrowth are not yet implemented.
+A **living, root-connected tree** seals a stripping wound with sap, hardens it into red-amber resin, then gradually grows bark back over it. Each stripped patch has an independent, persisted clock. Healing pauses without a loaded root connection; primitive building logs do not regrow bark. Wet sap can be collected into glass bottles; collecting it restarts that surface’s healing cycle.
 
-**World-Eye** is planned as a seasonal/rare, heavy emerald-skinned Insight Fruit with a glowing red core. Its **Cosmic Clarity** buff is intended to reveal secrets, cosmic-enemy weaknesses or crafting insights. Fruit, buffs, recipe unlocks, permanent mana-reserve gear recipes, planks and polished blocks remain future portions.
+Heartwood fruit now grows beneath Heartwood leaves near branch tips: bud → white flower → silver fruit → ripe gold fruit. Ripe fruit can be eaten for short regeneration, crafted into a seed, or left to fall and establish a native sapling. See [Heartwood fruit](heartwood-fruit.md) for timings and development commands. Cosmic Clarity, permanent mana-reserve gear recipes, planks and polished blocks remain future portions.
 
 ![Heartwood wood preview](previews/legacy-wood.png)
 
@@ -84,14 +84,8 @@ Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foli
 
 ## Verification
 
-The three planted reference captures contain 366, 216 and 281 branch blocks, with branch heights of 24, 22 and 24 blocks. Native replay checks compare every branch position and radius in all four horizontal rotations: all twelve cases match exactly. These measurements describe reference samples, not fixed maturity thresholds. A rooted replay continued ordinary growth after a limb was thinned: its radius returned from 1 to 5 and the network grew from 366 to 381 branches. Three fresh FEATURES-stage samples contained 216–281 branches, 2,150–2,761 leaves and 27–36-block-wide crowns. Native felling loot checks sampled 1,000 harvests with zero seeds. The client verified that primitive and dynamic leaves both return the biome foliage tint.
+The three current planted reference captures contain 605, 530 and 569 branch blocks, with branch heights of 25, 24 and 25 blocks. Their maximum horizontal reaches are 16, 14 and 14 blocks, inside the existing generation bounds. All three were grown for 9,600 native pulses. These measurements describe reference samples, not fixed maturity thresholds.
 
-The new leaf kit kept 170 leaves supported around an isolated twig during repeated native ageing passes. Removing that twig and ageing the same volume left zero leaves, verifying that broader clusters do not remain unsupported. In-game previews were reviewed from a distance and from underneath.
+Native replay checks compared every branch position and radius in all four horizontal rotations: all twelve cases matched exactly. A rooted replay continued ordinary growth after a limb was thinned, growing from 605 to 620 branches. Three fresh FEATURES-stage Manaheart samples contained 530–569 branches and 3,218–3,422 leaves, with crowns measuring 33×31 to 33×33 blocks. A native felling-loot check sampled 1,000 harvests with zero seeds.
 
-Native client checks resolved both 96px thick-end textures and inspected every pixel in all four animation frames: no transparent or blank wood pixels remained. Geometry checks covered 16 historical world-grid cases, 20 new surface-section cases and a horizontal bark shoulder following its adjoining wall patch. Intermediate trunks use two equal sections, and full-width trunks use three.
-
-Native server interactions checked adjacent thick-trunk shell hits, repeat-harvest prevention, resizing, growth, serialization and old-save migration. Old grid strips merge into broad sections without new drops. Cut trunk tops and horizontal branch ends reject stripping, while bark shoulders remain strippable. Placed logs passed 36 axis/face/simulation combinations, accepting bark sides and rejecting cut ends for X, Y and Z orientations.
-
-Earlier material checks sampled 152 Sap-Amber drops in 1,000 natural-log harvests and zero in 1,000 placed-log harvests. Low-tier strikes canceled mining and cost four durability; diamond and netherite axes were accepted, while diamond pickaxes were rejected. Logs survived a TNT-strength explosion, emitted light level 3 and sank in water. Temporary native verification classes are excluded from release builds.
-
-A reported nearly black face on a placed log remains unconfirmed. Matched [lighting controls](previews/legacy-lighting-controls.png) compared Heartwood and vanilla logs, in X/Y/Z orientations, over thick trunks and ordinary supports; exposed faces received skylight 15 and the black face was not reproduced. No lighting behavior was changed for this report.
+The release check exercised wound save/load, repeated-stripping prevention, bottling resetting the wound clock, sap replenishment, resin rejecting bottles and restoration to an ordinary branch. A generated sample contained 24 fruit organs beneath Heartwood leaves, with fruit age and root surviving serialization. Separate in-game checks exercised all four fruit stages, delayed fruit drop, native sapling establishment consuming one item from a stack, regeneration and the seed recipe. The automated Gradle suite passed all 313 tests.

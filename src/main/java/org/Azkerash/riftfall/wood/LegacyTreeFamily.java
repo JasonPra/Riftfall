@@ -60,6 +60,8 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
     }
 
     @Override public boolean onTreeActivated(TreeActivationContext context){
+        if(context.heldItem()!=null&&context.heldItem().is(Items.GLASS_BOTTLE))
+            return bottleSap(context.level(),context.hitPos(),context.hitResult(),context.player(),context.hand());
         if(context.hitState().getBlock() instanceof LegacyBranchBlock&&context.heldItem()!=null&&
             context.heldItem().canPerformAction(net.neoforged.neoforge.common.ItemAbilities.AXE_STRIP))
             return stripPatch(context.level(),context.hitPos(),context.hitResult(),context.player(),context.heldItem());
@@ -84,24 +86,44 @@ public final class LegacyTreeFamily extends UndergroundRootsFamily {
         return strip(level,pos,face,LegacyBarkWound.patch(face,point.x,point.y,point.z,radius,sections),false,sections,player,tool);
     }
 
+    public boolean bottleSap(Level level,BlockPos pos,net.minecraft.world.phys.BlockHitResult hit,Player player,net.minecraft.world.InteractionHand hand){
+        if(player==null||!player.getItemInHand(hand).is(Items.GLASS_BOTTLE)||!(level.getBlockEntity(pos) instanceof LegacyBarkWound wound))return false;
+        var state=level.getBlockState(pos);var branch=(LegacyBranchBlock)state.getBlock();
+        if(branch.isEndGrainFace(level,pos,state,hit.getDirection()))return false;
+        var point=hit.getLocation().subtract(pos.getX(),pos.getY(),pos.getZ());Direction face=hit.getDirection();
+        if(face.getAxis()==Direction.Axis.Y)face=Direction.getNearest(point.x-.5,0,point.z-.5);
+        long patch=LegacyBarkWound.patch(face,point.x,point.y,point.z,branch.getRadius(state),LegacyBarkWound.sections(level,pos));
+        if((LegacyBarkWound.patches(level,pos)&patch)==0)return false;
+        if(level.isClientSide)return true;
+        if(!wound.collectSap(patch)){
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("There is no liquid sap to collect yet, or it has already hardened."),true);
+            return true;
+        }
+        player.setItemInHand(hand,ItemUtils.createFilledResult(player.getItemInHand(hand),player,new ItemStack(LegacyWood.SAP_BOTTLE.get())));
+        player.awardStat(net.minecraft.stats.Stats.ITEM_USED.get(Items.GLASS_BOTTLE));
+        level.playSound(null,pos,net.minecraft.sounds.SoundEvents.BOTTLE_FILL,net.minecraft.sounds.SoundSource.BLOCKS,.8f,.9f);
+        level.gameEvent(player,net.minecraft.world.level.gameevent.GameEvent.FLUID_PICKUP,pos);
+        return true;
+    }
+
     public boolean stripFace(Level level,BlockPos pos,Direction face,Player player,ItemStack tool){
         return strip(level,pos,face,LegacyBarkWound.facePatches(face),true,0,player,tool);
     }
     private boolean strip(Level level,BlockPos pos,Direction face,long patch,boolean wholeFace,int sections,Player player,ItemStack tool){
         var state=level.getBlockState(pos);
-        if(state.getBlock() instanceof LegacyBranchBlock b&&b.isEndGrainFace(level,pos,state,face)||!canStripBranch(state,level,pos,player,tool)||(LegacyBarkWound.patches(level,pos)&patch)==patch)return false;
+        if(state.getBlock() instanceof LegacyBranchBlock b&&b.isEndGrainFace(level,pos,state,face)||!canStripBranch(state,level,pos,player,tool)||(LegacyBarkWound.patches(level,pos)&patch)!=0)return false;
         if(level.isClientSide)return true;
         long patches=LegacyBarkWound.patches(level,pos)|patch;
         int faces=LegacyBarkWound.faces(level,pos)|(wholeFace?LegacyBranchBlock.faceBit(face):0);
         var branch=(LegacyBranchBlock)state.getBlock();int radius=branch.getRadius(state);
-        var replacement=(faces==63?getStrippedBranch().orElseThrow():getWoundedBranch()).getStateForRadius(radius);
+        var replacement=getWoundedBranch().getStateForRadius(radius);
         replacement=replacement.setValue(com.dtteam.dynamictrees.block.branch.BasicBranchBlock.WATERLOGGED,
             state.getValue(com.dtteam.dynamictrees.block.branch.BasicBranchBlock.WATERLOGGED));
         var previousMode=com.dtteam.dynamictrees.block.branch.BranchBlock.destroyMode;
         try{
             com.dtteam.dynamictrees.block.branch.BranchBlock.destroyMode=com.dtteam.dynamictrees.DynamicTrees.DestroyMode.SET_RADIUS;
             if(!state.equals(replacement)&&!level.setBlock(pos,replacement,3))return false;
-            if(faces!=63){
+            {
                 if(!(level.getBlockEntity(pos) instanceof LegacyBarkWound wound))return false;
                 wound.setSections(sections);
                 wound.setFaces(faces);

@@ -22,6 +22,14 @@ public final class LegacyTreeCommands {
         event.getDispatcher().register(Commands.literal("legacytree").requires(source->source.hasPermission(2))
             .then(Commands.literal("inspect").executes(context->inspect(context.getSource(),lookAt(context.getSource())))
                 .then(Commands.argument("tree",BlockPosArgument.blockPos()).executes(context->inspect(context.getSource(),BlockPosArgument.getLoadedBlockPos(context,"tree")))))
+            .then(Commands.literal("fruit").then(Commands.argument("hanging_fruit",BlockPosArgument.blockPos())
+                .executes(context->fruit(context.getSource(),BlockPosArgument.getLoadedBlockPos(context,"hanging_fruit"),0))
+                .then(Commands.literal("advance").then(Commands.argument("minutes",com.mojang.brigadier.arguments.IntegerArgumentType.integer(1,120))
+                    .executes(context->fruit(context.getSource(),BlockPosArgument.getLoadedBlockPos(context,"hanging_fruit"),com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context,"minutes")))))))
+            .then(Commands.literal("wound").then(Commands.argument("segment",BlockPosArgument.blockPos())
+                .executes(context->wound(context.getSource(),BlockPosArgument.getLoadedBlockPos(context,"segment"),0))
+                .then(Commands.literal("advance").then(Commands.argument("minutes",com.mojang.brigadier.arguments.IntegerArgumentType.integer(1,120))
+                    .executes(context->wound(context.getSource(),BlockPosArgument.getLoadedBlockPos(context,"segment"),com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context,"minutes")))))))
             .then(Commands.literal("export").then(Commands.argument("tree",BlockPosArgument.blockPos()).executes(context->export(context.getSource(),BlockPosArgument.getLoadedBlockPos(context,"tree")))))
             .then(Commands.argument("soil",BlockPosArgument.blockPos()).executes(context->{
                 var source=context.getSource();var pos=BlockPosArgument.getLoadedBlockPos(context,"soil");
@@ -76,6 +84,23 @@ public final class LegacyTreeCommands {
             java.nio.file.Files.writeString(file,new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(json));
             source.sendSuccess(()->Component.literal("Exported native tree layout to "+file+". Growth age/origin is not stored by Dynamic Trees; use a planted reference when updating generation samples."),false);return 1;
         }catch(Exception error){source.sendFailure(Component.literal("Tree export failed: "+error.getMessage()));return 0;}
+    }
+    private static int fruit(net.minecraft.commands.CommandSourceStack source,BlockPos pos,int minutes){
+        var level=source.getLevel();
+        if(!(level.getBlockEntity(pos) instanceof HeartwoodFruitEntity fruit)){source.sendFailure(Component.literal("There is no hanging Heartwood fruit at that position."));return 0;}
+        if(minutes>0&&!fruit.advance(level,minutes*1200)){source.sendFailure(Component.literal("Fruit growth paused: check the supporting leaves and loaded living root."));return 0;}
+        String[] names={"Bud","White flower","Silver fruit","Ripe gold fruit"};
+        source.sendSuccess(()->Component.literal(names[level.getBlockState(pos).getValue(HeartwoodFruitBlock.STAGE)]+"; loaded age "+fruit.elapsed()/1200+" minutes. Ripens at 30 minutes; unharvested ripe fruit drops at 40."),false);return 1;
+    }
+    private static int wound(net.minecraft.commands.CommandSourceStack source,BlockPos target,int minutes){
+        var level=source.getLevel();var pos=com.dtteam.dynamictrees.tree.TreeHelper.dereferenceTrunkShell(level,target);
+        if(!(level.getBlockEntity(pos) instanceof LegacyBarkWound wound)){source.sendFailure(Component.literal("That segment has no healing wound."));return 0;}
+        boolean living=HeartwoodWoundHealing.hasLivingRoot(level,pos);
+        if(minutes>0){
+            if(!wound.advanceLoaded(level,minutes*1200)){source.sendFailure(Component.literal("Healing paused: no loaded living root connection."));return 0;}
+            if(!(level.getBlockEntity(pos) instanceof LegacyBarkWound)){source.sendSuccess(()->Component.literal("Heartwood bark fully restored."),false);return 1;}
+        }
+        source.sendSuccess(()->Component.literal(wound.healingReport()+(living?" Root connected.":" Healing paused: no loaded living root connection.")),false);return 1;
     }
     public static boolean generate(ServerLevel level,BlockPos soil) {
         Species species=Species.findSpecies(LegacyTrees.ID);

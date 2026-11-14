@@ -37,6 +37,7 @@ public final class LegacyTrees {
         if(event.isEntryOfType(com.dtteam.dynamictrees.systems.genfeature.GenFeature.class)){
             event.getRegistry().register(new LegacySurfaceRoots());
             event.getRegistry().register(new LegacyMatureBole());
+            event.getRegistry().register(new HeartwoodFruiting());
         }
     }
     private static void canopyCells(com.dtteam.dynamictrees.event.RegistryEvent<com.dtteam.dynamictrees.api.cell.CellKit> event){

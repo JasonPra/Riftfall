@@ -8,10 +8,14 @@ import org.Azkerash.riftfall.wood.LegacyBarkWound;
 
 /** Clip DT's axis-aligned branch faces at block boundaries, preserving winding and UVs. */
 final class LegacyBarkPatches {
+    private static final int SAP_LIGHTMAP=net.minecraft.client.renderer.LightTexture.pack(6,6);
     static List<BakedQuad> split(BakedQuad quad,long patches,TextureAtlasSprite exposed,int radius,int sections){
+        return split(quad,patches,radius,sections,LegacyBarkWound.Visual.EMPTY,new TextureAtlasSprite[]{exposed},new TextureAtlasSprite[0],false);
+    }
+    static List<BakedQuad> split(BakedQuad quad,long patches,int radius,int sections,LegacyBarkWound.Visual visual,TextureAtlasSprite[] stages,TextureAtlasSprite[] glows,boolean glowPass){
         Direction face=quad.getDirection();
         long selected=face.getAxis()==Direction.Axis.Y?patches:patches&LegacyBarkWound.facePatches(face);
-        if(selected==0)return List.of(quad);
+        if(selected==0)return glowPass?List.of():List.of(quad);
         int u=face.getAxis()==Direction.Axis.X?2:0,v=face.getAxis()==Direction.Axis.Y?2:1;
         int[] data=quad.getVertices();int stride=data.length/4;
         List<float[]> original=new ArrayList<>();
@@ -30,30 +34,38 @@ final class LegacyBarkPatches {
             var points=clip(clip(clip(clip(original,u,horizontal[col],true),u,horizontal[col+1],false),v,vertical[row],true),v,vertical[row+1],false);
             if(points.size()!=4||area(points,u,v)<1e-7)continue;
             double[] middle=new double[3];middle[u]=(horizontal[col]+horizontal[col+1])*.5;middle[v]=(vertical[row]+vertical[row+1])*.5;
-            boolean strip;
+            long touched;
             if(face.getAxis()==Direction.Axis.Y){
-                // Bark ledges follow the nearest adjoining wall patch, including corners.
+                // Bark ledges follow the adjoining wall's wound, including corners.
                 double dx=middle[0]-.5,dz=middle[2]-.5;
                 Direction owner=Direction.getNearest(dx,0,dz);
-                strip=(selected&LegacyBarkWound.patch(owner,middle[0],.5,middle[2],radius,sections))!=0;
-                strip|=(selected&LegacyBarkWound.patch(face,middle[0],middle[1],middle[2]))!=0;
+                touched=LegacyBarkWound.patch(owner,middle[0],.5,middle[2],radius,sections)
+                    |LegacyBarkWound.patch(face,middle[0],middle[1],middle[2]);
                 if(Math.abs(Math.abs(dx)-Math.abs(dz))<1e-5){
                     Direction other=owner.getAxis()==Direction.Axis.X?(dz<0?Direction.NORTH:Direction.SOUTH):(dx<0?Direction.WEST:Direction.EAST);
-                    strip|=(selected&LegacyBarkWound.patch(other,middle[0],.5,middle[2],radius,sections))!=0;
+                    touched|=LegacyBarkWound.patch(other,middle[0],.5,middle[2],radius,sections);
                 }
-            }else strip=(selected&LegacyBarkWound.patch(face,middle[0],middle[1],middle[2],radius,sections))!=0;
+            }else touched=LegacyBarkWound.patch(face,middle[0],middle[1],middle[2],radius,sections);
+            boolean strip=(selected&touched)!=0;
+            int stage=visual.stage(selected&touched);
+            var exposed=stages[Math.min(stage,stages.length-1)];
+            if(glowPass){
+                if(!strip||stage>=glows.length||glows[stage]==null)continue;
+                exposed=glows[stage];
+            }
             int[] vertices=data.clone();var bark=quad.getSprite();
             for(int i=0;i<4;i++){
                 float[] point=points.get(i);
-                for(int a=0;a<3;a++)vertices[i*stride+a]=Float.floatToRawIntBits(point[a]);
+                for(int a=0;a<3;a++)vertices[i*stride+a]=Float.floatToRawIntBits(point[a]+(glowPass?face.getStepX()*(a==0?.00075f:0)+face.getStepY()*(a==1?.00075f:0)+face.getStepZ()*(a==2?.00075f:0):0));
                 float texU=point[3],texV=point[4];
                 if(strip){
                     texU=exposed.getU0()+(texU-bark.getU0())/(bark.getU1()-bark.getU0())*(exposed.getU1()-exposed.getU0());
                     texV=exposed.getV0()+(texV-bark.getV0())/(bark.getV1()-bark.getV0())*(exposed.getV1()-exposed.getV0());
                 }
                 vertices[i*stride+4]=Float.floatToRawIntBits(texU);vertices[i*stride+5]=Float.floatToRawIntBits(texV);
+                if(glowPass)vertices[i*stride+6]=SAP_LIGHTMAP;
             }
-            result.add(new BakedQuad(vertices,quad.getTintIndex(),face,strip?exposed:bark,quad.isShade(),quad.hasAmbientOcclusion()));
+            result.add(new BakedQuad(vertices,quad.getTintIndex(),face,strip?exposed:bark,glowPass?false:quad.isShade(),glowPass?false:quad.hasAmbientOcclusion()));
         }
         return result;
     }

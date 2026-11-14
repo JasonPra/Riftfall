@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "riftfall:heartwood_fruit"
+    }
+  ],
+  "result": {
+    "id": "riftfall:vermillion_legacy_seed",
+    "count": 1
+  }
+}
