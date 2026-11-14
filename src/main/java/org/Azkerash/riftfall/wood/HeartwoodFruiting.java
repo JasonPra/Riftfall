@@ -35,6 +35,7 @@ public final class HeartwoodFruiting extends GenFeature {
     }
 
     @Override protected boolean postGenerate(GenFeatureConfiguration config,PostGenerationContext context){
+        if(TreeHelper.getRadius(context.level(),context.pos().above())<16)return false;
         int planted=0;
         for(var tip:context.endPoints())if(context.random().nextInt(4)==0&&attach(context.level(),context.pos(),tip,context.random().nextInt(4))&&++planted>=24)break;
         return planted>0;

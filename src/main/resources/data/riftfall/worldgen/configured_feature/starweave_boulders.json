@@ -1,8 +1,4 @@
 {
-  "type": "minecraft:forest_rock",
-  "config": {
-    "state": {
-      "Name": "riftfall:starweave_boulderstone"
-    }
-  }
+  "type": "riftfall:starweave_boulder",
+  "config": {}
 }

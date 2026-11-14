@@ -38,15 +38,18 @@ def ground(name,stone=False,side=False):
 ground('starweave_moss_top');ground('starweave_moss_side',side=True);ground('starweave_boulderstone',stone=True)
 
 # Neutral fern foliage receives Minecraft's biome grass tint.
-fern=Image.new('RGBA',(N,N),(0,0,0,0));d=ImageDraw.Draw(fern)
-d.line([(16,31),(15,18),(16,3)],fill=(173,187,168,255),width=1)
-for row,y in enumerate(range(6,28,3)):
- length=int(3+9*math.sin((y-3)/28*math.pi));shade=170+row*7
+fern=Image.new('RGBA',(N,64),(0,0,0,0));d=ImageDraw.Draw(fern)
+d.line([(16,63),(15,35),(16,3)],fill=(152,152,152,255),width=1)
+for row,y in enumerate(range(9,59,4)):
+ length=int(3+11*math.sin((y-3)/64*math.pi));shade=128+row*6
  for sign in (-1,1):
-  end=(16+sign*length,y-3);d.line([(16,y),end],fill=(shade,shade,shade,255),width=2)
+  d.line([(16,y),(16+sign*length,y-6)],fill=(shade,)*3+(255,),width=1)
   for k in range(2,length,2):
-   x=16+sign*k;yy=y-round(k*3/length);d.line([(x,yy),(x+sign*2,yy-3)],fill=(min(245,shade+20),)*3+(255,),width=1)
-fern.save(T/'whisperfrond_fern.png')
+   x=16+sign*k;yy=y-round(k*6/length)
+   d.line([(x,yy),(x+sign*2,yy-3)],fill=(min(225,shade+20),)*3+(255,),width=1)
+fern.crop((0,0,32,32)).save(T/'whisperfrond_fern_upper.png')
+fern.crop((0,32,32,64)).save(T/'whisperfrond_fern_lower.png')
+fern.resize((32,32),Image.Resampling.NEAREST).save(T/'whisperfrond_fern.png')
 for name,warm in [('dawnstar_blossom',True),('moonveil_bloom',False)]:
  im=Image.new('RGBA',(N,N),(0,0,0,0));glow=Image.new('RGBA',(N,N),(0,0,0,0));d=ImageDraw.Draw(im);g=ImageDraw.Draw(glow)
  d.line([(16,31),(15,20),(16,12)],fill=(66,111,65,255),width=1)
@@ -98,3 +101,32 @@ print('Generated original Starweave moss/stone, Whisperfrond fern, Dawnstar and 
 
 # Dynamic Trees' root-bearing soil retains the same magical ground cover.
 out(Path('blockstates/rooty_starweave_moss.json'),{'multipart':[{'apply':{'model':'riftfall:block/starweave_moss'}},{'apply':{'model':'dynamictrees:block/roots'}}]})
+
+# Real double-plant models, with one sprite per block and native half-state handling.
+for half in ['lower','upper']:
+ model=json.loads((M/'whisperfrond_fern.json').read_text());model['textures']['plant']='riftfall:block/whisperfrond_fern_'+half;model['textures']['particle']=model['textures']['plant']
+ out(Path('models/block')/('whisperfrond_fern_'+half+'.json'),model)
+out(Path('blockstates/whisperfrond_fern.json'),{'variants':{f'half={half}':{'model':'riftfall:block/whisperfrond_fern_'+half} for half in ['lower','upper']}})
+# A low woody shrub, distinct from ferns and flowers.
+shr=Image.new('RGBA',(32,32),(0,0,0,0));d=ImageDraw.Draw(shr);rng=random.Random(7829)
+for i in range(150):
+ x=rng.randrange(32);y=rng.randrange(32);shade=rng.randrange(80,172);d.ellipse((x,y,x+3,y+2),fill=(shade,shade,shade,255))
+shr.save(T/'tangleveil_shrub.png')
+parts=[cube([7,0,7],[9,8,9],'wood','wood'),cube([1,6,1],[15,13,15],'leaf','leaf'),cube([3,13,3],[13,15,13],'leaf','leaf')]
+for part in parts[1:]:
+ for face in part['faces'].values():face['tintindex']=0
+out(Path('models/block/tangleveil_shrub.json'),{'parent':'minecraft:block/block','render_type':'minecraft:cutout_mipped','textures':{'leaf':'riftfall:block/tangleveil_shrub','wood':'riftfall:block/vermillion_legacy_log','particle':'riftfall:block/tangleveil_shrub'},'elements':parts})
+out(Path('blockstates/tangleveil_shrub.json'),{'variants':{'':{'model':'riftfall:block/tangleveil_shrub'}}})
+out(Path('models/item/tangleveil_shrub.json'),{'parent':'riftfall:block/tangleveil_shrub'})
+# Original silver-blue fur and teal wind markings on the native wolf UV layout.
+fur=Image.new('RGBA',(64,32));d=ImageDraw.Draw(fur);rng=random.Random(3862)
+for y in range(32):
+ for x in range(64):
+  v=rng.randrange(-10,11);fur.putpixel((x,y),(max(0,169+v),max(0,186+v),max(0,201+v),255))
+for box in [(0,0,18,14),(18,14,42,30),(0,18,8,31)]:
+ d.rectangle(box,fill=(179,196,207,255))
+# Muzzle, dark nose and bright eyes; narrow runes remain part of the coat.
+d.rectangle((6,5,9,7),fill=(232,239,234,255));d.rectangle((7,6,8,7),fill=(36,54,64,255))
+d.point((4,4),fill=(85,219,208,255));d.point((9,4),fill=(85,219,208,255))
+for x,y in [(22,20),(23,21),(24,22),(25,23),(30,19),(31,20),(32,21),(12,21),(13,22),(14,23)]:d.point((x,y),fill=(92,210,200,255))
+entity=A/'textures/entity';entity.mkdir(parents=True,exist_ok=True);fur.save(entity/'ry.png')

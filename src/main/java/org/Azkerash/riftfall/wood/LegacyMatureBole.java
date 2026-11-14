@@ -12,7 +12,8 @@ public final class LegacyMatureBole extends GenFeature {
     public LegacyMatureBole(){super(ResourceLocation.fromNamespaceAndPath("riftfall","legacy_mature_bole"));}
     @Override protected void registerProperties(){}
     @Override protected boolean postGenerate(GenFeatureConfiguration config,PostGenerationContext context){
-        return thicken(context.level(),context.pos().above());
+        // Captures already contain measured radii, including slender growing stages.
+        return false;
     }
     @Override protected boolean postGrow(GenFeatureConfiguration config,PostGrowContext context){
         return thicken(context.level(),context.treePos());

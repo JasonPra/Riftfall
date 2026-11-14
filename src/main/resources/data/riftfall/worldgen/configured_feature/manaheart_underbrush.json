@@ -25,6 +25,12 @@
                   "Name": "riftfall:moonveil_bloom"
                 },
                 "weight": 1
+              },
+              {
+                "data": {
+                  "Name": "riftfall:tangleveil_shrub"
+                },
+                "weight": 5
               }
             ]
           }
@@ -40,7 +46,7 @@
         }
       ]
     },
-    "tries": 48,
+    "tries": 64,
     "xz_spread": 7,
     "y_spread": 3
   }

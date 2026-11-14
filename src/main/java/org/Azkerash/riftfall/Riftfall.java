@@ -27,6 +27,7 @@ public class Riftfall {
         GoblinItems.register(bus);
         org.Azkerash.riftfall.wood.LegacyWood.register(bus);
         org.Azkerash.riftfall.flora.ManaheartFlora.register(bus);
+        org.Azkerash.riftfall.fauna.ManaheartFauna.register(bus);
         org.Azkerash.riftfall.wood.LegacyTrees.register(bus);
         org.Azkerash.riftfall.worldmana.geysers.GeyserBiomeSource.register(bus);
         org.Azkerash.riftfall.worldmana.WorldMana.register(bus);

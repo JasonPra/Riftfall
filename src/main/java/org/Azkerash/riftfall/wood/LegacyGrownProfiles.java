@@ -19,10 +19,16 @@ final class LegacyGrownProfiles {
             };
         }
     }
+    record Sample(String code,String roots,String stage,List<Node> nodes){}
+    private static final java.util.List<Sample> SAMPLES=new java.util.ArrayList<>();
     private static final Map<String,List<Node>> PROFILES=load();
+    static Sample choose(String stage,long hash){
+        var choices=SAMPLES.stream().filter(s->s.stage().equals(stage)).toList();
+        return choices.isEmpty()?null:choices.get(Math.floorMod(hash,choices.size()));
+    }
     static List<Node> find(String code){return PROFILES.getOrDefault(code,List.of());}
     static String referenceRange(){
-        var counts=PROFILES.values().stream().mapToInt(List::size).summaryStatistics();
+        var counts=SAMPLES.stream().filter(s->s.stage().equals("adult")).mapToInt(s->s.nodes().size()).summaryStatistics();
         return counts.getMin()+"–"+counts.getMax()+" branches";
     }
     private static Map<String,List<Node>> load(){
@@ -36,7 +42,9 @@ final class LegacyGrownProfiles {
                     if(radius<1||radius>24)throw new IllegalStateException("Invalid captured branch radius");
                     nodes.add(new Node(a.get(0).getAsInt(),a.get(1).getAsInt(),a.get(2).getAsInt(),radius));
                 }
-                profiles.put(sample.get("jo_code").getAsString(),List.copyOf(nodes));
+                String code=sample.get("jo_code").getAsString();
+                profiles.put(code,List.copyOf(nodes));
+                SAMPLES.add(new Sample(code,sample.has("roots_jo_code")?sample.get("roots_jo_code").getAsString():"",sample.has("growth_stage")?sample.get("growth_stage").getAsString():"adult",List.copyOf(nodes)));
             }
             return Map.copyOf(profiles);
         }catch(java.io.IOException error){throw new IllegalStateException("Cannot read grown Legacy profiles",error);}

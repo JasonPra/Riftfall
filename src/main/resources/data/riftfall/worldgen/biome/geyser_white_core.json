@@ -74,7 +74,8 @@
       "minecraft:glow_lichen",
       "riftfall:manaheart_podzol_patch",
       "riftfall:starweave_moss_patch",
-      "riftfall:manaheart_underbrush"
+      "riftfall:manaheart_underbrush",
+      "riftfall:tangleveil_thicket"
     ],
     [
       "minecraft:freeze_top_layer"
@@ -124,16 +125,10 @@
         "weight": 10
       },
       {
-        "type": "minecraft:parrot",
-        "maxCount": 2,
-        "minCount": 1,
-        "weight": 40
-      },
-      {
-        "type": "minecraft:panda",
-        "maxCount": 2,
-        "minCount": 1,
-        "weight": 1
+        "type": "riftfall:ry",
+        "weight": 6,
+        "minCount": 2,
+        "maxCount": 4
       }
     ],
     "misc": [],
@@ -185,12 +180,6 @@
         "maxCount": 1,
         "minCount": 1,
         "weight": 5
-      },
-      {
-        "type": "minecraft:ocelot",
-        "maxCount": 3,
-        "minCount": 1,
-        "weight": 2
       }
     ],
     "underground_water_creature": [

@@ -18,6 +18,13 @@
           "predicate": {
             "items": "minecraft:shears"
           }
+        },
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "riftfall:whisperfrond_fern",
+          "properties": {
+            "half": "lower"
+          }
         }
       ]
     }

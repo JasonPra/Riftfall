@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "riftfall:block/whisperfrond_fern"
+    "half=lower": {
+      "model": "riftfall:block/whisperfrond_fern_lower"
+    },
+    "half=upper": {
+      "model": "riftfall:block/whisperfrond_fern_upper"
     }
   }
 }
