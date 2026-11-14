@@ -18,13 +18,13 @@ public final class LegacyTreeSpecies extends UndergroundRootsSpecies {
 
     @Override public boolean generate(DynamicTreeGenerationContext context) {
         if(!context.isWorldGen())return super.generate(context);
-        // The normal DT feature invokes the species. Choose one jittered anchor per 4x4-chunk
-        // grove cell: adjacent crowns remain at least 48 blocks apart, rather than using the
+        // The normal DT feature invokes the species. Choose one jittered anchor per 3x3-chunk
+        // grove cell: adjacent crowns remain at least 32 blocks apart, rather than using the
         // small-tree Poisson spacing. Centering also fits each crown in vanilla's write region.
         int cx=Math.floorDiv(context.originPos().getX(),16),cz=Math.floorDiv(context.originPos().getZ(),16);
-        int gx=Math.floorDiv(cx,4),gz=Math.floorDiv(cz,4);
+        int gx=Math.floorDiv(cx,3),gz=Math.floorDiv(cz,3);
         long hash=GeyserLayout.mix(((net.minecraft.server.level.ServerLevel)context.levelContext().level()).getSeed()^gx*731L^gz*997L);
-        if(Math.floorMod(cx,4)!=1+(int)(hash&1)||Math.floorMod(cz,4)!=1+(int)((hash>>>1)&1))return false;
+        if(Math.floorMod(cx,3)!=1+(int)(hash&1)||Math.floorMod(cz,3)!=1+(int)((hash>>>1)&1))return false;
         int x=cx*16+8,z=cz*16+8;
         int y=context.level().getHeight(Heightmap.Types.OCEAN_FLOOR_WG,x,z)-1;
         var root=new BlockPos(x,y,z);

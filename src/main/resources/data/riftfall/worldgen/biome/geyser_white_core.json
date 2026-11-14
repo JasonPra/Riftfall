@@ -25,7 +25,8 @@
     [],
     [],
     [
-      "minecraft:amethyst_geode"
+      "minecraft:amethyst_geode",
+      "riftfall:starweave_boulders"
     ],
     [
       "minecraft:monster_room",
@@ -70,7 +71,10 @@
       "minecraft:spring_lava"
     ],
     [
-      "minecraft:glow_lichen"
+      "minecraft:glow_lichen",
+      "riftfall:manaheart_podzol_patch",
+      "riftfall:starweave_moss_patch",
+      "riftfall:manaheart_underbrush"
     ],
     [
       "minecraft:freeze_top_layer"

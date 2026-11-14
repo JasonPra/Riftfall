@@ -1,0 +1,14 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "riftfall:block/starweave_moss"
+      }
+    },
+    {
+      "apply": {
+        "model": "dynamictrees:block/roots"
+      }
+    }
+  ]
+}

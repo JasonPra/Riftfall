@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:simple_block",
+  "config": {
+    "to_place": {
+      "type": "minecraft:weighted_state_provider",
+      "entries": [
+        {
+          "data": {
+            "Name": "riftfall:starweave_moss_carpet"
+          },
+          "weight": 16
+        },
+        {
+          "data": {
+            "Name": "riftfall:whisperfrond_fern"
+          },
+          "weight": 7
+        },
+        {
+          "data": {
+            "Name": "riftfall:dawnstar_blossom"
+          },
+          "weight": 2
+        },
+        {
+          "data": {
+            "Name": "riftfall:moonveil_bloom"
+          },
+          "weight": 2
+        }
+      ]
+    }
+  }
+}
