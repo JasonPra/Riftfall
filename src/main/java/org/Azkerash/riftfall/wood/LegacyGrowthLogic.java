@@ -13,16 +13,16 @@ import java.util.WeakHashMap;
 /** Living limbs support separated, irregular canopy layers with short lateral fans. */
 public final class LegacyGrowthLogic extends GrowthLogicKit {
     public static final int MAX_TRUNK_HEIGHT=27,MAX_BRANCH_HEIGHT=29,MAX_HORIZONTAL_REACH=23,BRANCH_ENERGY=28;
-    private static final int LAYER_SPACING=6;
+    private static final int LAYER_SPACING=5;
     // A growth pulse follows one connected path. Remember its fork height while it travels;
     // nothing is saved on the tree and both planted and generated branches use this kit.
     private static final class Limb {
         final Direction outward;
-        final int height,run,riseAt,fanSpacing;
+        final int height,run,riseAt,fanSpacing,childEnergy;
         final boolean rises,leftFavored;
         boolean child,lifted;
-        Limb(Direction outward,int height,int run,int hash){
-            this.outward=outward;this.height=height;this.run=run;
+        Limb(Direction outward,int height,int run,int hash,int layer){
+            this.outward=outward;this.height=height;this.run=run;childEnergy=6-layer;
             riseAt=3+Math.floorMod(hash/5,3);fanSpacing=3+Math.floorMod(hash/11,2);
             rises=(hash&4)!=0;leftFavored=(hash&8)!=0;
         }
@@ -47,10 +47,11 @@ public final class LegacyGrowthLogic extends GrowthLogicKit {
         var signal=context.signal();
         Direction next=super.selectNewDirection(configuration,context);
         if(signal.isInTrunk()&&next.getAxis().isHorizontal()){
-            int layer=Math.max(0,(signal.delta.getY()-firstLayer(signal))/LAYER_SPACING);
+            int layer=Math.clamp((signal.delta.getY()-firstLayer(signal))/LAYER_SPACING,0,2);
             int hash=CoordUtils.coordHashCode(signal.rootPos,2)+next.get2DDataValue()*19+layer*37;
-            int run=(layer==2?5:6)+Math.floorMod(hash,5);
-            limbs.put(signal,new Limb(next,signal.delta.getY(),run,hash));
+            // Shorter upper supports and fans leave the lower shelves exposed to sunlight.
+            int run=(layer==0?8:layer==1?6:3)+Math.floorMod(hash,4);
+            limbs.put(signal,new Limb(next,signal.delta.getY(),run,hash,layer));
             signal.energy=BRANCH_ENERGY+Math.floorMod(hash,4);
         }else{
             var limb=limbs.get(signal);
@@ -60,7 +61,7 @@ public final class LegacyGrowthLogic extends GrowthLogicKit {
                     limb.lifted=true;
                 }else{
                     limb.child=true;
-                    signal.energy=6+Math.floorMod(CoordUtils.coordHashCode(context.pos(),2)+next.ordinal()*13,5);
+                    signal.energy=limb.childEnergy+Math.floorMod(CoordUtils.coordHashCode(context.pos(),2)+next.ordinal()*13,4);
                 }
             }
         }

@@ -8,7 +8,7 @@ Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in 
 
 - Dynamic Trees family/species: `riftfall:vermillion_legacy`; branch radius grows up to 24 pixels. Mature trees retain a radius-24 lower bole for their first five trunk segments, then taper into the scaffold. Seedlings and slender juveniles retain normal growth.
 - Three native JoCodes come from planted seedlings grown for 9,600 growth pulses. Their branch layouts and measured radii are recorded in `tools/trees/legacy-grown-samples.json`; generation restores those measurements because JoCodes alone omit thickness. All use ordinary Dynamic Trees branch geometry.
-- Shared Heartwood growth logic builds three irregular leaf-shelf layers, roughly six blocks apart, with staggered forks, unequal lateral fans and occasional one-block arches. Branch energy is 28–31; established branches retain Dynamic Trees' normal growth routing. A flat 7×3×7 hydration cluster keeps foliage close to the supporting twigs.
+- Shared Heartwood growth logic builds three irregular leaf-shelf layers, roughly five blocks apart, with staggered forks, unequal lateral fans and occasional one-block arches. Lower layers have longer limbs and offshoots; the upper crown has shorter supports. Branch energy is 28–31; established branches retain Dynamic Trees' normal growth routing. A flat 7×3×7 hydration cluster keeps foliage close to the supporting twigs.
 - The same underground-root, mature-bole and tapered surface-root features serve planted and wild trees. The first five lower trunk segments can reach radius 24; younger trees remain slender.
 - The Heartwood leaf-support kit serves both growth and world generation. Neutral leaf textures use vanilla biome foliage tinting through the primitive leaf color handler; the species supplies no fixed leaf color. Manaheart Grove grass and foliage are both `#63B36B`. Other biome colors are unchanged.
 - Felling leaf loot yields sticks but no seeds. Seeds remain available for planting; individual leaf-breaking and normal dispersal rules are unchanged.
@@ -36,7 +36,7 @@ Dynamic Trees has no final adult-stage flag or stored growth age. Its `/dt gettr
 
 Existing crowns are not rewritten. Inspect new chunks or use `/legacytree` for the updated references.
 
-Client review: [seed-grown canopy](previews/heartwood-canopy.png), [view from above](previews/heartwood-canopy-above.png) and [branch connections from underneath](previews/heartwood-canopy-under.png). These show the accepted growth shape before fruit and healing were added.
+Client review: [seed-grown canopy](previews/heartwood-canopy.png), [view from above](previews/heartwood-canopy-above.png) and [branch connections from underneath](previews/heartwood-canopy-under.png). These show the approved layered canopy grown from a seed in the development world.
 
 ## Implemented materials
 
@@ -84,8 +84,8 @@ Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foli
 
 ## Verification
 
-The three current planted reference captures contain 605, 530 and 569 branch blocks, with branch heights of 25, 24 and 25 blocks. Their maximum horizontal reaches are 16, 14 and 14 blocks, inside the existing generation bounds. All three were grown for 9,600 native pulses. These measurements describe reference samples, not fixed maturity thresholds.
+The three current planted reference captures contain 574, 574 and 465 branch blocks, with branch heights of 23, 22 and 23 blocks. Their maximum horizontal reaches are 17, 18 and 18 blocks, inside the existing generation bounds. All three were grown for 9,600 native pulses. These measurements describe reference samples, not fixed maturity thresholds.
 
-Native replay checks compared every branch position and radius in all four horizontal rotations: all twelve cases matched exactly. A rooted replay continued ordinary growth after a limb was thinned, growing from 605 to 620 branches. Three fresh FEATURES-stage Manaheart samples contained 530–569 branches and 3,218–3,422 leaves, with crowns measuring 33×31 to 33×33 blocks. A native felling-loot check sampled 1,000 harvests with zero seeds.
+Native replay checks compared every branch position and radius in all four horizontal rotations: all twelve cases matched exactly. A rooted replay continued ordinary growth after a limb was thinned, growing from 574 to 589 branches. Three fresh FEATURES-stage Manaheart samples contained 465–574 branches and 2,883–3,284 leaves, with crowns measuring 31×39 to 32×39 blocks. A native felling-loot check sampled 1,000 harvests with zero seeds.
 
 The release check exercised wound save/load, repeated-stripping prevention, bottling resetting the wound clock, sap replenishment, resin rejecting bottles and restoration to an ordinary branch. A generated sample contained 24 fruit organs beneath Heartwood leaves, with fruit age and root surviving serialization. Separate in-game checks exercised all four fruit stages, delayed fruit drop, native sapling establishment consuming one item from a stack, regeneration and the seed recipe. The automated Gradle suite passed all 313 tests.
