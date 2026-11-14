@@ -1,37 +1,42 @@
 # Vermillion Legacy tree
 
-An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. Naturally generated samples reach roughly 36 blocks high, with crowns 43–45 blocks across. The current shape revision replaces the tall tiered crown with earlier forks, arching limbs and uneven foliage pads inspired by an umbrella tree and bonsai. Tapered surface roots spread from the flared base, alongside a separate underground anchoring network.
+An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. Wild trees are snapshots of real seed-grown trees, using the same living branches, leaves and subsequent growth rules. There is no independently authored wild-tree scaffold. Surface roots spread from the flared base, alongside an underground anchoring network.
 
 Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in the fissures. Dense heartwood has deep burgundy/red-amber coloring, tight growth rings and dark gold grain. The future artisan-polished finish should be jewel-like while remaining recognizably wood. Its difficulty of working and desirability to kings and artisans are part of the material design.
 
 ## First living-tree prototype
 
 - Dynamic Trees family/species: `riftfall:vermillion_legacy`; branch radius grows up to 24 pixels. Mature trees retain a radius-24 lower bole for their first five trunk segments, then taper into the scaffold. Seedlings and slender juveniles retain normal growth.
-- Three adult JoCodes use four main sweeping limbs, each dividing into two smaller secondary forks. Short crown-level twigs support a joined, gently domed canopy. Adult samples use roughly 435–525 branch blocks, down from about 1,100–1,600 in the crowded scaffold. The leader ends inside the crown instead of forming a separate tall peak. These are connected Dynamic Trees branch networks, not stacks of static logs.
-- A separate growing root network penetrates dirt and ordinary Overworld stone. The revised native samples retain roughly 93–104 underground root blocks per tree.
-- Custom Legacy growth logic provides four staggered main fork positions and permits smaller branching outward into the crown. Growth, felling, branch thickness and leaf support use Dynamic Trees.
-- Surface roots use Dynamic Trees’ supported root geometry, step down with the ground and taper away from the trunk. Main roots reach their full surface-root thickness once the trunk reaches an eight-pixel radius, and intersecting paths cannot revisit and thin an inner root. Native growth checks retained 45–50 surface root blocks per sample, including substantial inner roots. They can resize as the tree grows; roots overlapping the thick trunk retain access to its face-specific axe interaction.
-- A Legacy-specific Dynamic Trees cell kit lets terminal twigs support broader leaf lobes without adding a cage of wooden supports. Hydration decreases over distance and more quickly vertically, keeping the roof broad while unsupported leaves still decay. Leaf-bearing tips remain within ±18 blocks so the five-block lateral support stays inside the existing generation write bounds.
-- Original lush-green leaves, seed and sapling assets are included. Manaheart Grove's foliage color is `#63B36B`; its grass remains the existing placeholder white. No other biome colors change.
+- Three native JoCodes come from planted seedlings grown for 9,600 growth pulses. Their branch layouts and measured radii are recorded in `tools/trees/legacy-grown-samples.json`; generation restores those measurements because JoCodes alone omit thickness. All use ordinary Dynamic Trees branch geometry.
+- Shared Legacy growth logic retains four staggered main fork sites, with branch energy increased from 20–25 to 24–29 for slightly longer potential reach. Established branches retain Dynamic Trees' normal growth routing.
+- The same underground-root, mature-bole and tapered surface-root features serve planted and wild trees. The first five lower trunk segments can reach radius 24; younger trees remain slender.
+- The Legacy leaf-support kit serves both growth and world generation. Neutral leaf textures use vanilla biome foliage tinting through the primitive leaf color handler; the species supplies no fixed leaf color. Manaheart Grove grass and foliage are both `#63B36B`. Other biome colors are unchanged.
+- Felling leaf loot yields sticks but no seeds. Seeds remain available for planting; individual leaf-breaking and normal dispersal rules are unchanged.
 - Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Each broad surface patch can be stripped independently, yielding one bark item the first time that patch is stripped.
 
-To inspect an adult, stand on clear ground with roughly 55×55 blocks of open space and 50 blocks of headroom, then run:
+To place a grown reference, stand on clear ground with roughly 55×55 blocks of open space and 50 blocks of headroom, then run:
 
 ```mcfunction
 /legacytree ~ ~-1 ~
 ```
 
-The coordinates identify the **soil block**, not the first trunk block. This operator preview command creates an adult and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics.
+The coordinates identify the **soil block**, not the first trunk block. This operator preview command places a captured grown tree and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics.
 
 Legacy trees also generate naturally in **new Manaheart Grove chunks**, through Dynamic Trees' normal biome-decoration feature. One jittered anchor per 4×4-chunk grove cell keeps neighboring trunk centers at least 48 blocks apart. Natural crowns reserve a margin for leaf ageing inside Minecraft's 3×3-chunk feature-write area; manual previews keep the full crown. Other rings select temporary Dynamic Trees jungle species. See [biome integration](dynamic-trees.md). Existing crowns are not rewritten; existing Legacy trees can gain surface roots on growth. No terrain elevation changes are included.
 
 Thick trunk end grain uses complete, directly authored 96px animation frames for ordinary and stripped log tops, explicitly registered in `assets/minecraft/atlases/blocks.json`. Dynamic Trees’ thick-ring expander treats a vertical animation strip as one image and produces blank enlarged frames; these assets bypass that conversion while retaining the required `_thick` sprite names. Every frame remains opaque and only the mana tint changes subtly.
 
-The foreground tree below generated naturally in Manaheart Grove (seed `923475`, soil at `44632 75 -12712`). Its ground remains the biome’s existing placeholder surface.
+### Inspecting growth
 
-![Naturally generated domed Legacy canopy](previews/legacy-canopy-natural.png)
+Use `/legacytree inspect` while looking at a trunk, or `/legacytree inspect <tree position>`. The copyable report includes trunk diameter, height, spread, branch/tip counts, soil fertility and changes since the previous inspection. Maximum trunk thickness is not a final-stage flag. Depleted soil can pause growth; no observed change does not prove the tree is finished.
 
-[View from underneath](previews/legacy-canopy-underneath.png). Existing crowns are not rewritten; inspect newly generated chunks or use `/legacytree` for the revised shape.
+Dynamic Trees has no final adult-stage flag or stored growth age. Its `/dt gettree`, `/dt getroots`, `/dt fertility` and growth tools are useful, but do not supply that missing stage information.
+
+`/legacytree export <tree position>` writes native canopy/root JoCodes and measured branch radii into the world's `legacy-tree-captures` directory. To update packaged references, deliberately select captures of planted seedlings, record their provenance and growth conditions in `tools/trees/legacy-grown-samples.json`, then run `python3 tools/trees/generate-legacy-shapes.py`. This packages captures; it does not design a separate tree.
+
+Existing crowns are not rewritten. Inspect new chunks or use `/legacytree` for the updated references.
+
+Client review: [wild feature sample](previews/legacy-unified-natural.png) and [seed-grown sample on its capture platform](previews/legacy-unified-planted.png). These are different random layouts of the same species; foliage responds to each location’s biome.
 
 ## Implemented materials
 
@@ -75,11 +80,11 @@ A **living, root-connected tree** should seal a stripping wound with hardening s
 
 Regenerate the pixel textures and preview with `python3 tools/assets/generate-legacy-wood.py` (Pillow is needed only for regeneration).
 
-Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foliage.py`, and the adult/root JoCodes with `python3 tools/trees/generate-legacy-shapes.py`.
+Regenerate foliage/seed textures with `python3 tools/assets/generate-legacy-foliage.py`, and the captured grown/root JoCodes with `python3 tools/trees/generate-legacy-shapes.py`.
 
 ## Verification
 
-Three naturally generated Manaheart trees were checked through the normal chunk-decoration path: each reached 36 blocks high, with 43–45-block-wide crowns and roughly 1,077–1,108 occupied foliage columns. Natural samples contained 435–438 branch blocks; adult preview variants ranged up to 525. Lower trunks retained radius 24 (three blocks across), and surface/underground roots survived ticking. A seed-grown sample stayed live through 600 growth pulses, reaching 83 branches and 24 blocks high.
+The three planted reference captures contain 366, 216 and 281 branch blocks, with branch heights of 24, 22 and 24 blocks. Native replay checks compare every branch position and radius in all four horizontal rotations: all twelve cases match exactly. These measurements describe reference samples, not fixed maturity thresholds. A rooted replay continued ordinary growth after a limb was thinned: its radius returned from 1 to 5 and the network grew from 366 to 381 branches. Three fresh FEATURES-stage samples contained 216–281 branches, 2,150–2,761 leaves and 27–36-block-wide crowns. Native felling loot checks sampled 1,000 harvests with zero seeds. The client verified that primitive and dynamic leaves both return the biome foliage tint.
 
 The new leaf kit kept 170 leaves supported around an isolated twig during repeated native ageing passes. Removing that twig and ageing the same volume left zero leaves, verifying that broader clusters do not remain unsupported. In-game previews were reviewed from a distance and from underneath.
 

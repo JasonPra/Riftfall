@@ -43,7 +43,7 @@ New circular fields span approximately **2,571, 3,724 or 4,879 blocks** before b
 
 | Zone | Current biome profile | Test grass/foliage color |
 | --- | --- | --- |
-| Manaheart Grove (core) | Naturally generated Vermillion Legacy groves; dense white mother deposits below | White grass, lush green foliage |
+| Manaheart Grove (core) | Naturally generated Vermillion Legacy groves; dense white mother deposits below | Lush green grass and foliage |
 | Inner ring | Temporary dense dynamic jungle | Blue |
 | Middle ring | Temporary open dynamic jungle woodland | Yellow |
 | Verdant Frontier | Plains-like grassland with rare dynamic jungle trees | Subtly blue-tinged plains green |
@@ -52,7 +52,7 @@ A 384-block landscape-only belt cushions the fields with vanilla plains/woodland
 
 Generation follows Minecraft's stages: vanilla structure starts are excluded from fields, biomes are assigned at `BIOMES`, terrain is shaped at `SURFACE`, and caves are excavated at `CARVERS`, before vegetation at `FEATURES`. Goblin camps are an intentional structure exception. Plant placement checks reject unsupported/submerged land plants and maintain support when other decoration replaces blocks. An unfinished-chunk surface plan preserves coastal water after carving. Old custom river/lake biome IDs remain registered for save compatibility but are not selected for new fields.
 
-All geyser rings share one biome-source resolver for saved palettes and uncached biome queries. Trees use Dynamic Trees' normal biome-decoration path, with explicit ring species rules and cancellation of vanilla tree features. The [Vermillion Legacy tree](docs/legacy-tree.md) generates naturally in new Manaheart Grove chunks, with a three-block adult trunk, broad green canopy and deep roots. Use `/legacytree ~ ~-1 ~` on clear ground to inspect an adult, or plant `riftfall:vermillion_legacy_seed`. Healing sap scars and fruit are later portions. Existing incorrect trees remain in already-generated chunks.
+All geyser rings share one biome-source resolver for saved palettes and uncached biome queries. Trees use Dynamic Trees' normal biome-decoration path, with explicit ring species rules and cancellation of vanilla tree features. The [Vermillion Legacy tree](docs/legacy-tree.md) generates naturally in new Manaheart Grove chunks, with a three-block adult trunk, broad green canopy and deep roots. Wild trees use captures of actual seed-grown trees, with the same living branches and ongoing growth rules. Use `/legacytree ~ ~-1 ~` on clear ground to place a grown reference, or plant `riftfall:vermillion_legacy_seed`. `/legacytree inspect` reports size, soil fertility and observed growth; Dynamic Trees has no fixed final-adult flag. Healing sap scars and fruit are later portions. Existing incorrect trees remain in already-generated chunks.
 
 River currents also affect existing vanilla rivers. They apply physical drift without requiring flowing-water block states: downhill outlets take precedence; otherwise direction points away from the broadest sampled connected water body. The bounded, cached search estimates water-body size and does not load terrain.
 

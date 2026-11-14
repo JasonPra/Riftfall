@@ -59,6 +59,28 @@ public final class LegacyTreeSpecies extends UndergroundRootsSpecies {
             return (!worldGen||inside(pos))&&super.isFreeToSetBlock(level,pos,species);
         }
         @Override protected void generateAndAgeLeaves(DynamicTreeGenerationContext context,com.dtteam.dynamictrees.api.voxmap.SimpleVoxmap leaves,boolean generation){
+            var profile=LegacyGrownProfiles.find(toString());
+            if(!profile.isEmpty()){
+                // JoCodes store paths but omit radii. Restore the actual grown branch
+                // states before foliage is evaluated, rather than inventing a second taper.
+                leaves.fill((byte)0);
+                for(var node:profile){
+                    var pos=node.position(root,context.facing());var state=context.level().getBlockState(pos);
+                    if(state.getBlock() instanceof com.dtteam.dynamictrees.block.branch.BranchBlock branch&&branch.getFamily()==context.species().getFamily())
+                        branch.setRadius(context.level(),pos,node.radius(),null,2);
+                }
+                var cluster=context.species().getLeavesProperties().getCellKit().getLeafCluster();
+                for(var node:profile){
+                    var pos=node.position(root,context.facing());var state=context.level().getBlockState(pos);
+                    if(state.getBlock() instanceof com.dtteam.dynamictrees.block.branch.BranchBlock branch&&branch.getFamily()==context.species().getFamily()&&branch.getRadius(state)==1)
+                        leaves.blitMax(pos,cluster);
+                }
+                for(var node:profile){
+                    var pos=node.position(root,context.facing());var state=context.level().getBlockState(pos);
+                    if(state.getBlock() instanceof com.dtteam.dynamictrees.block.branch.BranchBlock branch&&branch.getFamily()==context.species().getFamily())
+                        leaves.setVoxel(pos,(byte)(branch.getRadius(state)==1?16:32));
+                }
+            }
             // DT's ageing pass can grow a leaf one block beyond the initial map. Leave that
             // margin inside vanilla's 3x3 FEATURES write area instead of issuing far-chunk writes.
             if(generation)for(var cell:leaves.getAllNonZeroCells())
