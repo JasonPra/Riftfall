@@ -1,6 +1,6 @@
-# Vermillion Legacy tree
+# Heartwood tree
 
-An ancient, mana-nurtured hardwood. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. Wild trees are snapshots of real seed-grown trees, using the same living branches, leaves and subsequent growth rules. There is no independently authored wild-tree scaffold. Surface roots spread from the flared base, alongside an underground anchoring network.
+An ancient, mana-nurtured hardwood. The species is named **Heartwood**; “legacy” describes its massive, ancient scale, rather than its name. Internal `vermillion_legacy` identifiers and `/legacytree` remain for saved-world and command compatibility. The current development portion targets **Manaheart Grove, the center biome**. Its adult trunk spans **three blocks across**, excluding its root system; this is not the size of one inventory log, nor a fixed trunk width at every growth stage. Wild trees are snapshots of real seed-grown trees, using the same living branches, leaves and subsequent growth rules. There is no independently authored wild-tree scaffold. Surface roots spread from the flared base, alongside an underground anchoring network.
 
 Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in the fissures. Dense heartwood has deep burgundy/red-amber coloring, tight growth rings and dark gold grain. The future artisan-polished finish should be jewel-like while remaining recognizably wood. Its difficulty of working and desirability to kings and artisans are part of the material design.
 
@@ -8,9 +8,9 @@ Its exterior is rough, mineralized ash-grey bark, with tiny green mana veins in 
 
 - Dynamic Trees family/species: `riftfall:vermillion_legacy`; branch radius grows up to 24 pixels. Mature trees retain a radius-24 lower bole for their first five trunk segments, then taper into the scaffold. Seedlings and slender juveniles retain normal growth.
 - Three native JoCodes come from planted seedlings grown for 9,600 growth pulses. Their branch layouts and measured radii are recorded in `tools/trees/legacy-grown-samples.json`; generation restores those measurements because JoCodes alone omit thickness. All use ordinary Dynamic Trees branch geometry.
-- Shared Legacy growth logic retains four staggered main fork sites, with branch energy increased from 20–25 to 24–29 for slightly longer potential reach. Established branches retain Dynamic Trees' normal growth routing.
+- Shared Heartwood growth logic retains four staggered main fork sites, with branch energy increased from 20–25 to 24–29 for slightly longer potential reach. Established branches retain Dynamic Trees' normal growth routing.
 - The same underground-root, mature-bole and tapered surface-root features serve planted and wild trees. The first five lower trunk segments can reach radius 24; younger trees remain slender.
-- The Legacy leaf-support kit serves both growth and world generation. Neutral leaf textures use vanilla biome foliage tinting through the primitive leaf color handler; the species supplies no fixed leaf color. Manaheart Grove grass and foliage are both `#63B36B`. Other biome colors are unchanged.
+- The Heartwood leaf-support kit serves both growth and world generation. Neutral leaf textures use vanilla biome foliage tinting through the primitive leaf color handler; the species supplies no fixed leaf color. Manaheart Grove grass and foliage are both `#63B36B`. Other biome colors are unchanged.
 - Felling leaf loot yields sticks but no seeds. Seeds remain available for planting; individual leaf-breaking and normal dispersal rules are unchanged.
 - Living branches retain diamond-axe harvesting/stripping and failed-strike durability wear. Each broad surface patch can be stripped independently, yielding one bark item the first time that patch is stripped.
 
@@ -22,7 +22,7 @@ To place a grown reference, stand on clear ground with roughly 55×55 blocks of 
 
 The coordinates identify the **soil block**, not the first trunk block. This operator preview command places a captured grown tree and underground roots immediately. For normal growth, obtain `/give @s riftfall:vermillion_legacy_seed`, plant it on soil and use Dynamic Trees' ordinary growth mechanics.
 
-Legacy trees also generate naturally in **new Manaheart Grove chunks**, through Dynamic Trees' normal biome-decoration feature. One jittered anchor per 4×4-chunk grove cell keeps neighboring trunk centers at least 48 blocks apart. Natural crowns reserve a margin for leaf ageing inside Minecraft's 3×3-chunk feature-write area; manual previews keep the full crown. Other rings select temporary Dynamic Trees jungle species. See [biome integration](dynamic-trees.md). Existing crowns are not rewritten; existing Legacy trees can gain surface roots on growth. No terrain elevation changes are included.
+Heartwood trees also generate naturally in **new Manaheart Grove chunks**, through Dynamic Trees' normal biome-decoration feature. One jittered anchor per 4×4-chunk grove cell keeps neighboring trunk centers at least 48 blocks apart. Natural crowns reserve a margin for leaf ageing inside Minecraft's 3×3-chunk feature-write area; manual previews keep the full crown. Other rings select temporary Dynamic Trees jungle species. See [biome integration](dynamic-trees.md). Existing crowns are not rewritten; existing Heartwood trees can gain surface roots on growth. No terrain elevation changes are included.
 
 Thick trunk end grain uses complete, directly authored 96px animation frames for ordinary and stripped log tops, explicitly registered in `assets/minecraft/atlases/blocks.json`. Dynamic Trees’ thick-ring expander treats a vertical animation strip as one image and produces blank enlarged frames; these assets bypass that conversion while retaining the required `_thick` sprite names. Every frame remains opaque and only the mana tint changes subtly.
 
@@ -42,7 +42,7 @@ Client review: [wild feature sample](previews/legacy-unified-natural.png) and [s
 
 | ID | Purpose |
 | --- | --- |
-| `riftfall:vermillion_legacy_log` | Bark-covered log; the raw Legacy Heartwood harvest/building material. |
+| `riftfall:vermillion_legacy_log` | Bark-covered log; the raw Heartwood harvest/building material. |
 | `riftfall:stripped_vermillion_legacy_log` | Exposed burgundy/amber grain. Axe stripping preserves axis and natural provenance. |
 | `riftfall:vermillion_legacy_bark` | One piece per actual bark-to-stripped conversion. Reserved for future alchemy and forge mastery. |
 | `riftfall:glinting_sap_amber` | Rare crystallized mana-sap, reserved for high-level alchemy/jewelcrafting. Future gear-reserve recipes are not implemented. |
@@ -76,7 +76,7 @@ A **living, root-connected tree** should seal a stripping wound with hardening s
 
 **World-Eye** is planned as a seasonal/rare, heavy emerald-skinned Insight Fruit with a glowing red core. Its **Cosmic Clarity** buff is intended to reveal secrets, cosmic-enemy weaknesses or crafting insights. Fruit, buffs, recipe unlocks, permanent mana-reserve gear recipes, planks and polished blocks remain future portions.
 
-![Vermillion Legacy wood preview](previews/legacy-wood.png)
+![Heartwood wood preview](previews/legacy-wood.png)
 
 Regenerate the pixel textures and preview with `python3 tools/assets/generate-legacy-wood.py` (Pillow is needed only for regeneration).
 
@@ -94,4 +94,4 @@ Native server interactions checked adjacent thick-trunk shell hits, repeat-harve
 
 Earlier material checks sampled 152 Sap-Amber drops in 1,000 natural-log harvests and zero in 1,000 placed-log harvests. Low-tier strikes canceled mining and cost four durability; diamond and netherite axes were accepted, while diamond pickaxes were rejected. Logs survived a TNT-strength explosion, emitted light level 3 and sank in water. Temporary native verification classes are excluded from release builds.
 
-A reported nearly black face on a placed log remains unconfirmed. Matched [lighting controls](previews/legacy-lighting-controls.png) compared Legacy and vanilla logs, in X/Y/Z orientations, over thick trunks and ordinary supports; exposed faces received skylight 15 and the black face was not reproduced. No lighting behavior was changed for this report.
+A reported nearly black face on a placed log remains unconfirmed. Matched [lighting controls](previews/legacy-lighting-controls.png) compared Heartwood and vanilla logs, in X/Y/Z orientations, over thick trunks and ordinary supports; exposed faces received skylight 15 and the black face was not reproduced. No lighting behavior was changed for this report.

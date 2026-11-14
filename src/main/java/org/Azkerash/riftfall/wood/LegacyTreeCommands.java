@@ -26,9 +26,9 @@ public final class LegacyTreeCommands {
             .then(Commands.argument("soil",BlockPosArgument.blockPos()).executes(context->{
                 var source=context.getSource();var pos=BlockPosArgument.getLoadedBlockPos(context,"soil");
                 if(!generate(source.getLevel(),pos)){
-                    source.sendFailure(Component.literal("Legacy tree needs open space above a soil block."));return 0;
+                    source.sendFailure(Component.literal("Heartwood tree needs open space above a soil block."));return 0;
                 }
-                source.sendSuccess(()->Component.literal("Vermillion Legacy grown-reference tree placed at "+pos.toShortString()+"."),true);
+                source.sendSuccess(()->Component.literal("Heartwood grown-reference tree placed at "+pos.toShortString()+"."),true);
                 return 1;
             })));
     }
