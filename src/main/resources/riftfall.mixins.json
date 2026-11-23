@@ -22,7 +22,9 @@
     "ShieldGuardContactMixin",
     "ShieldAttackSweepMixin",
     "ShieldPhaseContactsMixin",
-    "ShieldOnlyContactMixin"
+    "ShieldOnlyContactMixin",
+    "PlayerSystemEncounterSpawnMixin",
+    "GoblinSpawnEggReplacementMixin"
   ],
   "client": [
     "CameraAccess",

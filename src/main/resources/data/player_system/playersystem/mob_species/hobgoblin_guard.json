@@ -1,0 +1,24 @@
+{
+  "name": "player_system.mob_species.hobgoblin_guard",
+  "rank": "D",
+  "body": "riftfall:goblin",
+  "stats": {
+    "health": 118,
+    "damage": 6.4,
+    "armor": 6
+  },
+  "behaviors": [],
+  "tags": [
+    "goblin"
+  ],
+  "skills": [
+    {
+      "skill": "player_system:iron_skin",
+      "level": 1
+    },
+    {
+      "skill": "player_system:unbreakable",
+      "level": 1
+    }
+  ]
+}

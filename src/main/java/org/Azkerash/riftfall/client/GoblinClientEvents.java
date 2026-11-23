@@ -34,6 +34,7 @@ public final class GoblinClientEvents {
 
     @SubscribeEvent
     public static void setup(net.neoforged.fml.event.lifecycle.FMLClientSetupEvent setup) {
+        PlayerSystemCombatClient.setup();
         yesman.epicfight.api.client.event.EpicFightClientEventHooks.Camera.BUILD_TRANSFORM_POST
                 .registerEvent(ThirdPersonCamera::build);
         yesman.epicfight.api.client.event.EpicFightClientEventHooks.Registry.PATCHED_ITEM

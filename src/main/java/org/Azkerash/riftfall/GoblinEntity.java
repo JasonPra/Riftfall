@@ -293,6 +293,10 @@ public final class GoblinEntity extends Monster
 
     public GoblinEntity(EntityType<? extends GoblinEntity> type, Level level) {
         super(type, level);
+        if (!level.isClientSide
+                && level.dimension().location().toString().equals("player_system:dungeon_tower")) {
+            setInRift(true);
+        }
         xpReward = isShaman() ? 12 : 5;
         setCanPickUpLoot(true);
         face =

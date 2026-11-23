@@ -1,0 +1,14 @@
+{
+  "name": "player_system.mob_species.goblin_scavenger",
+  "rank": "G",
+  "body": "riftfall:goblin",
+  "stats": {
+    "health": 14,
+    "damage": 2.5,
+    "armor": 0
+  },
+  "behaviors": [],
+  "tags": [
+    "goblin"
+  ]
+}

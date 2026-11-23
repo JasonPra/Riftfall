@@ -91,3 +91,17 @@ side = "BOTH"
 # stop your mod loading on the server for example.
 #[features."${mod_id}"]
 #openGLVersion="[3.2,)"
+
+[[dependencies."${mod_id}"]]
+modId = "player_system"
+type = "optional"
+versionRange = "[0.0.11,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "quintessence"
+type = "optional"
+versionRange = "[0.144.0,)"
+ordering = "AFTER"
+side = "BOTH"

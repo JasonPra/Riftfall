@@ -12,6 +12,8 @@ final class RiftfallCombat {
                         event.enqueueWork(GoblinInterceptDash::register));
         yesman.epicfight.api.event.EpicFightEventHooks.Registry.ENTITY_PATCH.registerEvent(
                 GoblinEntities::patches);
+        yesman.epicfight.api.event.EpicFightEventHooks.Registry.ENTITY_PATCH.registerEvent(
+                org.Azkerash.riftfall.compat.PlayerSystemCombat::patches);
         NeoForge.EVENT_BUS.register(MobSpellcasting.class);
         NeoForge.EVENT_BUS.register(GoblinTactics.class);
         NeoForge.EVENT_BUS.register(GoblinWeaponAttacks.class);
@@ -21,6 +23,7 @@ final class RiftfallCombat {
         NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.behavior.skills.MobSkillCommands.class);
         GoblinFlurryStun.register();
         NeoForge.EVENT_BUS.register(GoblinHostility.class);
+        NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.compat.EncounterGoblins.class);
         NeoForge.EVENT_BUS.register(GrappleGoal.class);
     }
 

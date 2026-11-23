@@ -1,0 +1,355 @@
+{
+  "versions": {
+    "player_system": "0.0.11",
+    "quintessence": "0.144.0",
+    "epicfight": "21.17.3.1"
+  },
+  "player_system_species": [
+    {
+      "species": "abyssal_behemoth",
+      "body": "player_system:abyssal_behemoth",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_amethyst_crab",
+      "body": "cataclysm:amethyst_crab",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_ancient_remnant",
+      "body": "cataclysm:ancient_remnant",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_aptrgangr",
+      "body": "cataclysm:aptrgangr",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_cindaria",
+      "body": "cataclysm:cindaria",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_clawdian",
+      "body": "cataclysm:clawdian",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_coral_golem",
+      "body": "cataclysm:coral_golem",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_coralssus",
+      "body": "cataclysm:coralssus",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_deepling",
+      "body": "cataclysm:deepling",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_deepling_angler",
+      "body": "cataclysm:deepling_angler",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_deepling_brute",
+      "body": "cataclysm:deepling_brute",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_deepling_priest",
+      "body": "cataclysm:deepling_priest",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_deepling_warlock",
+      "body": "cataclysm:deepling_warlock",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_draugr",
+      "body": "cataclysm:draugr",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_drowned_host",
+      "body": "cataclysm:drowned_host",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_elite_draugr",
+      "body": "cataclysm:elite_draugr",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_ender_golem",
+      "body": "cataclysm:ender_golem",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_ender_guardian",
+      "body": "cataclysm:ender_guardian",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_endermaptera",
+      "body": "cataclysm:endermaptera",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_hippocamtus",
+      "body": "cataclysm:hippocamtus",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_ignis",
+      "body": "cataclysm:ignis",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_ignited_berserker",
+      "body": "cataclysm:ignited_berserker",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_ignited_revenant",
+      "body": "cataclysm:ignited_revenant",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_kobolediator",
+      "body": "cataclysm:kobolediator",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_koboleton",
+      "body": "cataclysm:koboleton",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_lionfish",
+      "body": "cataclysm:lionfish",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_maledictus",
+      "body": "cataclysm:maledictus",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_netherite_monstrosity",
+      "body": "cataclysm:netherite_monstrosity",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_royal_draugr",
+      "body": "cataclysm:royal_draugr",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_scylla",
+      "body": "cataclysm:scylla",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_symbiocto",
+      "body": "cataclysm:symbiocto",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_the_harbinger",
+      "body": "cataclysm:the_harbinger",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_the_leviathan",
+      "body": "cataclysm:the_leviathan",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_the_prowler",
+      "body": "cataclysm:the_prowler",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_the_watcher",
+      "body": "cataclysm:the_watcher",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_urchinkin",
+      "body": "cataclysm:urchinkin",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cataclysm_wadjet",
+      "body": "cataclysm:wadjet",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "cave_rat",
+      "body": "player_system:cave_rat",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "crypt_necromancer",
+      "body": "player_system:crypt_necromancer",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "death_knight",
+      "body": "player_system:death_knight",
+      "support": "new humanoid patch"
+    },
+    {
+      "species": "decayed_skeleton",
+      "body": "player_system:decayed_skeleton",
+      "support": "new humanoid patch"
+    },
+    {
+      "species": "drakonic_sentinel",
+      "body": "player_system:drakonic_sentinel",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "dungeon_sorcerer",
+      "body": "player_system:dungeon_sorcerer",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "elemental_wyvern",
+      "body": "player_system:elemental_wyvern",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "gargoyle_striker",
+      "body": "player_system:gargoyle_striker",
+      "support": "new humanoid patch"
+    },
+    {
+      "species": "giant_cave_spider",
+      "body": "player_system:giant_cave_spider",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "goblin_scavenger",
+      "body": "player_system:goblin_scavenger",
+      "support": "replaced by riftfall:goblin"
+    },
+    {
+      "species": "hobgoblin_guard",
+      "body": "player_system:hobgoblin_guard",
+      "support": "replaced by riftfall:goblin"
+    },
+    {
+      "species": "irons_archevoker",
+      "body": "irons_spellbooks:archevoker",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_catacombs_zombie",
+      "body": "irons_spellbooks:catacombs_zombie",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_citadel_keeper",
+      "body": "irons_spellbooks:citadel_keeper",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_cultist",
+      "body": "irons_spellbooks:cultist",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_dead_king",
+      "body": "irons_spellbooks:dead_king",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_fire_boss",
+      "body": "irons_spellbooks:fire_boss",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_ice_spider",
+      "body": "irons_spellbooks:ice_spider",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_magehunter_vindicator",
+      "body": "irons_spellbooks:magehunter_vindicator",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "irons_necromancer",
+      "body": "irons_spellbooks:necromancer",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "kobold_scout",
+      "body": "player_system:kobold_scout",
+      "support": "new humanoid patch"
+    },
+    {
+      "species": "lesser_slime",
+      "body": "player_system:lesser_slime",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "minotaur_berserker",
+      "body": "player_system:minotaur_berserker",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "orc_warrior",
+      "body": "player_system:orc_warrior",
+      "support": "new humanoid patch"
+    },
+    {
+      "species": "rotting_zombie",
+      "body": "player_system:rotting_zombie",
+      "support": "new humanoid patch"
+    },
+    {
+      "species": "shadow_hound",
+      "body": "player_system:shadow_hound",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "sovereign_warden",
+      "body": "player_system:sovereign_warden",
+      "support": "native AI retained; custom integration pending"
+    },
+    {
+      "species": "void_commander",
+      "body": "player_system:void_commander",
+      "support": "native AI retained; custom integration pending"
+    }
+  ],
+  "quintessence_rift_tags": [
+    "minecraft:blaze",
+    "minecraft:bogged",
+    "minecraft:breeze",
+    "minecraft:cave_spider",
+    "minecraft:drowned",
+    "minecraft:enderman",
+    "minecraft:endermite",
+    "minecraft:evoker",
+    "minecraft:husk",
+    "minecraft:magma_cube",
+    "minecraft:phantom",
+    "minecraft:pillager",
+    "minecraft:skeleton",
+    "minecraft:spider",
+    "minecraft:stray",
+    "minecraft:vindicator",
+    "minecraft:witch",
+    "minecraft:wither_skeleton",
+    "minecraft:zombie"
+  ]
+}
