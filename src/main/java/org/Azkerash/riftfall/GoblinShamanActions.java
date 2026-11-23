@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.TargetEntityCastData;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 import org.Azkerash.riftfall.mana.MobMana;
@@ -33,9 +34,43 @@ final class GoblinShamanActions {
             setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         }
 
+        private LivingEntity staffTarget() {
+            // Defend against immediate mob threats even when the target selector prefers a player.
+            var closeThreat =
+                    mob
+                            .level()
+                            .getEntitiesOfClass(
+                                    Mob.class,
+                                    mob.getBoundingBox().inflate(2.5),
+                                    other ->
+                                            other != mob
+                                                    && other.isAlive()
+                                                    && !mob.isAlliedTo(other)
+                                                    && mob.canAttack(other)
+                                                    && mob.distanceToSqr(other) < 2.5 * 2.5
+                                                    && mob.getSensing().hasLineOfSight(other)
+                                                    && (GoblinHostility.undeadHunter(other)
+                                                            || other == mob.getTarget()
+                                                            || other.getTarget() != null
+                                                                    && (other.getTarget() == mob
+                                                                            || mob.isAlliedTo(
+                                                                                    other
+                                                                                            .getTarget()))))
+                            .stream()
+                            .min(Comparator.comparingDouble(mob::distanceToSqr))
+                            .orElse(null);
+            var target = mob.getTarget();
+            if (closeThreat != null
+                    && (target == null
+                            || mob.distanceToSqr(closeThreat) < mob.distanceToSqr(target))) {
+                return closeThreat;
+            }
+            return target;
+        }
+
         @Override
         public boolean canUse() {
-            var target = mob.getTarget();
+            var target = staffTarget();
             return mob.level().getGameTime() >= ready
                     && !interrupted(mob)
                     && target != null
@@ -73,7 +108,7 @@ final class GoblinShamanActions {
 
         @Override
         public void start() {
-            victim = mob.getTarget();
+            victim = staffTarget();
             opportunistic = exposedToStaff(victim);
             attack = opportunistic ? StaffAttack.SMASH : StaffAttack.values()[nextAttack];
             nextAttack = (nextAttack + 1) % 2;
@@ -183,6 +218,9 @@ final class GoblinShamanActions {
     }
 
     static final class Heal extends Goal {
+        // Stronger circle while preserving the shaman's existing resource budget.
+        private static final int HEALING_LEVEL = 2;
+        private static final int MANA_LEVEL = 1;
         final GoblinEntity mob;
         LivingEntity recipient;
         int ticks, windup = 20;
@@ -197,7 +235,7 @@ final class GoblinShamanActions {
         @Override
         public boolean canUse() {
             var spell = SpellRegistry.HEALING_CIRCLE_SPELL.get();
-            MobMana.describe(mob, spell, 1);
+            MobMana.describe(mob, spell, MANA_LEVEL);
             if (mob.level().getGameTime() < mob.getPersistentData().getLong("RiftfallNextHeal")
                     || mob.hurtTime > 0
                     || mob.getTarget() != null
@@ -239,7 +277,7 @@ final class GoblinShamanActions {
                                             .thenComparingDouble(
                                                     g -> g.getHealth() / g.getMaxHealth()))
                             .orElse(null);
-            return recipient != null && MobMana.canCast(mob, spell, 1);
+            return recipient != null && MobMana.canCast(mob, spell, MANA_LEVEL);
         }
 
         @Override
@@ -263,12 +301,12 @@ final class GoblinShamanActions {
         @Override
         public void start() {
             data = MobMana.data(mob);
-            if (!MobMana.canCast(mob, SpellRegistry.HEALING_CIRCLE_SPELL.get(), 1)) {
+            if (!MobMana.canCast(mob, SpellRegistry.HEALING_CIRCLE_SPELL.get(), MANA_LEVEL)) {
                 ticks = windup + 14;
                 return;
             }
             ticks = 0;
-            windup = MobMana.windup(mob, SpellRegistry.HEALING_CIRCLE_SPELL.get(), 1);
+            windup = MobMana.windup(mob, SpellRegistry.HEALING_CIRCLE_SPELL.get(), HEALING_LEVEL);
             mob.getNavigation().stop();
             mob.getPersistentData().putBoolean("RiftfallCasting", true);
             GoblinAnimations.play(mob, GoblinAnimations.CHARGE);
@@ -282,16 +320,16 @@ final class GoblinShamanActions {
             var spell = SpellRegistry.HEALING_CIRCLE_SPELL.get();
             if (++ticks == windup) {
                 data.setAdditionalCastData(new TargetEntityCastData(recipient));
-                if (!spell.checkPreCastConditions(mob.level(), 1, mob, data)
-                        || !MobMana.spend(mob, spell, 1)) {
+                if (!spell.checkPreCastConditions(mob.level(), HEALING_LEVEL, mob, data)
+                        || !MobMana.spend(mob, spell, MANA_LEVEL)) {
                     ticks = windup + 14;
                     GoblinAnimations.play(mob, GoblinAnimations.RECOVER);
                     return;
                 }
-                spell.onServerPreCast(mob.level(), 1, mob, data);
+                spell.onServerPreCast(mob.level(), HEALING_LEVEL, mob, data);
                 data.setAdditionalCastData(new TargetEntityCastData(recipient));
-                spell.onCast(mob.level(), 1, mob, CastSource.MOB, data);
-                spell.onServerCastComplete(mob.level(), 1, mob, data, false);
+                spell.onCast(mob.level(), HEALING_LEVEL, mob, CastSource.MOB, data);
+                spell.onServerCastComplete(mob.level(), HEALING_LEVEL, mob, data, false);
                 mob.getPersistentData()
                         .putLong(
                                 "RiftfallNextHeal",

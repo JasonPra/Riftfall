@@ -53,7 +53,7 @@ public final class SeekHealingCircleGoal extends Goal {
                 && zone.getDamage() > 0
                 && zone.getOwner() instanceof LivingEntity caster
                 && eligibleCaster.test(caster)
-                && Utils.shouldHealEntity(caster, mob);
+                && Utils.shouldHealEntity((Entity) caster, (Entity) mob);
     }
 
     private int remaining(HealingAoe zone) {
