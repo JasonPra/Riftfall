@@ -109,11 +109,21 @@ dependencies {
     // Pin the requested NeoForge release; available to code and development runs.
     implementation "curse.maven:epic-fight-mod-405076:${epic_fight_file_id}"
     implementation "curse.maven:irons-spells-n-spellbooks-855414:${irons_spellbooks_file_id}"
+    implementation ("curse.maven:player_system-1774060:9714594")
+    implementation ("curse.maven:spell_atlas-1710649:9726548")
+    implementation("curse.maven:quintessence-1729901:9669067")
+    implementation("curse.maven:tempest_almanac-1717056:9732194")
+    implementation("curse.maven:unifiedmana-1793502:9733444")
+    implementation("curse.maven:ars_nouveau-401955:9521184")
+    implementation("curse.maven:L_Ender's_Cataclysm-551586:8931182")
     // CurseMaven does not supply transitive dependencies; pin the required libraries.
     implementation "curse.maven:geckolib-388172:${geckolib_file_id}"
     implementation "maven.modrinth:playeranimator:${player_animator_version_id}"
     implementation "maven.modrinth:curios:${curios_version_id}"
     implementation "maven.modrinth:irons-lib:${irons_lib_version_id}"
+    implementation("curse.maven:arcane_framework-1809936:9768040")
+    implementation("curse.maven:lionfishapi-1001614:8345326")
+    implementation("curse.maven:smartbrainlib-661293:7055149")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
