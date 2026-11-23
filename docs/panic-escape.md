@@ -43,11 +43,10 @@ The existing server `riftfall-server.toml` `[combatConfidence]` section now incl
 | `panicRecoveryTicks` | 60 |
 | `panicMinimumTicks` | 100 |
 | `panicEscapeDistance` | 12 |
-| `panicBurrowDangerDistance` | Legacy setting; proximity no longer cancels a started dig |
 | `panicBurrowTicks` | 50 |
 | `panicFleeSpeed` | 1.5 |
 
-The same keys are supported in `entityOverrides`, e.g. `riftfall:goblin_archer|panicFleeSpeed=1.6`. Recovery points must exceed entry points; the danger distance must be smaller than the start distance. Animation playback follows the configured digging duration, synchronized to clients. The client also recovers the Epic Fight burrow action from synchronized entity state if the start message was missed or another animation replaced it; late recovery seeks to the current burrow progress instead of starting upright. The full-body clip has highest priority, and normal walking, blocking and bow-aim poses are suspended while burrowing. Cancellation returns to recovery/ordinary movement without suppressing hit-stun reactions.
+The same keys are supported in `entityOverrides`, e.g. `riftfall:goblin_archer|panicFleeSpeed=1.6`. Recovery points must exceed entry points. Animation playback follows the configured digging duration, synchronized to clients. The client also recovers the Epic Fight burrow action from synchronized entity state if the start message was missed or another animation replaced it; late recovery seeks to the current burrow progress instead of starting upright. The full-body clip has highest priority, and normal walking, blocking and bow-aim poses are suspended while burrowing. Cancellation returns to recovery/ordinary movement without suppressing hit-stun reactions.
 
 `/riftfall behavior inspect <entity>` and the existing behavior holograms show panic, the escape restriction, selected action and burrow progress. Persistent diagnostic fields include `RiftfallPanicking`, `RiftfallBurrowing`, `RiftfallBurrowProgress`, `RiftfallPanicEscapeAllowed`, `RiftfallPanicSafety` and `RiftfallBurrowWaitingForSound`.
 

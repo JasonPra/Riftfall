@@ -1,46 +1,73 @@
 package org.Azkerash.riftfall;
 
-import java.util.*;
 import org.Azkerash.riftfall.behavior.*;
+
+import java.util.*;
 
 /** Goblin preferences, separate from the shared engine and the movement/animation executors. */
 final class GoblinBehaviorProfile {
-    private static final BehaviorEngine ENGINE=create();
-    static BehaviorEngine engine(){return ENGINE;}
+    private static final BehaviorEngine ENGINE = create();
+
+    static BehaviorEngine engine() {
+        return ENGINE;
+    }
+
     private static BehaviorEngine create() {
-        var rules=new ArrayList<BehaviorRule>();
-        rules.add(new BehaviorRule("interrupted",5000,Map.of(),c->c.active("self.interrupted")));
-        rules.add(rule("pant",4500,Map.of()));
-        rules.add(rule("panic_escape",2000,Map.of("fear",100D)));
-        rules.add(rule("seek_healing",700,Map.of("fear",50D,"self.wounded",50D)));
-        rules.add(rule("warrior_retreat",500,Map.of("fear",50D,"self.wounded",40D)));
-        rules.add(rule("cautious_retreat",300,Map.of("fear",50D)));
-        rules.add(new BehaviorRule("watch",100,Map.of("fear",20D),c->c.active("self.melee_role") && c.active("target.visible") && !c.active("engage") && !c.active("target.unaware")));
-        rules.add(rule("grapple",400,Map.of("confidence",20D)));
-        rules.add(rule("skill_identity",410,Map.of("confidence",20D)));
-        rules.add(rule("skill_dodge",600,Map.of("fear",20D)));
-        rules.add(rule("skill_guard",420,Map.of("fear",20D)));
-        rules.add(rule("skill_weapon_innate",400,Map.of("confidence",20D)));
-        rules.add(rule("skill_mover",350,Map.of("confidence",20D)));
-        rules.add(rule("plunge",350,Map.of("confidence",20D)));
-        rules.add(rule("rear_approach",320,Map.of("fear",20D)));
-        rules.add(rule("staff",500,Map.of("target.exposed",40D)));
-        rules.add(rule("heal",400,Map.of("fear",10D)));
-        rules.add(rule("ranged_retreat",300,Map.of("fear",50D)));
-        rules.add(rule("cast",250,Map.of("confidence",20D)));
-        rules.add(rule("regroup",180,Map.of("fear",20D)));
-        rules.add(rule("position",160,Map.of("fear",10D)));
-        rules.add(rule("bow",140,Map.of("confidence",10D,"cover.safe",200D)));
-        rules.add(rule("melee",150,Map.of("confidence",20D)));
-        rules.add(new BehaviorRule("search",50,Map.of("confidence",5D),c->c.active("target.remembered") && (!c.active("self.melee_role") || c.active("engage"))));
-        rules.add(rule("loot",30,Map.of()));
-        rules.add(rule("wander",10,Map.of()));
-        rules.add(new BehaviorRule("idle",0,Map.of(),c->true));
-        return new BehaviorEngine(rules,2);
+        var rules = new ArrayList<BehaviorRule>();
+        rules.add(
+                new BehaviorRule("interrupted", 5000, Map.of(), c -> c.active("self.interrupted")));
+        rules.add(rule("pant", 4500, Map.of()));
+        rules.add(rule("panic_escape", 2000, Map.of("fear", 100D)));
+        rules.add(rule("seek_healing", 700, Map.of("fear", 50D, "self.wounded", 50D)));
+        rules.add(rule("warrior_retreat", 500, Map.of("fear", 50D, "self.wounded", 40D)));
+        rules.add(rule("cautious_retreat", 300, Map.of("fear", 50D)));
+        rules.add(
+                new BehaviorRule(
+                        "watch",
+                        100,
+                        Map.of("fear", 20D),
+                        c ->
+                                c.active("self.melee_role")
+                                        && c.active("target.visible")
+                                        && !c.active("engage")
+                                        && !c.active("target.unaware")));
+        rules.add(rule("grapple", 400, Map.of("confidence", 20D)));
+        rules.add(rule("skill_identity", 410, Map.of("confidence", 20D)));
+        rules.add(rule("intercept", 430, Map.of("confidence", 10D)));
+        rules.add(rule("skill_dodge", 600, Map.of("fear", 20D)));
+        rules.add(rule("skill_guard", 420, Map.of("fear", 20D)));
+        rules.add(rule("skill_weapon_innate", 400, Map.of("confidence", 20D)));
+        rules.add(rule("skill_mover", 350, Map.of("confidence", 20D)));
+        rules.add(rule("plunge", 350, Map.of("confidence", 20D)));
+        rules.add(rule("rear_approach", 320, Map.of("fear", 20D)));
+        rules.add(rule("staff", 500, Map.of("target.exposed", 40D)));
+        rules.add(rule("rally", 650, Map.of("fear", 20D)));
+        rules.add(rule("heal", 400, Map.of("fear", 10D)));
+        rules.add(rule("ranged_retreat", 300, Map.of("fear", 50D)));
+        rules.add(rule("cast", 250, Map.of("confidence", 20D)));
+        rules.add(rule("regroup", 180, Map.of("fear", 20D)));
+        rules.add(rule("position", 160, Map.of("fear", 10D)));
+        rules.add(rule("bow", 140, Map.of("confidence", 10D, "cover.safe", 200D)));
+        rules.add(rule("melee", 150, Map.of("confidence", 20D)));
+        rules.add(
+                new BehaviorRule(
+                        "search",
+                        50,
+                        Map.of("confidence", 5D),
+                        c ->
+                                c.active("target.remembered")
+                                        && (!c.active("self.melee_role") || c.active("engage"))));
+        rules.add(rule("loot", 30, Map.of()));
+        rules.add(rule("wander", 10, Map.of()));
+        rules.add(new BehaviorRule("idle", 0, Map.of(), c -> true));
+        return new BehaviorEngine(rules, 2);
     }
-    private static BehaviorRule rule(String id,double base,Map<String,Double> preferences) {
-        var weights=new LinkedHashMap<>(preferences);weights.put("committed."+id,1000D);
-        return new BehaviorRule(id,base,weights,c->c.active("ready."+id));
+
+    private static BehaviorRule rule(String id, double base, Map<String, Double> preferences) {
+        var weights = new LinkedHashMap<>(preferences);
+        weights.put("committed." + id, 1000D);
+        return new BehaviorRule(id, base, weights, c -> c.active("ready." + id));
     }
+
     private GoblinBehaviorProfile() {}
 }

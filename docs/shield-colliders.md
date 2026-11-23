@@ -60,3 +60,11 @@ models supply their final bounds, including any desired padding.
 
 The Epic Fight mixins target the project's pinned version, 21.17.3.1. Recheck their
 injection points when upgrading Epic Fight, especially the player guard listener.
+
+Collapsed or non-finite shield transforms are excluded from collision and debug
+rendering for that sample. `ShieldBox.valid()` guards OBB sampling; segment and
+triangle queries also reject invalid boxes. This avoids Epic Fight 21.17.3.1's
+null-destination failure when inverting a singular matrix, without substituting
+an identity transform that would create a shield at the wrong coordinates.
+
+The underlying render/server scratch race is fixed by [matrix scratch isolation](epic-fight-matrix-threading.md). Normal raised shields retain valid collision through the tested Step sequence; validity rejection is only the final malformed-input guard.

@@ -8,13 +8,26 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public record GrappleEscapePayload() implements CustomPacketPayload {
-    public static final GrappleEscapePayload INSTANCE=new GrappleEscapePayload();
-    public static final Type<GrappleEscapePayload> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID,"grapple_escape"));
-    public static final StreamCodec<RegistryFriendlyByteBuf,GrappleEscapePayload> CODEC=StreamCodec.unit(INSTANCE);
-    @Override public Type<GrappleEscapePayload> type() { return TYPE; }
+    public static final GrappleEscapePayload INSTANCE = new GrappleEscapePayload();
+    public static final Type<GrappleEscapePayload> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Riftfall.MODID, "grapple_escape"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, GrappleEscapePayload> CODEC =
+            StreamCodec.unit(INSTANCE);
+
+    @Override
+    public Type<GrappleEscapePayload> type() {
+        return TYPE;
+    }
+
     static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToServer(TYPE,CODEC,(packet,context)-> {
-            if (context.player() instanceof ServerPlayer player) GrappleGoal.struggle(player);
-        });
+        event.registrar("1")
+                .playToServer(
+                        TYPE,
+                        CODEC,
+                        (packet, context) -> {
+                            if (context.player() instanceof ServerPlayer player) {
+                                GrappleGoal.struggle(player);
+                            }
+                        });
     }
 }

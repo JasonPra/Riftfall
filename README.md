@@ -57,7 +57,7 @@ Use a new world for the new gameplay baseline. Removed blocks, items, and the ar
 
 Required integrations are retained: Epic Fight **21.17.3.1** (CurseForge file **8175609**), Iron's Spells 'n Spellbooks **1.21.1-3.16.3** (file **8680204**), and NeoForge GeckoLib **4.9.3** (file **8893490**). Gradle resolves their supporting dependencies.
 
-Java **21** is required.
+Java **21** is required. Java control-flow bodies must use curly braces, including single-statement `if`, `else`, `for`, `while`, and `do` bodies. Use four-space indentation.
 
 ```sh
 ./gradlew build
@@ -67,8 +67,10 @@ Java **21** is required.
 
 Tests cover goblin combat geometry, squad positioning and confidence, grapple escape, combat tremor, spell eligibility, and Enderman block-hiding transitions. Existing combat previews are in [docs/previews](docs/previews).
 
-The independent [weighted behavior engine and test entity](docs/behavior-engine.md) demonstrate reusable confidence sensing, situational awareness, and utility-based action selection. Warriors, archers and shamans now use this engine while retaining their established movesets and tactical actions.
+The [weighted behavior engine](docs/behavior-engine.md) provides reusable confidence sensing, situational awareness, and utility-based action selection. Warriors, archers and shamans now use this engine while retaining their established movesets and tactical actions.
 
 [Reusable facial animation](docs/facial-animation.md) adds blinking, target-tracking eyes, idle glances and expression previews to all goblin roles, with separate controller/profile and skin-layout APIs for future mobs.
 
 Panic and burrow escape: [behavior, tuning, rift flag and integration](docs/panic-escape.md).
+
+Shaman [Rally and warrior interception](docs/rally-and-interception.md) provide temporary morale support and protection for both ranged roles.

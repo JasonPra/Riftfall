@@ -10,14 +10,28 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 /** Zombies and skeletons recognize goblins as prey; goblins can retaliate and hunt them too. */
 final class GoblinHostility {
-    static boolean undeadHunter(LivingEntity entity) { return entity instanceof Zombie || entity instanceof AbstractSkeleton; }
-    @SubscribeEvent public static void joined(EntityJoinLevelEvent event) {
-        if (event.getLevel().isClientSide() || !(event.getEntity() instanceof Mob mob) || !undeadHunter(mob)) return;
-        if (mob.targetSelector.getAvailableGoals().stream().noneMatch(g->g.getGoal() instanceof HuntGoblins))
-            mob.targetSelector.addGoal(2,new HuntGoblins(mob));
+    static boolean undeadHunter(LivingEntity entity) {
+        return entity instanceof Zombie || entity instanceof AbstractSkeleton;
     }
+
+    @SubscribeEvent
+    public static void joined(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide()
+                || !(event.getEntity() instanceof Mob mob)
+                || !undeadHunter(mob)) {
+            return;
+        }
+        if (mob.targetSelector.getAvailableGoals().stream()
+                .noneMatch(g -> g.getGoal() instanceof HuntGoblins)) {
+            mob.targetSelector.addGoal(2, new HuntGoblins(mob));
+        }
+    }
+
     private static final class HuntGoblins extends NearestAttackableTargetGoal<GoblinEntity> {
-        HuntGoblins(Mob mob) { super(mob,GoblinEntity.class,10,true,false,g->!mob.isAlliedTo(g)); }
+        HuntGoblins(Mob mob) {
+            super(mob, GoblinEntity.class, 10, true, false, g -> !mob.isAlliedTo(g));
+        }
     }
+
     private GoblinHostility() {}
 }

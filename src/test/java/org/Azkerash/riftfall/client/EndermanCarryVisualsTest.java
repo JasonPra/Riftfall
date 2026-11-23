@@ -1,11 +1,14 @@
 package org.Azkerash.riftfall.client;
 
-import net.minecraft.world.phys.Vec3;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import net.minecraft.world.phys.Vec3;
+
+import org.junit.jupiter.api.Test;
+
 class EndermanCarryVisualsTest {
-    @Test void visibleBlockDisappearsOncePerCombatEntry() {
+    @Test
+    void visibleBlockDisappearsOncePerCombatEntry() {
         var state = new EndermanCarryVisuals.State();
         assertFalse(state.tick(Vec3.ZERO, true, false));
         assertTrue(state.tick(Vec3.ZERO, true, true));
@@ -14,7 +17,8 @@ class EndermanCarryVisualsTest {
         assertTrue(state.tick(Vec3.ZERO, true, true));
     }
 
-    @Test void arrivingInCombatOrNotHoldingABlockDoesNotPuff() {
+    @Test
+    void arrivingInCombatOrNotHoldingABlockDoesNotPuff() {
         var state = new EndermanCarryVisuals.State();
         assertFalse(state.tick(Vec3.ZERO, true, true));
         state.tick(Vec3.ZERO, false, false);
@@ -23,7 +27,8 @@ class EndermanCarryVisualsTest {
         assertFalse(state.tick(Vec3.ZERO, false, true));
     }
 
-    @Test void teleportBeforeCombatSuppressesThePuff() {
+    @Test
+    void teleportBeforeCombatSuppressesThePuff() {
         var state = new EndermanCarryVisuals.State();
         state.tick(Vec3.ZERO, true, false);
         Vec3 destination = new Vec3(20, 0, 0);
@@ -32,7 +37,8 @@ class EndermanCarryVisualsTest {
         assertFalse(state.tick(destination, true, true));
     }
 
-    @Test void teleportDuringCombatEntrySuppressesPuffButWalkingDoesNot() {
+    @Test
+    void teleportDuringCombatEntrySuppressesPuffButWalkingDoesNot() {
         var teleported = new EndermanCarryVisuals.State();
         teleported.tick(Vec3.ZERO, true, false);
         assertFalse(teleported.tick(new Vec3(20, 0, 0), true, true));

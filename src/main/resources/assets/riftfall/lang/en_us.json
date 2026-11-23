@@ -11,8 +11,6 @@
   "key.riftfall.held_item_bounds": "Toggle Held Item Model Bounds",
   "key.categories.riftfall_debug": "Riftfall Debugging",
   "item.riftfall.goblin_shortsword": "Goblin Shortsword",
-  "entity.riftfall.behavior_tester": "Behavior Tester",
-  "item.riftfall.behavior_tester_spawn_egg": "Behavior Tester Spawn Egg",
   "subtitles.riftfall.goblin_laugh": "Goblin laughs",
   "subtitles.riftfall.goblin_scream": "Goblin screams",
   "subtitles.riftfall.goblin_death": "Goblin dies",
@@ -20,5 +18,9 @@
   "subtitles.riftfall.goblin_grunt": "Goblin grunts",
   "item.riftfall.backstab_skill_book": "Backstab Skill Book",
   "skill.riftfall.backstab": "Backstab",
-  "skill.riftfall.backstab.tooltip": "Attack a nearby unsuspecting enemy from behind to backstab them. A landed strike knocks them face-down. They are invulnerable during the fall and recovery. Requires a held melee weapon. Cooldown: 10 seconds."
+  "skill.riftfall.backstab.tooltip": "Attack a nearby unsuspecting enemy from behind to backstab them. A landed strike knocks them face-down. They are invulnerable during the fall and recovery. Requires a held melee weapon. Cooldown: 10 seconds.",
+  "spell.riftfall.rally": "Rally",
+  "effect.riftfall.rallied": "Rallied",
+  "ui.riftfall.rally.single": "Rallies one goblin for %s seconds.",
+  "ui.riftfall.rally.group": "Rallies nearby goblins for %s seconds within %s blocks."
 }

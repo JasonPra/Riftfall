@@ -1,131 +1,297 @@
 package org.Azkerash.riftfall.confidence;
 
-import java.util.*;
-import java.util.function.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
-/** Per-entity support cache and confidence inputs, independent of any species' goals. Server-side only. */
+import java.util.*;
+import java.util.function.*;
+
+/**
+ * Per-entity support cache and confidence inputs, independent of any species' goals. Server-side
+ * only.
+ */
 public final class CombatConfidenceController {
     private final Mob mob;
     private final String entityId;
     private final Supplier<ConfidenceConfig.Settings> settings;
     private final Predicate<LivingEntity> allied;
     private final ToDoubleFunction<LivingEntity> availability;
-    private final BiConsumer<LivingEntity,Map<String,Double>> extraFactors;
+    private final BiConsumer<LivingEntity, Map<String, Double>> extraFactors;
     private final double radius;
     private final int scanTicks;
-    private long nextScan=Long.MIN_VALUE;
+    private long nextScan = Long.MIN_VALUE;
     private LivingEntity previousTarget;
-    private Map<String,Double> units=Map.of();
+    private Map<String, Double> units = Map.of();
     private int allyCount;
-    private final WitnessedDeathMemory witnessed=new WitnessedDeathMemory();
-    private Map<String,Double> lastFactors=Map.of();
+    private final WitnessedDeathMemory witnessed = new WitnessedDeathMemory();
+    private Map<String, Double> lastFactors = Map.of();
     private LivingEntity observedOpponent;
-    private record Support(java.util.UUID uuid,String type,double distance,double availability){}
-    private record Excluded(java.util.UUID uuid,String type,String reason){}
-    private List<Support> allyDetails=List.of();private List<Excluded> excludedDetails=List.of();
-    public CombatConfidenceController(Mob mob) { this(mob,ConfidenceConfig::settings); }
-    private String entityId() { return entityId; }
-    public WitnessSettings witnessSettings() { return ConfidenceConfig.witnessSettingsFor(entityId()); }
-    public void witnessDeath(LivingEntity victim,LivingEntity killer) {
-        var config=witnessSettings();
-        if (config.radius()==0 || !allied.test(victim) || killer==mob || allied.test(killer)
-                || mob.distanceToSqr(victim)>config.radius()*config.radius() || !mob.hasLineOfSight(victim)) return;
-        witnessed.remember(mob.level().getGameTime(),config,victim.getUUID(),BuiltInRegistries.ENTITY_TYPE.getKey(victim.getType()).toString(),
-            killer.getUUID(),BuiltInRegistries.ENTITY_TYPE.getKey(killer.getType()).toString());
-        nextScan=Long.MIN_VALUE;
+
+    private record Support(
+            java.util.UUID uuid, String type, double distance, double availability) {}
+
+    private record Excluded(java.util.UUID uuid, String type, String reason) {}
+
+    private List<Support> allyDetails = List.of();
+    private List<Excluded> excludedDetails = List.of();
+
+    public CombatConfidenceController(Mob mob) {
+        this(mob, ConfidenceConfig::settings);
     }
-    public CombatConfidenceController(Mob mob,Supplier<ConfidenceConfig.Settings> settings) {
-        this(mob,settings,mob::isAlliedTo,ally->1,(target,factors)->{},16,10);
+
+    private String entityId() {
+        return entityId;
     }
-    /** Availability permits wounded/retreating discounts; extraFactors can add species-specific conditions. */
-    public CombatConfidenceController(Mob mob,Supplier<ConfidenceConfig.Settings> settings,Predicate<LivingEntity> allied,
-            ToDoubleFunction<LivingEntity> availability,BiConsumer<LivingEntity,Map<String,Double>> extraFactors,double radius,int scanTicks) {
-        this.mob=Objects.requireNonNull(mob);this.entityId=BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString();this.settings=Objects.requireNonNull(settings);
-        this.allied=Objects.requireNonNull(allied);this.availability=Objects.requireNonNull(availability);this.extraFactors=Objects.requireNonNull(extraFactors);
-        if (!Double.isFinite(radius) || radius<=0 || scanTicks<1) throw new IllegalArgumentException("Invalid sensing interval/radius");
-        this.radius=radius;this.scanTicks=scanTicks;
+
+    public WitnessSettings witnessSettings() {
+        return ConfidenceConfig.witnessSettingsFor(entityId());
     }
+
+    public void witnessDeath(LivingEntity victim, LivingEntity killer) {
+        var config = witnessSettings();
+        if (config.radius() == 0
+                || !allied.test(victim)
+                || killer == mob
+                || allied.test(killer)
+                || mob.distanceToSqr(victim) > config.radius() * config.radius()
+                || !mob.hasLineOfSight(victim)) {
+            return;
+        }
+        witnessed.remember(
+                mob.level().getGameTime(),
+                config,
+                victim.getUUID(),
+                BuiltInRegistries.ENTITY_TYPE.getKey(victim.getType()).toString(),
+                killer.getUUID(),
+                BuiltInRegistries.ENTITY_TYPE.getKey(killer.getType()).toString());
+        nextScan = Long.MIN_VALUE;
+    }
+
+    public CombatConfidenceController(Mob mob, Supplier<ConfidenceConfig.Settings> settings) {
+        this(mob, settings, mob::isAlliedTo, ally -> 1, (target, factors) -> {}, 16, 10);
+    }
+
+    /**
+     * Availability permits wounded/retreating discounts; extraFactors can add species-specific
+     * conditions.
+     */
+    public CombatConfidenceController(
+            Mob mob,
+            Supplier<ConfidenceConfig.Settings> settings,
+            Predicate<LivingEntity> allied,
+            ToDoubleFunction<LivingEntity> availability,
+            BiConsumer<LivingEntity, Map<String, Double>> extraFactors,
+            double radius,
+            int scanTicks) {
+        this.mob = Objects.requireNonNull(mob);
+        this.entityId = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString();
+        this.settings = Objects.requireNonNull(settings);
+        this.allied = Objects.requireNonNull(allied);
+        this.availability = Objects.requireNonNull(availability);
+        this.extraFactors = Objects.requireNonNull(extraFactors);
+        if (!Double.isFinite(radius) || radius <= 0 || scanTicks < 1) {
+            throw new IllegalArgumentException("Invalid sensing interval/radius");
+        }
+        this.radius = radius;
+        this.scanTicks = scanTicks;
+    }
+
     public ConfidenceEngine.Result update(LivingEntity target) {
-        if (mob.level().isClientSide) throw new IllegalStateException("Confidence sensing must run on the server");
-        long now=mob.level().getGameTime();
-        if (target!=previousTarget || now>=nextScan) {
-            previousTarget=target;nextScan=org.Azkerash.riftfall.behavior.SensingSchedule.next(now,scanTicks,mob.getId());Map<String,Double> nearby=new HashMap<>();allyCount=0;var details=new ArrayList<Support>();var excluded=new ArrayList<Excluded>();
-            for (var ally:mob.level().getEntitiesOfClass(LivingEntity.class,mob.getBoundingBox().inflate(radius,4,radius),a->a!=mob)) {
-                String reason=!ally.isAlive()?"dead":ally.isSpectator()?"spectator":ally instanceof Mob m && m.isNoAi()?"AI disabled":
-                    !allied.test(ally)?"not allied":Math.abs(ally.getY()-mob.getY())>4?"vertical distance":
-                    target!=null && ally instanceof Mob m && m.getTarget()!=null && m.getTarget()!=target?"different enemy":null;
-                if (reason!=null) {
-                    excluded.add(new Excluded(ally.getUUID(),BuiltInRegistries.ENTITY_TYPE.getKey(ally.getType()).toString(),reason));continue;
+        if (mob.level().isClientSide) {
+            throw new IllegalStateException("Confidence sensing must run on the server");
+        }
+        long now = mob.level().getGameTime();
+        if (target != previousTarget || now >= nextScan) {
+            previousTarget = target;
+            nextScan =
+                    org.Azkerash.riftfall.behavior.SensingSchedule.next(
+                            now, scanTicks, mob.getId());
+            Map<String, Double> nearby = new HashMap<>();
+            allyCount = 0;
+            var details = new ArrayList<Support>();
+            var excluded = new ArrayList<Excluded>();
+            for (var ally :
+                    mob.level()
+                            .getEntitiesOfClass(
+                                    LivingEntity.class,
+                                    mob.getBoundingBox().inflate(radius, 4, radius),
+                                    a -> a != mob)) {
+                String reason =
+                        !ally.isAlive()
+                                ? "dead"
+                                : ally.isSpectator()
+                                        ? "spectator"
+                                        : ally instanceof Mob m && m.isNoAi()
+                                                ? "AI disabled"
+                                                : !allied.test(ally)
+                                                        ? "not allied"
+                                                        : Math.abs(ally.getY() - mob.getY()) > 4
+                                                                ? "vertical distance"
+                                                                : target != null
+                                                                                && ally
+                                                                                        instanceof
+                                                                                        Mob m
+                                                                                && m.getTarget()
+                                                                                        != null
+                                                                                && m.getTarget()
+                                                                                        != target
+                                                                        ? "different enemy"
+                                                                        : null;
+                if (reason != null) {
+                    excluded.add(
+                            new Excluded(
+                                    ally.getUUID(),
+                                    BuiltInRegistries.ENTITY_TYPE.getKey(ally.getType()).toString(),
+                                    reason));
+                    continue;
                 }
-                double count=availability.applyAsDouble(ally);
-                if (!Double.isFinite(count) || count<0) throw new IllegalArgumentException("Invalid ally availability");
-                if (count>0) allyCount++;
-                String id=BuiltInRegistries.ENTITY_TYPE.getKey(ally.getType()).toString();
-                nearby.merge(id,count,Double::sum);
-                details.add(new Support(ally.getUUID(),id,mob.distanceTo(ally),count));
+                double count = availability.applyAsDouble(ally);
+                if (!Double.isFinite(count) || count < 0) {
+                    throw new IllegalArgumentException("Invalid ally availability");
+                }
+                if (count > 0) {
+                    allyCount++;
+                }
+                String id = BuiltInRegistries.ENTITY_TYPE.getKey(ally.getType()).toString();
+                nearby.merge(id, count, Double::sum);
+                details.add(new Support(ally.getUUID(), id, mob.distanceTo(ally), count));
             }
-            units=Map.copyOf(nearby);allyDetails=List.copyOf(details);excludedDetails=List.copyOf(excluded);
+            units = Map.copyOf(nearby);
+            allyDetails = List.copyOf(details);
+            excludedDetails = List.copyOf(excluded);
         }
-        observedOpponent=target;
-        var config=settings();
-        var factors=CombatConfidence.factors(mob,target,config.woundedFraction(),config.vulnerableFraction());
-        int deaths=witnessed.count(now,witnessSettings().maxStacks());
-        if (deaths>0) factors.put("self.witnessed_ally_death",(double)deaths);
-        extraFactors.accept(target,factors);
-        lastFactors=Map.copyOf(factors);
-        return ConfidenceEngine.evaluate(config.profile(),units,factors);
+        observedOpponent = target;
+        var config = settings();
+        var factors =
+                CombatConfidence.factors(
+                        mob, target, config.woundedFraction(), config.vulnerableFraction());
+        int deaths = witnessed.count(now, witnessSettings().maxStacks());
+        if (deaths > 0) {
+            factors.put("self.witnessed_ally_death", (double) deaths);
+        }
+        extraFactors.accept(target, factors);
+        lastFactors = Map.copyOf(factors);
+        return ConfidenceEngine.evaluate(config.profile(), units, factors);
     }
+
     private static net.minecraft.nbt.CompoundTag combatStats(LivingEntity entity) {
-        var stats=CombatStrength.stats(entity);var data=new net.minecraft.nbt.CompoundTag();
-        data.putDouble("AttackDamage",stats.damage());data.putDouble("Armor",stats.armor());data.putDouble("Toughness",stats.toughness());data.putDouble("Health",stats.health());
-        data.putString("MainHand",BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString());return data;
+        var stats = CombatStrength.stats(entity);
+        var data = new net.minecraft.nbt.CompoundTag();
+        data.putDouble("AttackDamage", stats.damage());
+        data.putDouble("Armor", stats.armor());
+        data.putDouble("Toughness", stats.toughness());
+        data.putDouble("Health", stats.health());
+        data.putString(
+                "MainHand",
+                BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString());
+        return data;
     }
-    public int allyCount() { return allyCount; }
-    public ConfidenceConfig.Settings settings() { return ConfidenceConfig.forEntity(entityId(),settings.get()); }
+
+    public int allyCount() {
+        return allyCount;
+    }
+
+    public ConfidenceConfig.Settings settings() {
+        return ConfidenceConfig.forEntity(entityId(), settings.get());
+    }
+
     public net.minecraft.nbt.CompoundTag diagnostics() {
-        var data=new net.minecraft.nbt.CompoundTag();var config=settings();var witnessConfig=witnessSettings();
-        data.putString("ObserverType",entityId());data.putFloat("Health",mob.getHealth());data.putFloat("MaxHealth",mob.getMaxHealth());
-        data.putString("MainHand",BuiltInRegistries.ITEM.getKey(mob.getMainHandItem().getItem()).toString());
-        data.putString("OffHand",BuiltInRegistries.ITEM.getKey(mob.getOffhandItem().getItem()).toString());
-        var effects=new net.minecraft.nbt.ListTag();
-        for (var effect:mob.getActiveEffects()) {
-            var entry=new net.minecraft.nbt.CompoundTag();entry.putString("Type",BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect().value()).toString());
-            entry.putString("Category",effect.getEffect().value().getCategory().name());entry.putInt("Amplifier",effect.getAmplifier());entry.putInt("RemainingTicks",effect.getDuration());effects.add(entry);
+        var data = new net.minecraft.nbt.CompoundTag();
+        var config = settings();
+        var witnessConfig = witnessSettings();
+        data.putString("ObserverType", entityId());
+        data.putFloat("Health", mob.getHealth());
+        data.putFloat("MaxHealth", mob.getMaxHealth());
+        data.putString(
+                "MainHand",
+                BuiltInRegistries.ITEM.getKey(mob.getMainHandItem().getItem()).toString());
+        data.putString(
+                "OffHand",
+                BuiltInRegistries.ITEM.getKey(mob.getOffhandItem().getItem()).toString());
+        var effects = new net.minecraft.nbt.ListTag();
+        for (var effect : mob.getActiveEffects()) {
+            var entry = new net.minecraft.nbt.CompoundTag();
+            entry.putString(
+                    "Type",
+                    BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect().value()).toString());
+            entry.putString("Category", effect.getEffect().value().getCategory().name());
+            entry.putInt("Amplifier", effect.getAmplifier());
+            entry.putInt("RemainingTicks", effect.getDuration());
+            effects.add(entry);
         }
-        data.put("ActiveEffects",effects);
-        data.putDouble("EngagePoints",ConfidenceConfig.engagePointsFor(entityId()));
-        data.put("SelfCombatStats",combatStats(mob));
-        if (observedOpponent!=null && observedOpponent.isAlive()) data.put("VisibleTargetCombatStats",combatStats(observedOpponent));
-        data.putDouble("NormalizationPoints",config.profile().normalizationPoints());data.putDouble("BoldPoints",config.boldPoints());
-        data.putDouble("WoundedHealthFraction",config.woundedFraction());data.putDouble("VulnerableTargetHealthFraction",config.vulnerableFraction());
-        data.putDouble("RetreatingAllyMultiplier",config.retreatingMultiplier());data.putDouble("SupportRadius",radius);data.putInt("ScanIntervalTicks",scanTicks);
-        var inputs=new net.minecraft.nbt.CompoundTag();
-        lastFactors.forEach((key,value)-> {
-            var entry=new net.minecraft.nbt.CompoundTag();double weight=config.profile().factorWeights().getOrDefault(key,0D);
-            entry.putDouble("Input",value);entry.putDouble("Weight",weight);entry.putDouble("Points",value*weight);inputs.put(key,entry);
-        });
-        data.put("ActiveFactors",inputs);
-        var allWeights=new net.minecraft.nbt.CompoundTag();config.profile().factorWeights().forEach(allWeights::putDouble);data.put("FactorWeights",allWeights);
-        var allUnits=new net.minecraft.nbt.CompoundTag();config.profile().unitWeights().forEach(allUnits::putDouble);data.put("UnitWeights",allUnits);
-        var allies=new net.minecraft.nbt.ListTag();
-        for (var detail:allyDetails) {
-            var copy=new net.minecraft.nbt.CompoundTag();copy.putUUID("UUID",detail.uuid);copy.putString("Type",detail.type);copy.putDouble("Distance",detail.distance);copy.putDouble("Availability",detail.availability);
-            double weight=config.profile().unitWeights().getOrDefault(detail.type,0D);
-            copy.putDouble("Weight",weight);copy.putDouble("Points",weight*detail.availability);allies.add(copy);
+        data.put("ActiveEffects", effects);
+        data.putDouble("EngagePoints", ConfidenceConfig.engagePointsFor(entityId()));
+        data.put("SelfCombatStats", combatStats(mob));
+        if (observedOpponent != null && observedOpponent.isAlive()) {
+            data.put("VisibleTargetCombatStats", combatStats(observedOpponent));
         }
-        data.put("Allies",allies);
-        var excluded=new net.minecraft.nbt.ListTag();excludedDetails.forEach(entry->{var copy=new net.minecraft.nbt.CompoundTag();copy.putUUID("UUID",entry.uuid);copy.putString("Type",entry.type);copy.putString("Reason",entry.reason);excluded.add(copy);});data.put("ExcludedCandidates",excluded);
-        data.putLong("LastSupportScanTick",nextScan==Long.MIN_VALUE?Long.MIN_VALUE:nextScan-scanTicks);data.putLong("NextSupportScanTick",nextScan);
-        data.putDouble("WitnessRadius",witnessConfig.radius());data.putInt("WitnessDurationTicks",witnessConfig.durationTicks());data.putInt("WitnessMaxStacks",witnessConfig.maxStacks());
-        var memories=new net.minecraft.nbt.ListTag();long now=mob.level().getGameTime();
-        for (var incident:witnessed.active(now,witnessConfig.maxStacks())) {
-            var entry=new net.minecraft.nbt.CompoundTag();entry.putUUID("VictimUUID",incident.victim());entry.putString("VictimType",incident.victimType());
-            entry.putUUID("KillerUUID",incident.killer());entry.putString("KillerType",incident.killerType());
-            entry.putLong("RemainingTicks",incident.expiresAt()-now);memories.add(entry);
+        data.putDouble("NormalizationPoints", config.profile().normalizationPoints());
+        data.putDouble("BoldPoints", config.boldPoints());
+        data.putDouble("WoundedHealthFraction", config.woundedFraction());
+        data.putDouble("VulnerableTargetHealthFraction", config.vulnerableFraction());
+        data.putDouble("RetreatingAllyMultiplier", config.retreatingMultiplier());
+        data.putDouble("SupportRadius", radius);
+        data.putInt("ScanIntervalTicks", scanTicks);
+        var inputs = new net.minecraft.nbt.CompoundTag();
+        lastFactors.forEach(
+                (key, value) -> {
+                    var entry = new net.minecraft.nbt.CompoundTag();
+                    double weight = config.profile().factorWeights().getOrDefault(key, 0D);
+                    entry.putDouble("Input", value);
+                    entry.putDouble("Weight", weight);
+                    entry.putDouble("Points", value * weight);
+                    inputs.put(key, entry);
+                });
+        data.put("ActiveFactors", inputs);
+        var allWeights = new net.minecraft.nbt.CompoundTag();
+        config.profile().factorWeights().forEach(allWeights::putDouble);
+        data.put("FactorWeights", allWeights);
+        var allUnits = new net.minecraft.nbt.CompoundTag();
+        config.profile().unitWeights().forEach(allUnits::putDouble);
+        data.put("UnitWeights", allUnits);
+        var allies = new net.minecraft.nbt.ListTag();
+        for (var detail : allyDetails) {
+            var copy = new net.minecraft.nbt.CompoundTag();
+            copy.putUUID("UUID", detail.uuid);
+            copy.putString("Type", detail.type);
+            copy.putDouble("Distance", detail.distance);
+            copy.putDouble("Availability", detail.availability);
+            double weight = config.profile().unitWeights().getOrDefault(detail.type, 0D);
+            copy.putDouble("Weight", weight);
+            copy.putDouble("Points", weight * detail.availability);
+            allies.add(copy);
         }
-        data.put("WitnessedDeaths",memories);return data;
+        data.put("Allies", allies);
+        var excluded = new net.minecraft.nbt.ListTag();
+        excludedDetails.forEach(
+                entry -> {
+                    var copy = new net.minecraft.nbt.CompoundTag();
+                    copy.putUUID("UUID", entry.uuid);
+                    copy.putString("Type", entry.type);
+                    copy.putString("Reason", entry.reason);
+                    excluded.add(copy);
+                });
+        data.put("ExcludedCandidates", excluded);
+        data.putLong(
+                "LastSupportScanTick",
+                nextScan == Long.MIN_VALUE ? Long.MIN_VALUE : nextScan - scanTicks);
+        data.putLong("NextSupportScanTick", nextScan);
+        data.putDouble("WitnessRadius", witnessConfig.radius());
+        data.putInt("WitnessDurationTicks", witnessConfig.durationTicks());
+        data.putInt("WitnessMaxStacks", witnessConfig.maxStacks());
+        var memories = new net.minecraft.nbt.ListTag();
+        long now = mob.level().getGameTime();
+        for (var incident : witnessed.active(now, witnessConfig.maxStacks())) {
+            var entry = new net.minecraft.nbt.CompoundTag();
+            entry.putUUID("VictimUUID", incident.victim());
+            entry.putString("VictimType", incident.victimType());
+            entry.putUUID("KillerUUID", incident.killer());
+            entry.putString("KillerType", incident.killerType());
+            entry.putLong("RemainingTicks", incident.expiresAt() - now);
+            memories.add(entry);
+        }
+        data.put("WitnessedDeaths", memories);
+        return data;
     }
 }
