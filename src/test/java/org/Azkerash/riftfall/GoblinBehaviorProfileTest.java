@@ -16,6 +16,29 @@ class GoblinBehaviorProfileTest {
     }
 
     @Test
+    void returningToShamanOutranksPursuitButYieldsToDefenseAndCommittedAttacks() {
+        assertEquals(
+                "return_to_shaman",
+                choose(Map.of("ready.return_to_shaman", 1D, "ready.melee", 1D, "ready.bow", 1D)));
+        assertEquals(
+                "ranged_retreat",
+                choose(Map.of("ready.return_to_shaman", 1D, "ready.ranged_retreat", 1D)));
+        assertEquals(
+                "melee",
+                choose(
+                        Map.of(
+                                "ready.return_to_shaman",
+                                1D,
+                                "ready.melee",
+                                1D,
+                                "committed.melee",
+                                1D)));
+        assertEquals(
+                "panic_escape",
+                choose(Map.of("ready.return_to_shaman", 1D, "ready.panic_escape", 1D)));
+    }
+
+    @Test
     void healingRetreatOutranksOrdinaryCombatButNotStunOrCommittedSwing() {
         assertEquals(
                 "seek_healing",

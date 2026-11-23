@@ -8,7 +8,7 @@ Goblin shamans and opted-in pillager casting now use this API. Spell costs come 
 
 ## Balance and equipment
 
-`serverconfig/riftfall-mana-server.toml` in the world config controls defaults: 100 base mana, 3 points/second and 40 ticks of regeneration delay after a successful expense. The shaman profile is `riftfall:goblin_shaman=160,4`. Add `entity_id=capacity,regen_per_second` rows to tune another species. Profiles supply base capacity; existing custom attribute bases are preserved. Regeneration pauses during casting, and save/load preserves the balance and remaining delay. There is no regeneration catch-up while unloaded.
+`serverconfig/riftfall-mana-server.toml` in the world config controls defaults: 100 base mana, 3 points/second and 40 ticks of regeneration delay after a successful expense. The shaman profile is `riftfall:goblin_shaman=240,4`. Existing worlds retain their saved profile; update the shaman row to `riftfall:goblin_shaman=240,4` to adopt the larger pool. Add `entity_id=capacity,regen_per_second` rows to tune another species. Profiles supply base capacity; existing custom attribute bases are preserved. Regeneration pauses during casting, and save/load preserves the balance and remaining delay. There is no regeneration catch-up while unloaded.
 
 Iron's attributes are the source of equipment changes: `max_mana`, `mana_regen`, spell/school power and resistance, cooldown reduction, and cast-time reduction. The current mob spells use these attributes. Capacity increases add room without instantly refilling; decreases clamp the balance. Iron's mana-regeneration value is a multiplier: base 4/s with a 1.5 value regenerates 6/s.
 

@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 public final class RegroupGoal extends Goal {
     private final Mob mob;
     private final Predicate<Mob> member;
-    private final double searchRadius, startDistance, arrivalDistance, speed;
+    private final double searchRadius, startDistance, arrivalDistance, speed, threatDistance;
     private Mob ally;
     private Path path;
     private long nextPlan;
@@ -24,6 +24,18 @@ public final class RegroupGoal extends Goal {
             double startDistance,
             double arrivalDistance,
             double speed) {
+        this(mob, member, searchRadius, startDistance, arrivalDistance, speed, startDistance);
+    }
+
+    public RegroupGoal(
+            Mob mob,
+            Predicate<Mob> member,
+            double searchRadius,
+            double startDistance,
+            double arrivalDistance,
+            double speed,
+            double threatDistance) {
+        this.threatDistance = threatDistance;
         this.mob = mob;
         this.member = member;
         this.searchRadius = searchRadius;
@@ -46,7 +58,7 @@ public final class RegroupGoal extends Goal {
         return target != null
                 && target.isAlive()
                 && mob.getSensing().hasLineOfSight(target)
-                && mob.distanceToSqr(target) <= startDistance * startDistance;
+                && mob.distanceToSqr(target) <= threatDistance * threatDistance;
     }
 
     private boolean plan() {

@@ -95,6 +95,23 @@ final class GoblinBehavior {
                         4,
                         1.05),
                 () -> false);
+        if (!mob.isShaman()) {
+            executors.register(
+                    "return_to_shaman",
+                    new RegroupGoal(
+                            mob,
+                            other ->
+                                    other instanceof GoblinEntity goblin
+                                            && goblin.isShaman()
+                                            && !goblin.isBurrowing()
+                                            && !goblin.isPanicFleeing(),
+                            48,
+                            12,
+                            6,
+                            1.05,
+                            4),
+                    () -> false);
+        }
         for (var slot : org.Azkerash.riftfall.behavior.skills.MobSkillLoadout.ACTIVE_SLOTS) {
             var skillGoal = new org.Azkerash.riftfall.behavior.skills.MobSkillGoal(mob, slot);
             executors.register(
@@ -200,7 +217,8 @@ final class GoblinBehavior {
                                     || id.equals("rally")
                                     || id.equals("seek_healing")
                                     || id.equals("panic_escape")
-                                    || id.equals("regroup"))
+                                    || id.equals("regroup")
+                                    || id.equals("return_to_shaman"))
                             : !snapshot.context().active("target.present");
             // Do not pathfind or advance idle ability cooldowns while another animation owns the
             // action slot.

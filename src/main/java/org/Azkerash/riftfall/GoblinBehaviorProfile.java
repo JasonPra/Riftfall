@@ -45,6 +45,7 @@ final class GoblinBehaviorProfile {
         rules.add(rule("heal", 400, Map.of("fear", 10D)));
         rules.add(rule("ranged_retreat", 300, Map.of("fear", 50D)));
         rules.add(rule("cast", 250, Map.of("confidence", 20D)));
+        rules.add(rule("return_to_shaman", 280, Map.of()));
         rules.add(rule("regroup", 180, Map.of("fear", 20D)));
         rules.add(rule("position", 160, Map.of("fear", 10D)));
         rules.add(rule("bow", 140, Map.of("confidence", 10D, "cover.safe", 200D)));

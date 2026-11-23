@@ -25,3 +25,9 @@ Warriors receive Epic Fight's Step in an empty Dodge slot once, preserving an ex
 Archers receive an additional 10% movement multiplier while sprinting. Walking speed and shaman speed are unchanged. Sprinting and Step still use the existing stamina restrictions.
 
 `RiftfallIntercepting`, `RiftfallProtectedAlly`, `RiftfallInterceptX/Z` and `RiftfallInterceptDashes` help inspect formation behavior. Transient interception state is cleared when old goblins load.
+
+## Automatic return to shamans
+
+Warriors and archers more than 12 blocks from the nearest visible, reachable allied shaman can return toward it, stopping within 6 blocks. The search is bounded to 48 blocks; it runs through the existing regroup executor with a 20-tick search cooldown and 10-tick path refresh. Shamans do not receive this action.
+
+The `return_to_shaman` behavior outranks ordinary pursuit and bow attacks. A visible current enemy within 4 blocks prevents or interrupts the return; panic, healing retreats, defensive abilities, and committed attacks retain priority. Unreachable routes and routes crossing too close to the visible enemy are rejected. The separate start and arrival distances prevent repeated starts at the tether boundary. This movement does not apply the Rally spell buff.

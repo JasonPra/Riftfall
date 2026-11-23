@@ -28,7 +28,7 @@ public final class ManaConfig {
                                         + " keep their own base attribute.")
                         .defineListAllowEmpty(
                                 "entityProfiles",
-                                List.of("riftfall:goblin_shaman=160,4"),
+                                List.of("riftfall:goblin_shaman=240,4"),
                                 () -> "minecraft:pillager=100,3",
                                 v -> v instanceof String s && valid(s));
         SPEC = b.build();
