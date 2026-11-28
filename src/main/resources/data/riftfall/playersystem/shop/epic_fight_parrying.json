@@ -1,0 +1,17 @@
+{
+  "item": {
+    "id": "epicfight:skillbook",
+    "count": 1,
+    "components": {
+      "epicfight:skill": "epicfight:parrying"
+    }
+  },
+  "price": 500,
+  "stock": 1,
+  "weight": 2,
+  "min_rank": "C-",
+  "tags": [
+    "skill_book",
+    "epic_fight"
+  ]
+}

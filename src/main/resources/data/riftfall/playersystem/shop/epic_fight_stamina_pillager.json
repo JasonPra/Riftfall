@@ -1,0 +1,17 @@
+{
+  "item": {
+    "id": "epicfight:skillbook",
+    "count": 1,
+    "components": {
+      "epicfight:skill": "epicfight:stamina_pillager"
+    }
+  },
+  "price": 220,
+  "stock": 1,
+  "weight": 2,
+  "min_rank": "E-",
+  "tags": [
+    "skill_book",
+    "epic_fight"
+  ]
+}

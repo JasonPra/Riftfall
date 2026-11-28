@@ -1,0 +1,17 @@
+{
+  "item": {
+    "id": "epicfight:skillbook",
+    "count": 1,
+    "components": {
+      "epicfight:skill": "epicfight:phantom_ascent"
+    }
+  },
+  "price": 700,
+  "stock": 1,
+  "weight": 2,
+  "min_rank": "A-",
+  "tags": [
+    "skill_book",
+    "epic_fight"
+  ]
+}
