@@ -42,7 +42,9 @@
     "EndermanCarriedBlockLayerMixin",
     "EndermanCarryParticlesMixin",
     "HeldItemDebugMixin",
-    "GeckoLibOutlineBufferMixin"
+    "GeckoLibOutlineBufferMixin",
+    "WheelKeyMappingAccess",
+    "QuintWheelInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1
