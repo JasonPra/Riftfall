@@ -34,7 +34,6 @@
     "QuintessenceGoblinCompositionMixin"
   ],
   "client": [
-    "NativeOrcGeckoRenderMixin",
     "CameraAccess",
     "ThirdPersonCameraMixin",
     "GoblinBurrowLockOnMixin",
@@ -44,7 +43,8 @@
     "HeldItemDebugMixin",
     "GeckoLibOutlineBufferMixin",
     "WheelKeyMappingAccess",
-    "QuintWheelInputMixin"
+    "QuintWheelInputMixin",
+    "QuintCodexControlsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

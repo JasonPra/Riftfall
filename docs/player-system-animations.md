@@ -4,15 +4,36 @@ The six supported humanoids now have their own Epic Fight idle, walk and close-r
 
 Regular melee uses the equipped weapon collider and existing damage attributes. Its damage window follows the fast contact stroke, with a visible wind-up and recovery. Bow handling and other specialized weapon moves remain delegated to the existing Epic Fight patch. The custom close-range attack is selected for empty hands, swords and axes only. The original species data, spells and effects are not replaced.
 
-## Orc spell preservation
+## Orc warrior rig overhaul
 
-Player System still owns the orc's telegraphed special attack: its wind-up, cancellation, reach, damage multiplier, knockback, cooldown, sounds, particles and callback are unchanged. During the native telegraph and its release, the client temporarily delegates rendering to Player System's original GeckoLib renderer and animation controllers. In particular, `animation.orc_warrior.attack` is loaded unchanged from Player System's installed assets. This avoids hiding its spell animation behind an Epic Fight melee animation.
+The orc now has an authored Epic Fight mesh and its own 20-joint humanoid armature,
+with rest frames sized for its broad chest, longer limbs, heavy shoulders and head.
+Upper arms, forearms, thighs and shins are separate jointed pieces. Its default axe
+has a dedicated Tool_R mesh part; explicitly equipping an item hides that built-in
+axe and uses Epic Fight's normal held-item layer. The installed Player System skin
+is retained. No GeckoLib renderer or geometry conversion is used for the orc.
 
-A presentation-only entity notification keeps the handoff synchronized, including players who start tracking a caster mid-cast. It expires automatically and clears on native cancellation. The Epic Fight melee selector waits while the native cast/release is active. Starting a native telegraph also stops any in-progress Epic Fight melee clip; it does not add an Epic Fight damage phase to the spell. Only Player System invokes the spell's damage callback.
+Nine clips use this rig: idle, walk/chase, airborne pose, melee, hit reaction,
+knockdown/recovery, spell wind-up, spell slam and death. The other five humanoids
+retain their existing geometry adapter and animation sets.
 
-During that handoff, the compatibility mixin skips Epic Fight's GeckoLib pre-render interception for the casting orc. The original GeckoLib render event remains available to other listeners. This prevents the humanoid patched renderer from receiving a GeckoLib renderer of an incompatible type.
+Player System still owns the spell's telegraph, target checks, damage multiplier,
+knockback, cooldown, cancellation and callback. Its native start/release/cancel
+hooks play Epic Fight presentation clips without adding an attack phase or another
+source of spell damage. Wind-up playback scales to the native wind-up duration.
+Tracking notifications carry remaining time so late clients can join the current
+pose. No renderer swap occurs during the cast.
 
-The animation generator is `tools/generate_player_system_animations.py`, invoked with the pinned Epic Fight jar path. It requires Python and NumPy. It writes only `assets/riftfall/animmodels/animations/player_system/`; it does not overwrite the original GeckoLib assets. Separate wing, tail and cape articulation is still outside the shared biped rig.
+Death uses a finite, non-looping collapse clip. Death takes priority over cast
+presentation, and late cast starts/releases or cancellations cannot restart an idle
+loop on a dead orc. The normal entity death/removal path runs; no deathTime reset or
+corpse-retention override is introduced.
+
+Regenerate the orc with `tools/generate_orc_warrior.py EPIC_FIGHT_JAR PLAYER_SYSTEM_JAR`
+(Python and NumPy). The script authors its own cuboids and reads the installed
+model only for UV rectangles. It writes the dedicated mesh/armature and nine clips.
+`tools/generate_player_system_animations.py` handles the other humanoids. Separate
+wing, tail and cape articulation is still outside their shared biped rig.
 
 ## Encounter confidence
 

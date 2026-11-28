@@ -57,11 +57,19 @@ public final class ActionWheels {
     }
 
     public static Collection<KeyMapping> keys() {
-        return KEYS.values();
+        return KEYS.values().stream().filter(k -> available(k.getName())).toList();
     }
 
     public static KeyMapping key(String id) {
         return KEYS.get(id);
+    }
+
+    public static boolean available(String id) {
+        var binding = key(id);
+        var player = Minecraft.getInstance().player;
+        return binding != null
+                && (!WheelLayout.debug(id, binding.getCategory())
+                        || player != null && player.isCreative());
     }
 
     public static Component label(String id) {
@@ -131,7 +139,6 @@ public final class ActionWheels {
                 true,
                 "key.irons_spellbooks.spell_wheel",
                 "key.quintessence.wheel",
-                "key.ars_nouveau.open_book",
                 "key.ars_nouveau.selection_hud");
         add(
                 result,

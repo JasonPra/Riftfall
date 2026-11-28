@@ -88,7 +88,7 @@ public final class ActionWheelScreen extends Screen {
         return group < 0
                 ? ActionWheels.settings().wheels.stream().map(g -> g.name).toList()
                 : ActionWheels.settings().wheels.get(group).bindings.stream()
-                        .filter(id -> ActionWheels.key(id) != null)
+                        .filter(ActionWheels::available)
                         .toList();
     }
 

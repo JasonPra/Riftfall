@@ -48,7 +48,7 @@ public final class WheelActions {
         }
         String id = pending;
         pending = null;
-        if (mc.player == null || mc.screen != null || ActionWheels.key(id) == null) {
+        if (mc.player == null || mc.screen != null || !ActionWheels.available(id)) {
             return;
         }
         if (id.equals("key.quintessence.wheel")) {

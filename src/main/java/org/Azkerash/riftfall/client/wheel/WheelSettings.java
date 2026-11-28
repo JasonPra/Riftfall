@@ -9,6 +9,7 @@ import java.util.*;
  */
 public final class WheelSettings {
     public int version = 1;
+    public boolean removedDefaultArsBook;
     public List<Group> wheels = new ArrayList<>();
     public Set<String> wheelOnly = new LinkedHashSet<>();
     public Map<String, SavedKey> originalKeys = new LinkedHashMap<>();
@@ -43,6 +44,14 @@ public final class WheelSettings {
         }
         if (originalKeys == null) {
             originalKeys = new LinkedHashMap<>();
+        }
+        if (!removedDefaultArsBook) {
+            for (var group : wheels) {
+                if (group.name.equalsIgnoreCase("Magic")) {
+                    group.bindings.remove("key.ars_nouveau.open_book");
+                }
+            }
+            removedDefaultArsBook = true;
         }
         wheelOnly.retainAll(wheels.stream().flatMap(g -> g.bindings.stream()).toList());
         if (wheels.isEmpty()) {

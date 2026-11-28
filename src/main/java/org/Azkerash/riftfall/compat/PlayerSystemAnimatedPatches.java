@@ -12,6 +12,8 @@ import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 /** Keep native ranged/weapon support, specializing ordinary humanoid melee and locomotion. */
 final class PlayerSystemAnimatedPatches {
     static final class Vindicator extends VindicatorPatch<PathfinderMob> {
+        private boolean deathStarted;
+
         Vindicator(PathfinderMob mob) {
             super(mob);
         }
@@ -19,14 +21,46 @@ final class PlayerSystemAnimatedPatches {
         @Override
         public void initAnimator(Animator animator) {
             super.initAnimator(animator);
-            PlayerSystemAnimations.living(animator, original);
+            OrcWarriorAnimations.living(animator);
+        }
+
+        @Override
+        protected void setWeaponMotions() {
+            super.setWeaponMotions();
+            weaponLivingMotions.clear();
         }
 
         @Override
         protected CombatBehaviors.Builder<HumanoidMobPatch<?>> getHoldingItemWeaponMotionBuilder() {
-            return ordinaryWeapon(original)
-                    ? PlayerSystemAnimations.melee(original)
-                    : super.getHoldingItemWeaponMotionBuilder();
+            return OrcWarriorAnimations.melee(original);
+        }
+
+        @Override
+        public yesman.epicfight.api.animation.AnimationManager.AnimationAccessor<
+                        ? extends yesman.epicfight.api.animation.types.StaticAnimation>
+                getHitAnimation(yesman.epicfight.world.damagesource.StunType type) {
+            return switch (type) {
+                case NONE -> null;
+                case KNOCKDOWN -> OrcWarriorAnimations.KNOCKDOWN;
+                default -> OrcWarriorAnimations.HURT;
+            };
+        }
+
+        @Override
+        public void onDeath(net.minecraft.world.damagesource.DamageSource source) {
+            deathStarted = true;
+            NativeOrcCast.clear(original);
+            super.onDeath(source);
+        }
+
+        @Override
+        public void preTick() {
+            if (original.isDeadOrDying() && !deathStarted) {
+                deathStarted = true;
+                NativeOrcCast.clear(original);
+                getAnimator().playDeathAnimation();
+            }
+            super.preTick();
         }
     }
 

@@ -9,13 +9,13 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-/** Presentation handoff only. Player System still owns the telegraph callback and its damage. */
+/** Player System owns spell damage; its telegraph drives only these Epic Fight poses. */
 public final class NativeOrcCast {
     public static final String UNTIL = "RiftfallOrcNativeCastUntil";
+    public static final String WINDUP = "RiftfallOrcWindupTicks";
 
     public static boolean isOrc(Mob mob) {
         return BuiltInRegistries.ENTITY_TYPE
@@ -25,38 +25,60 @@ public final class NativeOrcCast {
     }
 
     public static boolean active(Mob mob) {
-        return isOrc(mob)
+        return mob.isAlive()
+                && isOrc(mob)
                 && (mob.getPersistentData().getLong(UNTIL) > mob.level().getGameTime()
                         || !mob.level().isClientSide && Telegraph.isRunning(mob));
     }
 
     public static void begin(Mob mob, int ticks) {
-        if (!isOrc(mob)) {
+        if (!mob.isAlive() || !isOrc(mob)) {
             return;
         }
+        ticks = Math.clamp(ticks, 1, 12000);
+        set(mob, ticks, ticks);
         var patch = EpicFightCapabilities.getEntityPatch(mob, LivingEntityPatch.class);
         if (patch != null) {
-            patch.playAnimationSynchronized(Animations.BIPED_IDLE, 0);
+            patch.playAnimationSynchronized(OrcWarriorAnimations.SPELL_WINDUP, 0);
         }
-        set(mob, Math.min(12000, ticks + 2));
     }
 
     public static void release(Mob mob) {
-        if (mob != null && isOrc(mob)) {
-            set(mob, 16);
+        if (mob == null || !mob.isAlive() || !isOrc(mob)) {
+            return;
+        }
+        set(mob, 16, 0);
+        var patch = EpicFightCapabilities.getEntityPatch(mob, LivingEntityPatch.class);
+        if (patch != null) {
+            patch.playAnimationSynchronized(OrcWarriorAnimations.SPELL_SLAM, 0);
         }
     }
 
     public static void cancel(Mob mob) {
-        if (mob != null && isOrc(mob)) {
-            set(mob, 0);
+        if (mob == null || !isOrc(mob) || mob.getPersistentData().getInt(WINDUP) <= 0) {
+            return;
+        }
+        clear(mob);
+        set(mob, 0, 0);
+        // Never let a late cancellation replace the one-shot death clip with a looping idle.
+        if (mob.isAlive()) {
+            var patch = EpicFightCapabilities.getEntityPatch(mob, LivingEntityPatch.class);
+            if (patch != null) {
+                patch.playAnimationSynchronized(OrcWarriorAnimations.IDLE, 0);
+            }
         }
     }
 
-    private static void set(Mob mob, int duration) {
+    public static void clear(Mob mob) {
+        mob.getPersistentData().remove(UNTIL);
+        mob.getPersistentData().remove(WINDUP);
+    }
+
+    private static void set(Mob mob, int duration, int windup) {
         mob.getPersistentData().putLong(UNTIL, mob.level().getGameTime() + duration);
+        mob.getPersistentData().putInt(WINDUP, windup);
         PacketDistributor.sendToPlayersTrackingEntity(
-                mob, new NativeOrcCastPayload(mob.getId(), mob.getUUID(), duration));
+                mob, new NativeOrcCastPayload(mob.getId(), mob.getUUID(), duration, windup));
     }
 
     @SubscribeEvent
@@ -72,7 +94,12 @@ public final class NativeOrcCast {
                                     1,
                                     12000);
             PacketDistributor.sendToPlayer(
-                    player, new NativeOrcCastPayload(mob.getId(), mob.getUUID(), remaining));
+                    player,
+                    new NativeOrcCastPayload(
+                            mob.getId(),
+                            mob.getUUID(),
+                            remaining,
+                            mob.getPersistentData().getInt(WINDUP)));
         }
     }
 

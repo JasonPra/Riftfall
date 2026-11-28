@@ -6,6 +6,18 @@ import org.junit.jupiter.api.Test;
 
 class WheelLayoutTest {
     @Test
+    void debugActionsAreRecognizedWithoutHidingOrdinaryUtilities() {
+        assertTrue(
+                WheelLayout.debug(
+                        "key.riftfall.held_item_bounds", "key.categories.riftfall_debug"));
+        assertTrue(
+                WheelLayout.debug(
+                        "key.epicfight.switch_vanilla_model_debug", "key.epicfight.system"));
+        assertFalse(WheelLayout.debug("key.quintessence.thralls", "key.categories.quintessence"));
+        assertFalse(WheelLayout.debug("key.epicfight.emote", "key.epicfight.gui"));
+    }
+
+    @Test
     void pointerSectorsMatchTheDrawnClockwiseWheelAndRespectDeadZone() {
         for (int count = 1; count <= 8; count++) {
             for (int index = 0; index < count; index++) {

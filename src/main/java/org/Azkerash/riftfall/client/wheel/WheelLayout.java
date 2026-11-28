@@ -30,5 +30,10 @@ public final class WheelLayout {
                         .contains(category);
     }
 
+    public static boolean debug(String name, String category) {
+        String both = (name + " " + category).toLowerCase(java.util.Locale.ROOT);
+        return both.contains("debug") || name.equals("key.riftfall.held_item_bounds");
+    }
+
     private WheelLayout() {}
 }

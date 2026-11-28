@@ -36,7 +36,11 @@ public final class PlayerSystemCombat {
                     if (type == null) {
                         return;
                     }
-                    Armatures.registerEntityTypeArmature(type, Armatures.BIPED);
+                    Armatures.registerEntityTypeArmature(
+                            type,
+                            name.equals("orc_warrior")
+                                    ? OrcWarriorAnimations.RIG
+                                    : Armatures.BIPED);
                     event.registerEntityPatchUnsafe(
                             (EntityType<PathfinderMob>) type,
                             entity ->

@@ -17,11 +17,15 @@ class PlayerSystemAnimationTest {
         for (String mob : PlayerSystemCombat.HUMANOIDS.keySet()) {
             for (String kind : List.of("idle", "walk", "attack")) {
                 String path =
-                        "assets/riftfall/animmodels/animations/player_system/"
-                                + mob
-                                + "_"
-                                + kind
-                                + ".json";
+                        mob.equals("orc_warrior")
+                                ? "assets/riftfall/animmodels/animations/orc_warrior/"
+                                        + kind
+                                        + ".json"
+                                : "assets/riftfall/animmodels/animations/player_system/"
+                                        + mob
+                                        + "_"
+                                        + kind
+                                        + ".json";
                 try (var stream = getClass().getClassLoader().getResourceAsStream(path)) {
                     assertNotNull(stream, path);
                     var clip =

@@ -12,6 +12,7 @@ import java.util.*;
 /** All eligible installed mappings are discoverable; Player System and vanilla are excluded. */
 public final class WheelEditorScreen extends Screen {
     private int group, page;
+    private boolean creative;
     private String query = "";
     private EditBox search;
     private EditBox newName;
@@ -27,6 +28,7 @@ public final class WheelEditorScreen extends Screen {
 
     @Override
     protected void init() {
+        creative = minecraft.player != null && minecraft.player.isCreative();
         var groups = ActionWheels.settings().wheels;
         group = Math.floorMod(group, groups.size());
         int left = Math.max(10, width / 2 - 220);
@@ -125,6 +127,15 @@ public final class WheelEditorScreen extends Screen {
                         .bounds(width / 2 - 60, height - 27, 120, 20)
                         .build());
         refreshRows();
+    }
+
+    @Override
+    public void tick() {
+        boolean now = minecraft.player != null && minecraft.player.isCreative();
+        if (now != creative) {
+            creative = now;
+            refreshRows();
+        }
     }
 
     private List<KeyMapping> filtered() {

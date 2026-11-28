@@ -56,3 +56,18 @@ Every visible panel has a distinct pixel material. Labels wrap and fit inside th
 sector without ellipses; hovering also shows the original full keybinding label.
 The eight deterministic material textures can be regenerated with
 `python tools/generate_wheel_textures.py` (Pillow).
+
+The Quintessence Codex also explains the shortcut under **Start here → Controls**
+(the third entry, below Welcome). It resolves the current wheel and casting key
+labels from Minecraft settings, including modifiers and unbound state. That page
+bypasses its cached body so rebinding is reflected when it is displayed again.
+
+Debug actions (including held-item bounds and debug-category bindings) are visible
+and activatable through the wheels/editor only in Creative mode. Their saved
+assignments are preserved when switching modes. Ordinary utility actions remain
+available in Survival.
+
+The default Magic wheel omits Ars Nouveau’s book-opening shortcut; use the physical
+book instead. Existing default Magic groups migrate once, restoring the saved
+direct key if the action has no other wheel assignment. It can still be deliberately
+added in the editor afterward.

@@ -28,7 +28,11 @@ public final class PlayerSystemAnimations {
     private static final Map<String, AnimationAccessor<AttackAnimation>> ATTACK = new HashMap<>();
 
     public static void register(AnimationBuilder builder) {
+        OrcWarriorAnimations.register(builder);
         for (String name : PlayerSystemCombat.HUMANOIDS.keySet().stream().sorted().toList()) {
+            if (name.equals("orc_warrior")) {
+                continue;
+            }
             IDLE.put(
                     name,
                     builder.nextAccessor(
@@ -79,6 +83,10 @@ public final class PlayerSystemAnimations {
     }
 
     public static void living(Animator animator, PathfinderMob mob) {
+        if (NativeOrcCast.isOrc(mob)) {
+            OrcWarriorAnimations.living(animator);
+            return;
+        }
         String name = name(mob);
         animator.addLivingAnimation(LivingMotions.IDLE, IDLE.get(name));
         animator.addLivingAnimation(LivingMotions.WALK, WALK.get(name));
@@ -86,6 +94,9 @@ public final class PlayerSystemAnimations {
     }
 
     public static CombatBehaviors.Builder<HumanoidMobPatch<?>> melee(PathfinderMob mob) {
+        if (NativeOrcCast.isOrc(mob)) {
+            return OrcWarriorAnimations.melee(mob);
+        }
         var animation = ATTACK.get(name(mob));
         return CombatBehaviors.<HumanoidMobPatch<?>>builder()
                 .newBehaviorSeries(

@@ -10,6 +10,25 @@ import java.util.*;
 
 class WheelSettingsTest {
     @Test
+    void oldMagicBookEntryIsRemovedOnceAndItsSavedKeyCanBeRestored() {
+        var settings = new WheelSettings();
+        var magic = new WheelSettings.Group("Magic");
+        magic.bindings.add("key.ars_nouveau.open_book");
+        settings.wheels.add(magic);
+        settings.wheelOnly.add("key.ars_nouveau.open_book");
+        settings.originalKeys.put(
+                "key.ars_nouveau.open_book", new WheelSettings.SavedKey("key.keyboard.c", "NONE"));
+        settings.normalize();
+        assertFalse(magic.bindings.contains("key.ars_nouveau.open_book"));
+        assertFalse(settings.wheelOnly.contains("key.ars_nouveau.open_book"));
+        assertEquals(
+                "key.keyboard.c", settings.originalKeys.get("key.ars_nouveau.open_book").key());
+        magic.bindings.add("key.ars_nouveau.open_book");
+        settings.normalize();
+        assertTrue(magic.bindings.contains("key.ars_nouveau.open_book"));
+    }
+
+    @Test
     void removingTheLastAssignmentReleasesItsWheelOnlyPolicyButKeepsRecoveryData() {
         var settings = new WheelSettings();
         var first = new WheelSettings.Group("Books");

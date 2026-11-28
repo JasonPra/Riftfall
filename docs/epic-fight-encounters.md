@@ -6,14 +6,26 @@ Audited Player System 0.0.11, Quintessence 0.144.0 and Epic Fight 21.17.3.1. The
 
 | Player System body | Epic Fight patch |
 | --- | --- |
-| `orc_warrior` | Vindicator |
+| `orc_warrior` | Vindicator AI with dedicated orc armature, mesh and clips |
 | `rotting_zombie` | Zombie |
 | `gargoyle_striker` | Zombie |
 | `decayed_skeleton` | Skeleton |
 | `kobold_scout` | Skeleton |
 | `death_knight` | Wither skeleton |
 
-These are explicitly registered entity types, not a blanket replacement of every mob's AI. The [animation pass](player-system-animations.md) adds species-specific locomotion and melee while retaining the orc's original GeckoLib spell sequence. Epic Fight owns their melee animation, weapon collision and hit reactions. Player System's species stats, affixes and encounter bookkeeping remain in place. Their installed GeckoLib cube geometry is converted to a skinned humanoid mesh at resource load, using the installed textures and resource-pack geometry. No third-party model or texture is bundled. Appendages follow their parent humanoid joint; independent GeckoLib wing, jaw, cape and tail animations are not reproduced. This is a baseline humanoid binding, not a bespoke animation set for each species.
+These are explicitly registered entity types, not a blanket replacement of every
+mob's AI. The [animation pass](player-system-animations.md) adds species-specific
+locomotion and melee. The orc warrior has an authored Epic Fight mesh and its own
+armature for all locomotion, melee, spell presentation, hit reactions and death.
+Player System retains its original orc spell logic, species stats, affixes and
+encounter bookkeeping. The orc uses the installed skin; no GeckoLib renderer
+handoff remains.
+
+The other five humanoids' installed GeckoLib cube geometry is converted to skinned
+humanoid meshes at resource load, using installed textures and resource-pack
+geometry. Appendages follow their parent humanoid joint; independent wing, jaw,
+cape and tail animations are not reproduced. Their binding remains a baseline
+humanoid adapter. No third-party model or texture is bundled.
 
 The pinned Epic Fight jar's GeckoLib integration contains an armor mesh transformer and armor-renderer mixin. It does not automatically register combat patches and entity skeletons for these custom mob IDs. This adapter supplies those missing bindings.
 

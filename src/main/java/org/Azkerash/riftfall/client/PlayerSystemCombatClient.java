@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Original textures and installed GeckoLib geometry, skinned for Epic Fight's biped attacks. */
+/** Dedicated orc rig/mesh; other humanoids adapt installed geometry and retain original skins. */
 @EventBusSubscriber(modid = "riftfall", value = Dist.CLIENT)
 public final class PlayerSystemCombatClient {
     private static final Map<String, MeshAccessor<HumanoidMesh>> MESHES = new HashMap<>();
@@ -43,16 +43,22 @@ public final class PlayerSystemCombatClient {
                             "entity/compat/" + name,
                             ignored -> {
                                 var source =
-                                        ResourceLocation.fromNamespaceAndPath(
-                                                "player_system", "geo/mob/" + name + ".geo.json");
+                                        name.equals("orc_warrior")
+                                                ? ResourceLocation.fromNamespaceAndPath(
+                                                        "riftfall",
+                                                        "animmodels/entity/orc_warrior.json")
+                                                : ResourceLocation.fromNamespaceAndPath(
+                                                        "player_system",
+                                                        "geo/mob/" + name + ".geo.json");
                                 try (var reader =
                                         Minecraft.getInstance()
                                                 .getResourceManager()
                                                 .openAsReader(source)) {
+                                    var data = JsonParser.parseReader(reader).getAsJsonObject();
                                     var mesh =
-                                            EncounterHumanoidMesh.convert(
-                                                    JsonParser.parseReader(reader)
-                                                            .getAsJsonObject());
+                                            name.equals("orc_warrior")
+                                                    ? data
+                                                    : EncounterHumanoidMesh.convert(data);
                                     return new JsonAssetLoader(mesh, source)
                                             .loadSkinnedMesh(HumanoidMesh::new);
                                 } catch (IOException exception) {
@@ -77,7 +83,25 @@ public final class PlayerSystemCombatClient {
                                                                     HumanoidMesh>(
                                                                     MESHES.get(name),
                                                                     event.getContext(),
-                                                                    type)));
+                                                                    type) {
+                                                                @Override
+                                                                protected void prepareModel(
+                                                                        HumanoidMesh mesh,
+                                                                        Mob mob,
+                                                                        LivingEntityPatch<Mob>
+                                                                                patch,
+                                                                        Renderer renderer) {
+                                                                    super.prepareModel(
+                                                                            mesh, mob, patch,
+                                                                            renderer);
+                                                                    if (mesh.hasPart("orcAxe")) {
+                                                                        mesh.getPart("orcAxe")
+                                                                                .setHidden(
+                                                                                        !mob.getMainHandItem()
+                                                                                                .isEmpty());
+                                                                    }
+                                                                }
+                                                            }));
                         });
     }
 
@@ -96,34 +120,12 @@ public final class PlayerSystemCombatClient {
 
     public static final class Renderer extends HumanoidMobRenderer<Mob, HumanoidModel<Mob>> {
         private final ResourceLocation texture;
-        private final dev.kubas.playersystem.client.species.SpeciesRenderer<
-                        dev.kubas.playersystem.entity.species.SpeciesVindicator>
-                nativeRenderer;
 
         Renderer(EntityRendererProvider.Context context, String name) {
             super(context, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER)), .5F);
-            nativeRenderer = new dev.kubas.playersystem.client.species.SpeciesRenderer<>(context);
             texture =
                     ResourceLocation.fromNamespaceAndPath(
                             "player_system", "textures/entity/mob/" + name + ".png");
-        }
-
-        @Override
-        public void render(
-                Mob mob,
-                float yaw,
-                float partialTick,
-                com.mojang.blaze3d.vertex.PoseStack pose,
-                net.minecraft.client.renderer.MultiBufferSource buffers,
-                int light) {
-            if (org.Azkerash.riftfall.compat.NativeOrcCast.active(mob)
-                    && mob
-                            instanceof
-                            dev.kubas.playersystem.entity.species.SpeciesVindicator caster) {
-                nativeRenderer.render(caster, yaw, partialTick, pose, buffers, light);
-                return;
-            }
-            super.render(mob, yaw, partialTick, pose, buffers, light);
         }
 
         @Override

@@ -1,5 +1,5 @@
 """Author Epic Fight humanoid clips. Usage: python tools/generate_player_system_animations.py EPIC_FIGHT_JAR
-Requires numpy. The original GeckoLib orc spell animation is deliberately not replaced.
+Requires numpy. The orc has a dedicated generator: generate_orc_warrior.py.
 """
 from pathlib import Path
 import json, math, sys, zipfile
@@ -64,7 +64,7 @@ def export(name, keys):
 
 # Species silhouettes and cadence, with planted feet during attacks. No root-motion lunge.
 profiles = {
-    'orc_warrior': (7, 1.0, 20), 'rotting_zombie': (18, 1.25, 16),
+    'rotting_zombie': (18, 1.25, 16),
     'gargoyle_striker': (12, .8, 23), 'decayed_skeleton': (5, 1.1, 18),
     'kobold_scout': (8, .7, 24), 'death_knight': (2, 1.15, 15),
 }
