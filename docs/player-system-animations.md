@@ -41,7 +41,7 @@ Goblins with `RiftfallInRift=true` receive the confidence factor `self.in_rift`,
 
 ## Mixed replacement groups
 
-Encounter goblins are selected against nearby living encounter goblins within 32 horizontal blocks and four vertical blocks. The first three available slots fill shaman, warrior and archer roles; the first warrior gets a buckler. Later slots favor warriors over archers 3:1, with roughly half the additional warriors getting bucklers. A lost shaman is replaced when another goblin slot spawns. Separate floors outside that vertical band form separate groups.
+Player System encounter goblins share composition across their dungeon instance, so separate rooms on the same tower floor do not each start with another shaman. Other spawn sites use a local group within 32 horizontal blocks and four vertical blocks. Pending bodies count before they enter the world index. The first three slots fill shaman, warrior and archer roles; the first warrior gets a buckler. Groups receive one shaman, with a second allowed after twelve warriors/archers, and never more than two living shamans per instance. Other slots split evenly between warriors and archers, with roughly half the additional warriors getting bucklers. A lost shaman can be replaced by a later spawn. Existing saved populations are not rerolled.
 
 No additional spawn slots are created. A one-slot group can only contain the shaman; two slots add a warrior; all three roles require at least three slots. The selection runs before Player System applies its original species statistics and encounter/reward tracking.
 

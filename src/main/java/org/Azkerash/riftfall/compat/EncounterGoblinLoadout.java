@@ -13,6 +13,7 @@ import org.Azkerash.riftfall.*;
 /** Bounded local encounter composition; existing spawn slots are reused, never supplemented. */
 public final class EncounterGoblinLoadout {
     public static final String REPLACEMENT = "RiftfallEncounterReplacement";
+    private static final String GROUP = "RiftfallEncounterGroup";
     private static final String SHIELD = "RiftfallEncounterBuckler";
 
     private record Recent(java.lang.ref.WeakReference<GoblinEntity> entity, long tick) {}
@@ -32,10 +33,13 @@ public final class EncounterGoblinLoadout {
         if (shamans == 0) {
             return Role.SHAMAN;
         }
+        if (shamans < 2 && warriors + archers >= 12) {
+            return Role.SHAMAN;
+        }
         if (warriors == 0) {
             return Role.WARRIOR;
         }
-        if (archers == 0 || roll == 0) {
+        if (archers == 0 || roll < 2) {
             return Role.ARCHER;
         }
         return Role.WARRIOR;
@@ -45,6 +49,13 @@ public final class EncounterGoblinLoadout {
         if (EncounterGoblins.replacement(type) != GoblinEntities.GOBLIN.get()) {
             return type.create(level);
         }
+        String group =
+                level instanceof net.minecraft.server.level.ServerLevel serverLevel
+                        ? dev.kubas.playersystem.dungeon.DungeonService.instanceAt(
+                                        serverLevel.getServer(), level, x, z)
+                                .map(instance -> instance.id().toString())
+                                .orElse("")
+                        : "";
         var nearby =
                 new java.util.HashSet<>(
                         level.getEntitiesOfClass(
@@ -57,6 +68,17 @@ public final class EncounterGoblinLoadout {
                                                 && (g.isInRift()
                                                         || g.getPersistentData()
                                                                 .getBoolean(REPLACEMENT))));
+        if (!group.isEmpty()
+                && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            for (var entity : serverLevel.getAllEntities()) {
+                if (entity instanceof GoblinEntity goblin
+                        && goblin.isAlive()
+                        && group.equals(goblin.getPersistentData().getString(GROUP))) {
+                    nearby.add(goblin);
+                }
+            }
+            nearby.removeIf(goblin -> !group.equals(goblin.getPersistentData().getString(GROUP)));
+        }
         var recent = RECENT.computeIfAbsent(level, ignored -> new java.util.ArrayList<>());
         long now = level.getGameTime();
         recent.removeIf(
@@ -67,10 +89,11 @@ public final class EncounterGoblinLoadout {
         for (var entry : recent) {
             var goblin = entry.entity().get();
             if (goblin != null
-                    && goblin.isAddedToLevel()
                     && goblin.isAlive()
                     && !goblin.isNoAi()
-                    && near(goblin, x, y, z)) {
+                    && (group.isEmpty()
+                            ? near(goblin, x, y, z)
+                            : group.equals(goblin.getPersistentData().getString(GROUP)))) {
                 nearby.add(goblin);
             }
         }
@@ -96,6 +119,8 @@ public final class EncounterGoblinLoadout {
                 };
         var goblin = selected.create(level);
         if (goblin != null) {
+            goblin.moveTo(x, y, z);
+            goblin.getPersistentData().putString(GROUP, group);
             goblin.getPersistentData().putBoolean(REPLACEMENT, true);
             goblin.getPersistentData()
                     .putBoolean(

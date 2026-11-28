@@ -19,8 +19,24 @@ class EncounterGoblinLoadoutTest {
                 warriors++;
             }
         }
-        assertEquals(1, archers);
-        assertEquals(3, warriors);
+        assertEquals(2, archers);
+        assertEquals(2, warriors);
         assertEquals(EncounterGoblinLoadout.Role.SHAMAN, EncounterGoblinLoadout.role(0, 4, 2, 3));
+    }
+
+    @Test
+    void floorPopulationHasAtMostTwoShamansAndFavorsCombatRoles() {
+        int shamans = 0, warriors = 0, archers = 0;
+        for (int slot = 0; slot < 60; slot++) {
+            switch (EncounterGoblinLoadout.role(shamans, warriors, archers, slot % 4)) {
+                case SHAMAN -> shamans++;
+                case WARRIOR -> warriors++;
+                case ARCHER -> archers++;
+            }
+            assertEquals(slot < 13 ? 1 : 2, shamans);
+        }
+        assertEquals(2, shamans);
+        assertTrue(warriors >= 25);
+        assertTrue(archers >= 25);
     }
 }
