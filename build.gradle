@@ -114,7 +114,6 @@ dependencies {
     implementation ("curse.maven:quintessence-1729901:9669067")
     implementation ("curse.maven:tempest_almanac-1717056:9732194")
     implementation ("curse.maven:unifiedmana-1793502:9733444")
-    implementation ("curse.maven:Better_than_village-1772495:9697621")
     implementation ("curse.maven:ars_nouveau-401955:9521184")
     implementation ("curse.maven:L_Ender's_Cataclysm-551586:8931182")
     // CurseMaven does not supply transitive dependencies; pin the required libraries.
