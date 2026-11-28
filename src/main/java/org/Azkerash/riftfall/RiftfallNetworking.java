@@ -12,6 +12,7 @@ final class RiftfallNetworking {
         bus.addListener(BackstabViewPayload::register);
         bus.addListener(GoblinVoicePayload::register);
         bus.addListener(GoblinVocalCuePayload::register);
+        bus.addListener(org.Azkerash.riftfall.compat.NativeOrcCastPayload::register);
         bus.addListener(org.Azkerash.riftfall.behavior.BehaviorOverlayPayload::register);
     }
 

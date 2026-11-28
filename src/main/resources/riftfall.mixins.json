@@ -25,9 +25,13 @@
     "ShieldOnlyContactMixin",
     "PlayerSystemEncounterSpawnMixin",
     "GoblinSpawnEggReplacementMixin",
-    "PlayerSystemSkillBookShopMixin"
+    "PlayerSystemSkillBookShopMixin",
+    "PlayerSystemOrcTelegraphMixin",
+    "PlayerSystemGoblinCompositionMixin",
+    "QuintessenceGoblinCompositionMixin"
   ],
   "client": [
+    "NativeOrcGeckoRenderMixin",
     "CameraAccess",
     "ThirdPersonCameraMixin",
     "GoblinBurrowLockOnMixin",

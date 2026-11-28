@@ -23,6 +23,7 @@ final class RiftfallCombat {
         NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.behavior.skills.MobSkillCommands.class);
         GoblinFlurryStun.register();
         NeoForge.EVENT_BUS.register(GoblinHostility.class);
+        NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.compat.NativeOrcCast.class);
         NeoForge.EVENT_BUS.register(org.Azkerash.riftfall.compat.EncounterGoblins.class);
         NeoForge.EVENT_BUS.register(GrappleGoal.class);
     }

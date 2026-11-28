@@ -11,13 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 /** Keeps the original species and encounter setup, replacing only the entity factory result. */
 @org.spongepowered.asm.mixin.Pseudo
-@Mixin(
-        targets = {
-            "dev.kubas.playersystem.dungeon.mob.species.SpeciesApplier",
-            "dev.kubas.playersystem.dungeon.mob.DungeonSpawner",
-            "dev.kubas.quintessence.magic.world.Rifts"
-        },
-        remap = false)
+@Mixin(targets = "dev.kubas.playersystem.dungeon.mob.DungeonSpawner", remap = false)
 public abstract class PlayerSystemEncounterSpawnMixin {
     @Redirect(
             method = "*",

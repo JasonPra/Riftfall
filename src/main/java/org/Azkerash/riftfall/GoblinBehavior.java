@@ -48,6 +48,9 @@ final class GoblinBehavior {
                                         ? settings().retreatingMultiplier()
                                         : 1,
                         (target, factors) -> {
+                            if (mob.isInRift()) {
+                                factors.put("self.in_rift", 1D);
+                            }
                             if (GoblinRally.active(mob)) {
                                 factors.put("self.rallied", 1D);
                             }
@@ -157,6 +160,7 @@ final class GoblinBehavior {
         situation = snapshot;
         boolean rallied = GoblinRally.active(mob);
         signals.put("self.rallied", rallied ? ONE : ZERO);
+        signals.put("self.in_rift", mob.isInRift() ? ONE : ZERO);
         if (rallied) {
             signals.put("engage", ONE);
             signals.put("bold", ONE);

@@ -360,7 +360,10 @@ public final class GoblinEntity extends Monster
             net.minecraft.world.entity.MobSpawnType reason,
             net.minecraft.world.entity.SpawnGroupData group) {
         var result = super.finalizeSpawn(world, difficulty, reason, group);
-        if (!isRanged() && getOffhandItem().isEmpty() && getRandom().nextInt(3) == 0) {
+        if (getPersistentData()
+                .getBoolean(org.Azkerash.riftfall.compat.EncounterGoblinLoadout.REPLACEMENT)) {
+            org.Azkerash.riftfall.compat.EncounterGoblinLoadout.restore(this);
+        } else if (!isRanged() && getOffhandItem().isEmpty() && getRandom().nextInt(3) == 0) {
             setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(GoblinItems.BUCKLER.get()));
             setDropChance(EquipmentSlot.OFFHAND, .085F);
         }

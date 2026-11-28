@@ -6,7 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-final class GoblinItems {
+public final class GoblinItems {
     private static final DeferredRegister.Items ITEMS =
             DeferredRegister.createItems(Riftfall.MODID);
     public static final net.neoforged.neoforge.registries.DeferredItem<

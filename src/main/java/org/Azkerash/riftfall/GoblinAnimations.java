@@ -43,6 +43,7 @@ public final class GoblinAnimations {
         event.newBuilder(
                 Riftfall.MODID,
                 builder -> {
+                    org.Azkerash.riftfall.compat.PlayerSystemAnimations.register(builder);
                     PANT =
                             builder.nextAccessor(
                                     "biped/goblin_pant",

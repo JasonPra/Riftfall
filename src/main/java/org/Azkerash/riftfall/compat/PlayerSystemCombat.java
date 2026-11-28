@@ -4,14 +4,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.monster.AbstractSkeleton;
-import net.minecraft.world.entity.monster.Zombie;
 
 import yesman.epicfight.api.event.types.registry.EntityPatchRegistryEvent;
 import yesman.epicfight.gameasset.Armatures;
-import yesman.epicfight.world.capabilities.entitypatch.mob.SkeletonPatch;
-import yesman.epicfight.world.capabilities.entitypatch.mob.VindicatorPatch;
-import yesman.epicfight.world.capabilities.entitypatch.mob.ZombiePatch;
 
 import java.util.Map;
 
@@ -47,13 +42,13 @@ public final class PlayerSystemCombat {
                             entity ->
                                     switch (preset) {
                                         case "vindicator" ->
-                                                new VindicatorPatch<>((PathfinderMob) entity);
+                                                new PlayerSystemAnimatedPatches.Vindicator(entity);
                                         case "wither_skeleton" ->
-                                                new yesman.epicfight.world.capabilities.entitypatch
-                                                        .mob.WitherSkeletonPatch<>(
-                                                        (PathfinderMob) entity);
-                                        case "zombie" -> new ZombiePatch<>((Zombie) entity);
-                                        default -> new SkeletonPatch<>((AbstractSkeleton) entity);
+                                                new PlayerSystemAnimatedPatches.WitherSkeleton(
+                                                        entity);
+                                        case "zombie" ->
+                                                new PlayerSystemAnimatedPatches.Zombie(entity);
+                                        default -> new PlayerSystemAnimatedPatches.Skeleton(entity);
                                     });
                 });
     }

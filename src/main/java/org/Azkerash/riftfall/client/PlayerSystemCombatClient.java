@@ -96,12 +96,34 @@ public final class PlayerSystemCombatClient {
 
     public static final class Renderer extends HumanoidMobRenderer<Mob, HumanoidModel<Mob>> {
         private final ResourceLocation texture;
+        private final dev.kubas.playersystem.client.species.SpeciesRenderer<
+                        dev.kubas.playersystem.entity.species.SpeciesVindicator>
+                nativeRenderer;
 
         Renderer(EntityRendererProvider.Context context, String name) {
             super(context, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER)), .5F);
+            nativeRenderer = new dev.kubas.playersystem.client.species.SpeciesRenderer<>(context);
             texture =
                     ResourceLocation.fromNamespaceAndPath(
                             "player_system", "textures/entity/mob/" + name + ".png");
+        }
+
+        @Override
+        public void render(
+                Mob mob,
+                float yaw,
+                float partialTick,
+                com.mojang.blaze3d.vertex.PoseStack pose,
+                net.minecraft.client.renderer.MultiBufferSource buffers,
+                int light) {
+            if (org.Azkerash.riftfall.compat.NativeOrcCast.active(mob)
+                    && mob
+                            instanceof
+                            dev.kubas.playersystem.entity.species.SpeciesVindicator caster) {
+                nativeRenderer.render(caster, yaw, partialTick, pose, buffers, light);
+                return;
+            }
+            super.render(mob, yaw, partialTick, pose, buffers, light);
         }
 
         @Override

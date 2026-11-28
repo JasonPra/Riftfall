@@ -16,6 +16,33 @@ class SelfStatusConfidenceTest {
     }
 
     @Test
+    void encounterBoostHelpsSmallGroupsWithoutRemovingMoralePenalties() {
+        var settings = ConfidenceConfig.defaults();
+        var factors = new java.util.HashMap<>(Map.of("base", 1D, "equipment.sword", 1D));
+        var ordinary =
+                ConfidenceEngine.evaluate(
+                        settings.profile(), Map.of("riftfall:goblin", 1D), factors);
+        factors.put("self.in_rift", 1D);
+        var encounter =
+                ConfidenceEngine.evaluate(
+                        settings.profile(), Map.of("riftfall:goblin", 1D), factors);
+        assertEquals(ordinary.points() + 20, encounter.points());
+        assertTrue(encounter.atLeast(settings.boldPoints()));
+        factors.put("self.low_health", 1D);
+        factors.put("self.witnessed_ally_death", 3D);
+        var shaken =
+                ConfidenceEngine.evaluate(
+                        settings.profile(), Map.of("riftfall:goblin", 1D), factors);
+        assertTrue(shaken.points() < encounter.points());
+        assertFalse(shaken.atLeast(settings.boldPoints()));
+        assertEquals(20, ConfidenceConfig.withStatusDefaults(Map.of()).get("self.in_rift"));
+        assertEquals(
+                0,
+                ConfidenceConfig.withStatusDefaults(Map.of("self.in_rift", 0D))
+                        .get("self.in_rift"));
+    }
+
+    @Test
     void poisonAndWitherStackWithoutCountingTheirGenericPenaltyAgain() {
         assertEquals(-8, penalty(true, false, 0));
         assertEquals(-10, penalty(false, true, 0));

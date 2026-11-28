@@ -40,6 +40,7 @@ public final class ConfidenceConfig {
                                 Map.entry("self.witnessed_ally_death", -8D),
                                 Map.entry("self.poison", -8D),
                                 Map.entry("self.rallied", 40D),
+                                Map.entry("self.in_rift", 20D),
                                 Map.entry("self.wither", -10D),
                                 Map.entry("self.harmful_effect", -4D),
                                 Map.entry("target.poison", 8D),
@@ -234,6 +235,7 @@ public final class ConfidenceConfig {
         for (String key :
                 List.of(
                         "self.rallied",
+                        "self.in_rift",
                         "self.poison",
                         "self.wither",
                         "self.harmful_effect",
