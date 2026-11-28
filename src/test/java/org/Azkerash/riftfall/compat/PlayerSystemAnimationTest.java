@@ -15,7 +15,10 @@ class PlayerSystemAnimationTest {
     @Test
     void clipsAreFiniteRigidTransformsAndLocomotionLoopsCloseCleanly() throws Exception {
         for (String mob : PlayerSystemCombat.HUMANOIDS.keySet()) {
-            for (String kind : List.of("idle", "walk", "attack")) {
+            for (String kind :
+                    mob.equals("orc_warrior")
+                            ? List.of("idle", "walk")
+                            : List.of("idle", "walk", "attack")) {
                 String path =
                         mob.equals("orc_warrior")
                                 ? "assets/riftfall/animmodels/animations/orc_warrior/"

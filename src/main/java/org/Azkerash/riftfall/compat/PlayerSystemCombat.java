@@ -30,6 +30,11 @@ public final class PlayerSystemCombat {
 
     @SuppressWarnings("unchecked")
     public static void patches(EntityPatchRegistryEvent event) {
+        var orc = org.Azkerash.riftfall.OrcEntities.ORC_WARRIOR.get();
+        Armatures.registerEntityTypeArmature(orc, Armatures.BIPED);
+        event.registerEntityPatchUnsafe(
+                (EntityType<PathfinderMob>) (EntityType<?>) orc,
+                PlayerSystemAnimatedPatches.OrcWarrior::new);
         HUMANOIDS.forEach(
                 (name, preset) -> {
                     var type = type(name);
@@ -46,7 +51,7 @@ public final class PlayerSystemCombat {
                             entity ->
                                     switch (preset) {
                                         case "vindicator" ->
-                                                new PlayerSystemAnimatedPatches.Vindicator(entity);
+                                                new PlayerSystemAnimatedPatches.OrcWarrior(entity);
                                         case "wither_skeleton" ->
                                                 new PlayerSystemAnimatedPatches.WitherSkeleton(
                                                         entity);

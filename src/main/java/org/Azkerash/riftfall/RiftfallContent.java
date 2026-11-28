@@ -7,6 +7,10 @@ final class RiftfallContent {
     static void register(IEventBus bus) {
         bus.addListener(org.Azkerash.riftfall.equipment.MobEquipment::attributes);
         GoblinEntities.TYPES.register(bus);
+        OrcEntities.TYPES.register(bus);
+        bus.addListener(
+                (net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent event) ->
+                        event.put(OrcEntities.ORC_WARRIOR.get(), OrcEntity.attributes().build()));
         org.Azkerash.riftfall.spells.RiftfallSpells.register(bus);
         GoblinItems.register(bus);
         RiftfallSkills.SKILLS.register(bus);

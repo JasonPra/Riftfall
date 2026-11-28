@@ -84,6 +84,16 @@ public final class GoblinItems {
                                     0xA88653,
                                     new Item.Properties()));
 
+    private static final java.util.function.Supplier<Item> ORC =
+            ITEMS.register(
+                    "orc_warrior_spawn_egg",
+                    () ->
+                            new DeferredSpawnEggItem(
+                                    OrcEntities.ORC_WARRIOR,
+                                    0x536D35,
+                                    0x593F2B,
+                                    new Item.Properties()));
+
     static void register(IEventBus bus) {
         ITEMS.register(bus);
         bus.addListener(
@@ -98,6 +108,7 @@ public final class GoblinItems {
                         event.accept(GOBLIN.get());
                         event.accept(SHAMAN.get());
                         event.accept(ARCHER.get());
+                        event.accept(ORC.get());
                     }
                 });
     }

@@ -15,8 +15,8 @@ public final class EncounterGoblins {
     public static EntityType<?> replacement(EntityType<?> type) {
         var id = BuiltInRegistries.ENTITY_TYPE.getKey(type).toString();
         return switch (id) {
-            case "player_system:goblin_scavenger", "player_system:hobgoblin_guard" ->
-                    GoblinEntities.GOBLIN.get();
+            case "player_system:goblin_scavenger" -> GoblinEntities.GOBLIN.get();
+            case "player_system:orc_warrior" -> org.Azkerash.riftfall.OrcEntities.ORC_WARRIOR.get();
             default -> type;
         };
     }

@@ -22,6 +22,24 @@ class OrcWarriorRigTest {
     }
 
     @Test
+    void bindPoseExactlyMatchesEpicFightBipedForSharedAxeAnimations() throws Exception {
+        try (var stream =
+                getClass()
+                        .getClassLoader()
+                        .getResourceAsStream("assets/epicfight/animmodels/entity/biped.json")) {
+            assertNotNull(stream);
+            var biped =
+                    JsonParser.parseReader(
+                                    new InputStreamReader(
+                                            stream, java.nio.charset.StandardCharsets.UTF_8))
+                            .getAsJsonObject();
+            assertEquals(
+                    biped.getAsJsonObject("armature"),
+                    asset("entity/orc_warrior").getAsJsonObject("armature"));
+        }
+    }
+
+    @Test
     void authoredMeshHasIndependentLimbsAndToolAttachmentOnItsOwnRig() {
         var model = asset("entity/orc_warrior");
         var rig = model.getAsJsonObject("armature");
@@ -38,9 +56,7 @@ class OrcWarriorRigTest {
                                 "rightLeg",
                                 Set.of(1, 2),
                                 "leftLeg",
-                                Set.of(4, 5),
-                                "orcAxe",
-                                Set.of(13))
+                                Set.of(4, 5))
                         .entrySet()) {
             Set<Integer> used = new HashSet<>();
             var indices = parts.getAsJsonObject(part.getKey()).getAsJsonArray("array");
@@ -65,7 +81,6 @@ class OrcWarriorRigTest {
                 List.of(
                         "idle",
                         "walk",
-                        "attack",
                         "spell_windup",
                         "spell_slam",
                         "hurt",

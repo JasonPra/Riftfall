@@ -18,10 +18,11 @@ public final class NativeOrcCast {
     public static final String WINDUP = "RiftfallOrcWindupTicks";
 
     public static boolean isOrc(Mob mob) {
-        return BuiltInRegistries.ENTITY_TYPE
-                .getKey(mob.getType())
-                .toString()
-                .equals("player_system:orc_warrior");
+        return mob instanceof org.Azkerash.riftfall.OrcEntity
+                || BuiltInRegistries.ENTITY_TYPE
+                        .getKey(mob.getType())
+                        .toString()
+                        .equals("player_system:orc_warrior");
     }
 
     public static boolean active(Mob mob) {

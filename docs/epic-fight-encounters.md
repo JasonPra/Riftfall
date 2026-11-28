@@ -15,8 +15,9 @@ Audited Player System 0.0.11, Quintessence 0.144.0 and Epic Fight 21.17.3.1. The
 
 These are explicitly registered entity types, not a blanket replacement of every
 mob's AI. The [animation pass](player-system-animations.md) adds species-specific
-locomotion and melee. The orc warrior has an authored Epic Fight mesh and its own
-armature for all locomotion, melee, spell presentation, hit reactions and death.
+locomotion and melee. The orc warrior is replaced with the standalone `riftfall:orc_warrior`, with an
+authored mesh bound to Epic Fight’s standard biped rig. It uses the built-in
+one-handed tool attacks for its equipped axe, with authored spell and death poses.
 Player System retains its original orc spell logic, species stats, affixes and
 encounter bookkeeping. The orc uses the installed skin; no GeckoLib renderer
 handoff remains.
@@ -31,7 +32,7 @@ The pinned Epic Fight jar's GeckoLib integration contains an armor mesh transfor
 
 ## Goblin substitution and confinement
 
-Player System's `goblin_scavenger` and `hobgoblin_guard` species keep their original species IDs, ranks, statistics and skills, but their encounter slots now select mixed Riftfall goblin roles: shaman, buckler/sword warriors and archers. See the [animation and group update](player-system-animations.md) for composition and confidence tuning. Their foreign fleeing/shield behaviors are removed so that Riftfall owns goblin movement and blocking. Role equipment is restored after Player System clears slots during species application. A factory redirect also handles those original body IDs in Player System encounter spawners and Quintessence rifts. Substitution occurs before species scaling, encounter tracking and rewards are applied; it does not cancel and respawn an already tracked entity.
+Only Player System's `goblin_scavenger` species is replaced with mixed Riftfall goblin roles: buckler/sword warriors, archers and a limited number of shamans. It keeps its original species ID, rank, statistics and skills. `hobgoblin_guard` is untouched: its original entity body, frontal shield behavior, statistics and skills are retained. See the [animation and group update](player-system-animations.md) for composition and confidence tuning. The scavenger’s foreign fleeing behavior is removed so Riftfall owns goblin movement. Role equipment is restored after Player System clears slots during species application. A factory redirect also handles those original body IDs in Player System encounter spawners and Quintessence rifts. Substitution occurs before species scaling, encounter tracking and rewards are applied; it does not cancel and respawn an already tracked entity.
 
 On server world entry, all Riftfall goblin roles are marked `RiftfallInRift=true` when any of these holds:
 
@@ -50,3 +51,8 @@ Quintessence's shipped rift tags mostly select vanilla mobs. Those use Epic Figh
 ## Validation
 
 The native server check creates all six patched humanoids, verifies their attached patch classes, and confirms that an orc deals damage through an Epic Fight attack animation. It exercises Player System's species factory for both substituted goblins and checks flag persistence, marked-rift spawns, and ordinary unmarked spawns. Mesh regression checks load the installed geometry for every supported humanoid, validate finite vertices/normals and valid skin/triangle indices, and verify outward cube-face winding after coordinate conversion. Temporary verification entities and launch fixtures are excluded from the release build.
+
+Saved Riftfall goblin replacements whose Player System species explicitly identifies
+`hobgoblin_guard` are restored to the original hobgoblin body before world entry.
+Their UUID, health, NoAI state, species stats and encounter metadata are retained;
+replacement-only goblin weapons are removed. Genuine goblins are not converted.

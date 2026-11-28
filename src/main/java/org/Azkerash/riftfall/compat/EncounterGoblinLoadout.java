@@ -30,24 +30,21 @@ public final class EncounterGoblinLoadout {
     }
 
     public static Role role(int shamans, int warriors, int archers, int roll) {
-        if (shamans == 0) {
-            return Role.SHAMAN;
-        }
-        if (shamans < 2 && warriors + archers >= 12) {
-            return Role.SHAMAN;
-        }
         if (warriors == 0) {
             return Role.WARRIOR;
         }
-        if (archers == 0 || roll < 2) {
+        if (archers == 0) {
             return Role.ARCHER;
         }
-        return Role.WARRIOR;
+        if (shamans == 0 || shamans < 2 && warriors + archers >= 12) {
+            return Role.SHAMAN;
+        }
+        return roll < 2 ? Role.ARCHER : Role.WARRIOR;
     }
 
     public static Entity create(EntityType<?> type, Level level, double x, double y, double z) {
         if (EncounterGoblins.replacement(type) != GoblinEntities.GOBLIN.get()) {
-            return type.create(level);
+            return EncounterGoblins.create(type, level);
         }
         String group =
                 level instanceof net.minecraft.server.level.ServerLevel serverLevel
@@ -56,6 +53,7 @@ public final class EncounterGoblinLoadout {
                                 .map(instance -> instance.id().toString())
                                 .orElse("")
                         : "";
+        // Prepared tower mobs intentionally have NoAI until entry; they still occupy role slots.
         var nearby =
                 new java.util.HashSet<>(
                         level.getEntitiesOfClass(
@@ -64,7 +62,6 @@ public final class EncounterGoblinLoadout {
                                 g ->
                                         near(g, x, y, z)
                                                 && g.isAlive()
-                                                && !g.isNoAi()
                                                 && (g.isInRift()
                                                         || g.getPersistentData()
                                                                 .getBoolean(REPLACEMENT))));
@@ -90,7 +87,6 @@ public final class EncounterGoblinLoadout {
             var goblin = entry.entity().get();
             if (goblin != null
                     && goblin.isAlive()
-                    && !goblin.isNoAi()
                     && (group.isEmpty()
                             ? near(goblin, x, y, z)
                             : group.equals(goblin.getPersistentData().getString(GROUP)))) {

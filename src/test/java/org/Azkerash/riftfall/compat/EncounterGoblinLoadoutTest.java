@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 class EncounterGoblinLoadoutTest {
     @Test
     void smallGroupsGetSupportAndLargerGroupsMixArchersWithWarriors() {
-        assertEquals(EncounterGoblinLoadout.Role.SHAMAN, EncounterGoblinLoadout.role(0, 0, 0, 3));
+        assertEquals(EncounterGoblinLoadout.Role.WARRIOR, EncounterGoblinLoadout.role(0, 0, 0, 3));
+        assertEquals(EncounterGoblinLoadout.Role.ARCHER, EncounterGoblinLoadout.role(0, 1, 0, 3));
+        assertEquals(EncounterGoblinLoadout.Role.SHAMAN, EncounterGoblinLoadout.role(0, 1, 1, 3));
         assertEquals(EncounterGoblinLoadout.Role.WARRIOR, EncounterGoblinLoadout.role(1, 0, 0, 0));
         assertEquals(EncounterGoblinLoadout.Role.ARCHER, EncounterGoblinLoadout.role(1, 1, 0, 3));
         int archers = 0, warriors = 0;
@@ -33,7 +35,7 @@ class EncounterGoblinLoadoutTest {
                 case WARRIOR -> warriors++;
                 case ARCHER -> archers++;
             }
-            assertEquals(slot < 13 ? 1 : 2, shamans);
+            assertEquals(slot < 2 ? 0 : slot < 13 ? 1 : 2, shamans);
         }
         assertEquals(2, shamans);
         assertTrue(warriors >= 25);

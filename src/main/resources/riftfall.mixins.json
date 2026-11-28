@@ -31,7 +31,10 @@
     "PlayerSystemSkillBookShopMixin",
     "PlayerSystemOrcTelegraphMixin",
     "PlayerSystemGoblinCompositionMixin",
-    "QuintessenceGoblinCompositionMixin"
+    "QuintessenceGoblinCompositionMixin",
+    "OrcBodyReplacementMixin",
+    "SavedHobgoblinRestorationMixin",
+    "TowerGoblinPopulationMixin"
   ],
   "client": [
     "CameraAccess",

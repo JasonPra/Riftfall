@@ -243,7 +243,7 @@
     {
       "species": "hobgoblin_guard",
       "body": "player_system:hobgoblin_guard",
-      "support": "replaced by mixed Riftfall goblin encounter roles"
+      "support": "original body and behavior retained; no Riftfall replacement"
     },
     {
       "species": "irons_archevoker",
@@ -308,7 +308,7 @@
     {
       "species": "orc_warrior",
       "body": "player_system:orc_warrior",
-      "support": "Epic Fight dedicated orc mesh/armature; melee, locomotion, spell presentation, hit reactions and finite death; native spell logic retained"
+      "support": "replaced by Riftfall orc warrior with standard Epic Fight biped axe attacks"
     },
     {
       "species": "rotting_zombie",

@@ -11,10 +11,10 @@ import yesman.epicfight.world.entity.ai.goal.CombatBehaviors;
 
 /** Keep native ranged/weapon support, specializing ordinary humanoid melee and locomotion. */
 final class PlayerSystemAnimatedPatches {
-    static final class Vindicator extends VindicatorPatch<PathfinderMob> {
+    static final class OrcWarrior extends VindicatorPatch<PathfinderMob> {
         private boolean deathStarted;
 
-        Vindicator(PathfinderMob mob) {
+        OrcWarrior(PathfinderMob mob) {
             super(mob);
         }
 
@@ -32,7 +32,7 @@ final class PlayerSystemAnimatedPatches {
 
         @Override
         protected CombatBehaviors.Builder<HumanoidMobPatch<?>> getHoldingItemWeaponMotionBuilder() {
-            return OrcWarriorAnimations.melee(original);
+            return yesman.epicfight.gameasset.MobCombatBehaviors.HUMANOID_ONEHAND_TOOLS;
         }
 
         @Override

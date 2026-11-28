@@ -50,6 +50,7 @@ public abstract class PlayerSystemGoblinCompositionMixin {
             double health,
             double damage,
             CallbackInfo callback) {
+        org.Azkerash.riftfall.OrcEntity.restoreWeapon(mob);
         if (mob instanceof GoblinEntity goblin) {
             EncounterGoblinLoadout.restore(goblin);
         }

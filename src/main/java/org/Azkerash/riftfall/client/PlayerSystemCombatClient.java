@@ -70,6 +70,18 @@ public final class PlayerSystemCombatClient {
         yesman.epicfight.api.client.event.EpicFightClientEventHooks.Registry.ADD_PATCHED_ENTITY
                 .registerEvent(
                         event -> {
+                            event.addPatchedEntityRenderer(
+                                    org.Azkerash.riftfall.OrcEntities.ORC_WARRIOR.get(),
+                                    type ->
+                                            new PHumanoidRenderer<
+                                                    Mob,
+                                                    LivingEntityPatch<Mob>,
+                                                    HumanoidModel<Mob>,
+                                                    Renderer,
+                                                    HumanoidMesh>(
+                                                    MESHES.get("orc_warrior"),
+                                                    event.getContext(),
+                                                    type));
                             MESHES.forEach(
                                     (name, preset) ->
                                             event.addPatchedEntityRenderer(
@@ -83,31 +95,16 @@ public final class PlayerSystemCombatClient {
                                                                     HumanoidMesh>(
                                                                     MESHES.get(name),
                                                                     event.getContext(),
-                                                                    type) {
-                                                                @Override
-                                                                protected void prepareModel(
-                                                                        HumanoidMesh mesh,
-                                                                        Mob mob,
-                                                                        LivingEntityPatch<Mob>
-                                                                                patch,
-                                                                        Renderer renderer) {
-                                                                    super.prepareModel(
-                                                                            mesh, mob, patch,
-                                                                            renderer);
-                                                                    if (mesh.hasPart("orcAxe")) {
-                                                                        mesh.getPart("orcAxe")
-                                                                                .setHidden(
-                                                                                        !mob.getMainHandItem()
-                                                                                                .isEmpty());
-                                                                    }
-                                                                }
-                                                            }));
+                                                                    type)));
                         });
     }
 
     @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST)
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(
+                org.Azkerash.riftfall.OrcEntities.ORC_WARRIOR.get(),
+                context -> new Renderer(context, "orc_warrior"));
         PlayerSystemCombat.HUMANOIDS
                 .keySet()
                 .forEach(
