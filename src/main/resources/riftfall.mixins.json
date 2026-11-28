@@ -4,6 +4,9 @@
   "package": "org.Azkerash.riftfall.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "PlayerSystemAtlasTitlesMixin",
+    "AtlasTitleSyncMixin",
+    "AtlasTitleNameMixin",
     "EpicFightMatrixScratchMixin",
     "MobManaMixin",
     "MobCuriosSlotsMixin",
